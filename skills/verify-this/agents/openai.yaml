@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify This"
+  short_description: "Help with Verify This tasks and workflows"
+  default_prompt: "Use $verify-this to help with a relevant task."

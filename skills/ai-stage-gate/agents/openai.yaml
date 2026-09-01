@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ai Stage Gate"
+  short_description: "Help with Ai Stage Gate tasks and workflows"
+  default_prompt: "Use $ai-stage-gate to help with a relevant task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Ops"
+  short_description: "Help with Research Ops tasks and workflows"
+  default_prompt: "Use $research-ops to help with a relevant task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prompt Caching Playbook"
+  short_description: "Help with Prompt Caching Playbook tasks and workflows"
+  default_prompt: "Use $prompt-caching-playbook to help with a relevant task."

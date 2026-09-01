@@ -1,0 +1,4 @@
+interface:
+  display_name: "Chrome Cdp"
+  short_description: "Help with Chrome Cdp tasks and workflows"
+  default_prompt: "Use $chrome-cdp to help with a relevant task."

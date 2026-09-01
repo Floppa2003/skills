@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Scraper Agent"
+  short_description: "Help with Data Scraper Agent tasks and workflows"
+  default_prompt: "Use $data-scraper-agent to help with a relevant task."

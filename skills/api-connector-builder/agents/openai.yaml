@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Connector Builder"
+  short_description: "Help with API Connector Builder tasks and workflows"
+  default_prompt: "Use $api-connector-builder to help with a relevant task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ml System Design Review"
+  short_description: "Help with Ml System Design Review tasks and workflows"
+  default_prompt: "Use $ml-system-design-review to help with a relevant task."

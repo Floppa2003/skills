@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apify"
+  short_description: "Help with Apify tasks and workflows"
+  default_prompt: "Use $apify to help with a relevant task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Receiving Code Review"
+  short_description: "Help with Receiving Code Review tasks and workflows"
+  default_prompt: "Use $receiving-code-review to help with a relevant task."

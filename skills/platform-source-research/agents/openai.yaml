@@ -1,0 +1,4 @@
+interface:
+  display_name: "Platform Source Research"
+  short_description: "Collect primary platform evidence safely."
+  default_prompt: "Use $platform-source-research to collect primary sources about a topic."

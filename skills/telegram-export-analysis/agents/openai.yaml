@@ -1,0 +1,7 @@
+interface:
+  display_name: "Telegram Export Analysis"
+  short_description: "Index Telegram Desktop JSON locally"
+  default_prompt: "Use $telegram-export-analysis to import my Telegram Desktop JSON export and search it locally."
+
+policy:
+  allow_implicit_invocation: true

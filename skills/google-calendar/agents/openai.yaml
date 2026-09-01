@@ -1,0 +1,4 @@
+interface:
+  display_name: "Google Calendar"
+  short_description: "Help with Google Calendar tasks and workflows"
+  default_prompt: "Use $google-calendar to help with a relevant task."

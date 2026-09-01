@@ -1,0 +1,8 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -4,4 +4,4 @@ description: A relentless interview to sharpen a plan or design, which also crea
+ disable-model-invocation: true
+ ---
+ 
+-Call the Skill tool twice, for "grilling" and "domain-modeling".
++This workflow requires the installed `grilling` and `domain-modeling` skills. Invoke `grilling` and use `domain-modeling` to maintain the ADRs and glossary created during the session. If either skill is unavailable, stop and report the missing dependency; do not fall back to a standalone session.

@@ -1,0 +1,10 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -1,7 +1,6 @@
+ ---
+ name: auto-improve
+ description: GAN-style iterative improvement loop for any text artifact. Mutates a file, grades each change against a rubric with a SEPARATE model, keeps only verified wins (pairwise-judged), reverts the rest. The git history is the improvement log. Use when the user wants to autonomously improve the quality of a document, email, prompt, landing page, README, contract, or any text file.
+-user-invocable: true
+ ---
+ 
+ # auto-improve

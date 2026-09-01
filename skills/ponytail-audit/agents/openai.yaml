@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ponytail Audit"
+  short_description: "Help with Ponytail Audit tasks and workflows"
+  default_prompt: "Use $ponytail-audit to help with a relevant task."

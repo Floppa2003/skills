@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lossless Doc Compress"
+  short_description: "Help with Lossless Doc Compress tasks and workflows"
+  default_prompt: "Use $lossless-doc-compress to help with a relevant task."

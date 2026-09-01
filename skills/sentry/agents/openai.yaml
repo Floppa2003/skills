@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sentry"
+  short_description: "Help with Sentry tasks and workflows"
+  default_prompt: "Use $sentry to help with a relevant task."

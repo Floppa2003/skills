@@ -1,0 +1,4 @@
+interface:
+  display_name: "Coaching Session Summarizer"
+  short_description: "Help with Coaching Session Summarizer tasks and workflows"
+  default_prompt: "Use $coaching-session-summarizer to help with a relevant task."

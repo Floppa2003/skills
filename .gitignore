@@ -1,0 +1,12 @@
+.DS_Store
+.venv/
+__MACOSX/
+__pycache__/
+*.pyc
+*.orig
+node_modules/
+skill_updater/.update.lock
+skill_updater/backups/
+skill_updater/compatibility/
+skill_updater/logs/
+skill_updater/tmp/

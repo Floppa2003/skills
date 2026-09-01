@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kill Ai Slop"
+  short_description: "Help with Kill Ai Slop tasks and workflows"
+  default_prompt: "Use $kill-ai-slop to help with a relevant task."

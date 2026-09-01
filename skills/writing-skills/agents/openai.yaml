@@ -1,0 +1,4 @@
+interface:
+  display_name: "Writing Skills"
+  short_description: "Help with Writing Skills tasks and workflows"
+  default_prompt: "Use $writing-skills to help with a relevant task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deep Research"
+  short_description: "Help with Deep Research tasks and workflows"
+  default_prompt: "Use $deep-research to help with a relevant task."

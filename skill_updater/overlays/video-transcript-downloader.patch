@@ -1,0 +1,9 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -16,7 +16,7 @@
+ ## Setup
+ 
+ ```bash
+-cd ~/Projects/agent-scripts/skills/video-transcript-downloader && npm ci
++cd "${CODEX_HOME:-$HOME/.codex}/skills/video-transcript-downloader" && npm ci
+ ```

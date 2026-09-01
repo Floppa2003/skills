@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cognitive Toolkit"
+  short_description: "Help with Cognitive Toolkit tasks and workflows"
+  default_prompt: "Use $cognitive-toolkit to help with a relevant task."

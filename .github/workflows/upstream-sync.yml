@@ -1,0 +1,60 @@
+name: Propose upstream skill updates
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upstream-skill-sync
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      UPDATE_BRANCH: automation/upstream-skill-sync
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Prepare update branch
+        run: git switch --force-create "$UPDATE_BRANCH" origin/main
+      - name: Refresh canonical skills
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! python3 skill_updater/update_skills.py refresh --apply; then
+            echo "Updater diagnostics:"
+            cat skill_updater/logs/last_run_summary.json || true
+            exit 1
+          fi
+      - name: Run updater tests
+        run: python3 -m unittest skill_updater.tests.test_update_skills
+      - name: Regenerate ChatGPT manifest
+        run: |
+          python3 -m pip install --disable-pip-version-check --require-hashes -r scripts/requirements-chatgpt.txt
+          python3 scripts/build_chatgpt_md.py
+          python3 scripts/build_chatgpt_md.py --check
+      - name: Commit and propose changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain -- CHATGPT.md skills skill_updater/registry.json)" ]]; then
+            echo "No upstream changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHATGPT.md skills skill_updater/registry.json
+          git diff --cached --check -- CHATGPT.md skill_updater/registry.json
+          git commit -m "Refresh skills from upstream"
+          git push --force-with-lease origin "HEAD:refs/heads/$UPDATE_BRANCH"
+          echo "Review and open a pull request:"
+          echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/main...${UPDATE_BRANCH}?expand=1"

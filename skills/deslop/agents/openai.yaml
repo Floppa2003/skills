@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deslop"
+  short_description: "Help with Deslop tasks and workflows"
+  default_prompt: "Use $deslop to help with a relevant task."

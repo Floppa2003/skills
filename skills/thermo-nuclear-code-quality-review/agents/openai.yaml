@@ -1,0 +1,4 @@
+interface:
+  display_name: "Thermo Nuclear Code Quality Review"
+  short_description: "Help with Thermo Nuclear Code Quality Review tasks and workflows"
+  default_prompt: "Use $thermo-nuclear-code-quality-review to help with a relevant task."

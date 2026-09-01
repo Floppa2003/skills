@@ -1,0 +1,4 @@
+interface:
+  display_name: "Posthog"
+  short_description: "Help with Posthog tasks and workflows"
+  default_prompt: "Use $posthog to help with a relevant task."

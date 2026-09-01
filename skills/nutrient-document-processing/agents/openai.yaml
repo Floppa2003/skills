@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nutrient Document Processing"
+  short_description: "Help with Nutrient Document Processing tasks and workflows"
+  default_prompt: "Use $nutrient-document-processing to help with a relevant task."

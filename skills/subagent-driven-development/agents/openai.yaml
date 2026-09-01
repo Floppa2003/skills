@@ -1,0 +1,4 @@
+interface:
+  display_name: "Subagent Driven Development"
+  short_description: "Help with Subagent Driven Development tasks and workflows"
+  default_prompt: "Use $subagent-driven-development to help with a relevant task."

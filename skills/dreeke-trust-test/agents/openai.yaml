@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dreeke Trust Test"
+  short_description: "Help with Dreeke Trust Test tasks and workflows"
+  default_prompt: "Use $dreeke-trust-test to help with a relevant task."

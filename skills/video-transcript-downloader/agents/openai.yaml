@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Transcript Downloader"
+  short_description: "Help with Video Transcript Downloader tasks and workflows"
+  default_prompt: "Use $video-transcript-downloader to help with a relevant task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zoom Out"
+  short_description: "Help with Zoom Out tasks and workflows"
+  default_prompt: "Use $zoom-out to help with a relevant task."

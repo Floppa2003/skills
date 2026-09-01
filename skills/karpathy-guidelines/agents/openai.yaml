@@ -1,0 +1,4 @@
+interface:
+  display_name: "Karpathy Guidelines"
+  short_description: "Help with Karpathy Guidelines tasks and workflows"
+  default_prompt: "Use $karpathy-guidelines to help with a relevant task."

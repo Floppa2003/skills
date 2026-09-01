@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gmail"
+  short_description: "Help with Gmail tasks and workflows"
+  default_prompt: "Use $gmail to help with a relevant task."

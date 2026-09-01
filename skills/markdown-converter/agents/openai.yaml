@@ -1,0 +1,4 @@
+interface:
+  display_name: "Markdown Converter"
+  short_description: "Help with Markdown Converter tasks and workflows"
+  default_prompt: "Use $markdown-converter to help with a relevant task."

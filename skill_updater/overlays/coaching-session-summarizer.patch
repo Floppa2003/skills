@@ -1,0 +1,54 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -11,10 +11,10 @@
+ (key insights, decisions, action items, deep analysis, connected trails) to the
+ note.
+ 
+-**The agent (Claude Code) performs the analysis directly** — reading the
+-transcript and writing the summary in this session. There is **no Anthropic API
+-call and no billing**; it runs entirely on the active subscription. A legacy
+-API-based script is kept only as a headless fallback (see bottom).
++**The current agent performs the analysis directly** — reading the transcript
++and writing the summary in this session. There is **no external API call or
++billing**; it runs entirely on the active subscription. A separate
++Anthropic-only script is kept only as a headless fallback (see bottom).
+ 
+ ## When to Use This Skill
+ 
+@@ -33,9 +33,10 @@
+ the trail list in one shot:
+ 
+ ```bash
+-python3 ~/.claude/skills/coaching-session-summarizer/scripts/gather_context.py \
+-  <transcript-file> --vault ~/Brains/brain
++python3 "${CODEX_HOME:-$HOME/.codex}/skills/coaching-session-summarizer/scripts/gather_context.py" \
++  <transcript-file> --vault <vault-root>
+ ```
++Pass the vault root explicitly; do not rely on the upstream personal default.
+ 
+ It prints:
+ - **Previous sessions** with the same participant (paths) — `Read` these only in
+@@ -137,7 +138,7 @@
+ - **gather_context.py** — *(default path)* deterministic context gatherer, no
+   API. Prints transcript text + previous sessions + trail list for the agent to
+   analyze in-session.
+-- **summarize_session.py** — *legacy / headless fallback.* Calls the Anthropic
+-  API directly (model via `SUMMARIZER_MODEL`, default `claude-sonnet-4-6`) and
+-  bills a funded `ANTHROPIC_API_KEY`. Use only when no interactive agent is
+-  available (e.g. cron). Exits with a clear message if the key has no credit.
++- **summarize_session.py** — **Anthropic-only legacy / headless fallback.**
++  Calls the Anthropic API directly (model via `SUMMARIZER_MODEL`, default
++  `claude-sonnet-4-6`) and bills a funded `ANTHROPIC_API_KEY`. Use only when
++  no interactive agent is available (e.g. cron). It is not a Codex runtime.
+--- a/scripts/summarize_session.py
++++ b/scripts/summarize_session.py
+@@ -288,7 +288,8 @@
+                 "balance.\nThis script bills the Anthropic API directly.\n"
+                 "Options:\n"
+                 "  1. Add credits / use a funded key (export ANTHROPIC_API_KEY=...).\n"
+-                "  2. Ask Claude Code to run the analysis in-session (no API billing).",
++                "  2. Use an interactive agent session to run the analysis in-session "
++                "(no API billing).",
+                 file=sys.stderr,
+             )
+             sys.exit(2)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Using Superpowers"
+  short_description: "Help with Using Superpowers tasks and workflows"
+  default_prompt: "Use $using-superpowers to help with a relevant task."

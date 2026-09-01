@@ -1,0 +1,4 @@
+interface:
+  display_name: "Auto Improve"
+  short_description: "Help with Auto Improve tasks and workflows"
+  default_prompt: "Use $auto-improve to help with a relevant task."

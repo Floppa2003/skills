@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentation Lookup"
+  short_description: "Help with Documentation Lookup tasks and workflows"
+  default_prompt: "Use $documentation-lookup to help with a relevant task."

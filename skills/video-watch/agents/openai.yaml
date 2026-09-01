@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Watch"
+  short_description: "Inspect video frames and captions locally."
+  default_prompt: "Use $video-watch to inspect this video visually and cite timestamps."

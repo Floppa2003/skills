@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Throughput Accelerator"
+  short_description: "Help with Data Throughput Accelerator tasks and workflows"
+  default_prompt: "Use $data-throughput-accelerator to help with a relevant task."

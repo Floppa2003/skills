@@ -1,0 +1,4 @@
+interface:
+  display_name: "Firecrawl"
+  short_description: "Help with Firecrawl tasks and workflows"
+  default_prompt: "Use $firecrawl to help with a relevant task."

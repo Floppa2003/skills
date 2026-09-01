@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Opportunity Audit"
+  short_description: "Find recurring workflow automation opportunities"
+  default_prompt: "Use $workflow-opportunity-audit to audit my recent Codex work for recurring automation opportunities."

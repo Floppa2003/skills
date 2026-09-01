@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ponytail Review"
+  short_description: "Help with Ponytail Review tasks and workflows"
+  default_prompt: "Use $ponytail-review to help with a relevant task."

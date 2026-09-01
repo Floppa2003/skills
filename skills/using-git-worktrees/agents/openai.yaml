@@ -1,0 +1,4 @@
+interface:
+  display_name: "Using Git Worktrees"
+  short_description: "Help with Using Git Worktrees tasks and workflows"
+  default_prompt: "Use $using-git-worktrees to help with a relevant task."

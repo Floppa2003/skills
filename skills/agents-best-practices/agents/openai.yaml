@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agents Best Practices"
+  short_description: "Help with Agents Best Practices tasks and workflows"
+  default_prompt: "Use $agents-best-practices to help with a relevant task."

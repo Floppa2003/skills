@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Transcript"
+  short_description: "Help with Agent Transcript tasks and workflows"
+  default_prompt: "Use $agent-transcript to help with a relevant task."

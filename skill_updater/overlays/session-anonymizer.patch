@@ -1,0 +1,84 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -27,6 +27,15 @@
+ ```
+ 
+ Each layer is optional — the script gracefully skips unavailable layers and warns.
+ 
++## Local Runtime
++
++The installed runtime is isolated from the system Python:
++
++```bash
++export SESSION_ANONYMIZER_RUNTIME="${CODEX_HOME:-$HOME/.codex}/venvs/session-anonymizer"
++export PATH="$SESSION_ANONYMIZER_RUNTIME/bin:$PATH"
++```
++
+ ## Usage
+ 
+@@ -34,55 +34,55 @@
+ ### Single file
+ 
+ ```bash
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py session.txt
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py session.txt
+ ```
+ 
+ ### Stdin pipe
+ 
+ ```bash
+-cat session.txt | python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py
++cat session.txt | "$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py
+ ```
+ 
+ ### Batch processing
+ 
+ ```bash
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py --batch ~/sessions/ -o ~/sessions_clean/
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py --batch ~/sessions/ -o ~/sessions_clean/
+ ```
+ 
+ ### JSON report
+ 
+ ```bash
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py session.txt --json
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py session.txt --json
+ ```
+ 
+ ### Pseudonyms instead of tags
+ 
+ ```bash
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py session.txt --pseudonyms
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py session.txt --pseudonyms
+ ```
+ 
+ ### Select layers / model
+ 
+ ```bash
+ # Fast — Natasha only
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py session.txt --layers natasha
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py --layers natasha
+ 
+ # LLM only — maximum coverage
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py session.txt --layers ollama --model gemma4:e2b
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py session.txt --layers ollama --model qwen3:4b
+ ```
+ 
+ ### Encrypt output (AES-256)
+ 
+ ```bash
+-python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py session.txt -o clean.txt --encrypt "password"
++"$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py session.txt -o clean.txt --encrypt "password"
+ ```
+ 
+-## Invoking from Claude Code
++## Invoking from Codex
+ 
+ To anonymize text already in context, pipe it through the script:
+ 
+ ```bash
+-echo '<text>' | python3 ~/.claude/skills/therapy-anonymizer/scripts/anonymize.py --json
++echo '<text>' | "$SESSION_ANONYMIZER_RUNTIME/bin/python" ${CODEX_HOME:-$HOME/.codex}/skills/session-anonymizer/scripts/anonymize.py --json
+ ```
+ 
+ For files, pass the path directly. Always recommend manual review after automated anonymization.

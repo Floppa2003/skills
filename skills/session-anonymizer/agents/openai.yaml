@@ -1,0 +1,4 @@
+interface:
+  display_name: "Session Anonymizer"
+  short_description: "Help with Session Anonymizer tasks and workflows"
+  default_prompt: "Use $session-anonymizer to help with a relevant task."

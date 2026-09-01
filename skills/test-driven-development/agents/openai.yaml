@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Driven Development"
+  short_description: "Help with Test Driven Development tasks and workflows"
+  default_prompt: "Use $test-driven-development to help with a relevant task."

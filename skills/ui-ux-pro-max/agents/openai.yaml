@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI Ux Pro Max"
+  short_description: "Help with UI Ux Pro Max tasks and workflows"
+  default_prompt: "Use $ui-ux-pro-max to help with a relevant task."

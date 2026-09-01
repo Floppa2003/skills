@@ -1,0 +1,4 @@
+interface:
+  display_name: "Make PR Easy To Review"
+  short_description: "Help with Make PR Easy To Review tasks and workflows"
+  default_prompt: "Use $make-pr-easy-to-review to help with a relevant task."

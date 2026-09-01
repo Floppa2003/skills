@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cicd Speedup"
+  short_description: "Help with Cicd Speedup tasks and workflows"
+  default_prompt: "Use $cicd-speedup to help with a relevant task."

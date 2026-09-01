@@ -1,0 +1,4 @@
+interface:
+  display_name: "Telegram"
+  short_description: "Help with Telegram tasks and workflows"
+  default_prompt: "Use $telegram to help with a relevant task."
