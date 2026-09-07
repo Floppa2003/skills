@@ -20,7 +20,9 @@ For the user's own requested chat or channel history, use `telegram-export-analy
 
 ## YouTube
 
-Use `video-transcript-downloader` for subtitles or a transcript. Preserve video URL, channel, publication date, language, and timestamp for every quoted claim. If a transcript is unavailable, report that limitation.
+Use `video-transcript-downloader` first for subtitles or a transcript unless the user explicitly selects another permitted source. Use the approved public browser or open-web route for discovery. Preserve video URL, channel, publication date, language, and timestamp for every quoted claim.
+
+Consider TranscriptAPI for structured video or channel search, within-channel search, paginated channel or playlist listings, or an alternative transcript source when direct extraction is unavailable. Select it only under the YouTube TranscriptAPI contract in `route-contracts.md`; an existing key or a failed free route does not authorize its use. Load [youtube-transcriptapi.md](youtube-transcriptapi.md) only when considering or using this provider. If it is not authorized or available, retain the free route and report any access gap.
 
 ## RuTube And VK Video
 
