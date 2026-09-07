@@ -620,11 +620,12 @@
       "overlay": null,
       "enabled": false,
       "installed_commit": null,
-      "installed_hash": "adffb0f97992c521d406d49026b80387c4d93290dbb11d997aec883f167484ca",
+      "installed_hash": "fb4174859afabb68adeafea0014a45bbe1f2ebd6ac4f34669d2e7bd2e0404246",
       "skip_reason": "locally authored skill; intentionally unmanaged",
       "required_paths": [
         "SKILL.md",
-        "references/platform-routes.md"
+        "references/platform-routes.md",
+        "references/youtube-transcriptapi.md"
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
