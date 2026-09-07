@@ -837,11 +837,13 @@
       "overlay": "overlays/ui-ux-pro-max.patch",
       "enabled": true,
       "installed_commit": "f23267105ad1f4ccd94af45d382584ad45b586f7",
-      "installed_hash": "bcf09d98c8f3e227d74c4feadc2e8b0eeabf6fe24e2edac1dbf450e1f0ce6e76",
+      "installed_hash": "3235a92caa4b7abaf893cf497df5bbf41d06e8c67ea05dcf62f46b5285b85e6a",
       "skip_reason": null,
       "required_paths": [
         "scripts/search.py",
-        "data"
+        "data",
+        "references/quick-reference.md",
+        "references/pro-rules.md"
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": [
@@ -917,7 +919,7 @@
       "overlay": "overlays/video-transcript-downloader.patch",
       "enabled": true,
       "installed_commit": "9b6cb5bdd9ab852a0ca06b86a98e6573feaccce1",
-      "installed_hash": "dd13363a3fd3beec4aef939448fba398d15dec35d3798cb2582115edb94d99b1",
+      "installed_hash": "2c0c83311a678e1ec71ad6403169bc09c771307ec3f8df85a2ece4c40b01ab64",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [

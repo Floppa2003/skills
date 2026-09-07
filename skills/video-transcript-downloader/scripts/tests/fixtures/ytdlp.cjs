@@ -1,0 +1,10 @@
+const fs = require("node:fs");
+const path = require("node:path");
+const args = process.argv.slice(2);
+fs.writeFileSync(process.env.VTD_TEST_ARGS, JSON.stringify(args));
+if (process.env.VTD_TEST_SUBS === "missing") process.exit(0);
+const output = args[args.indexOf("-o") + 1];
+const extension = process.env.VTD_TEST_FORMAT;
+const fixture = process.env.VTD_TEST_BODY;
+const lang = process.env.VTD_TEST_WRONG_LANG || args[args.indexOf("--sub-lang") + 1];
+fs.writeFileSync(path.join(path.dirname(output), `fixture.${lang}.${extension}`), fixture);

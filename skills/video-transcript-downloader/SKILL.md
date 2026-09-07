@@ -11,7 +11,9 @@ description: "yt-dlp downloads: video, audio, subtitles, transcripts, clips, pla
 
 Transcript behavior:
 - YouTube: fetch via `youtube-transcript-plus` when possible.
-- Otherwise: pull subtitles via `yt-dlp`, then clean into a paragraph.
+- Otherwise: pull VTT/SRT subtitles via `yt-dlp`, preserving cue times when requested.
+- Both routes honor `--lang` (default: `en`). An unavailable language fails rather than silently selecting another track.
+- `--timestamps` emits `[m:ss]` or `[h:mm:ss]` cue start times on either route. Empty, invalid, or unsupported subtitles fail; they are never reported as a successful untimed transcript.
 
 ## Setup
 

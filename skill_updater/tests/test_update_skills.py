@@ -612,6 +612,8 @@ class StagingTests(TempDirTest):
         write(repo / "src/ui-ux-pro-max/scripts/search.py", "print('ok')\n")
         write(repo / "src/ui-ux-pro-max/data/styles.csv", "name\nminimal\n")
         write(repo / "src/ui-ux-pro-max/templates/base.md", "base\n")
+        for name in ("quick-reference.md", "pro-rules.md"):
+            write(repo / f".claude/skills/ui-ux-pro-max/references/{name}", f"# {name}\n")
         spec = SkillSpec(
             name="ui-ux-pro-max",
             repo="nextlevelbuilder/ui-ux-pro-max-skill",
@@ -624,6 +626,9 @@ class StagingTests(TempDirTest):
         self.assertTrue((staged / "scripts/search.py").is_file())
         self.assertTrue((staged / "data").is_dir())
         self.assertFalse((staged / "scripts").is_symlink())
+        for name in ("quick-reference.md", "pro-rules.md"):
+            self.assertTrue((staged / f"references/{name}").is_file())
+            self.assertEqual((staged / f"references/{name}").read_text(), f"# {name}\n")
 
     def test_directory_adapter_materializes_internal_repo_symlink(self) -> None:
         repo = self.root / "repo"

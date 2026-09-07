@@ -1,9 +1,392 @@
 --- a/SKILL.md
 +++ b/SKILL.md
-@@ -16,7 +16,7 @@
+@@ -11,12 +11,14 @@
+
+ Transcript behavior:
+ - YouTube: fetch via `youtube-transcript-plus` when possible.
+-- Otherwise: pull subtitles via `yt-dlp`, then clean into a paragraph.
++- Otherwise: pull VTT/SRT subtitles via `yt-dlp`, preserving cue times when requested.
++- Both routes honor `--lang` (default: `en`). An unavailable language fails rather than silently selecting another track.
++- `--timestamps` emits `[m:ss]` or `[h:mm:ss]` cue start times on either route. Empty, invalid, or unsupported subtitles fail; they are never reported as a successful untimed transcript.
+
  ## Setup
- 
+
  ```bash
 -cd ~/Projects/agent-scripts/skills/video-transcript-downloader && npm ci
 +cd "${CODEX_HOME:-$HOME/.codex}/skills/video-transcript-downloader" && npm ci
  ```
+
+ CLI syntax:
+--- /dev/null
++++ b/scripts/tests/fixtures/youtube-fetch.mjs
+@@ -0,0 +1,22 @@
++// Replace only network I/O; exercise the real pinned transcript library and CLI.
++globalThis.fetch = async (input) => {
++  const url = new URL(input);
++  if (process.env.VTD_TEST_DIRECT === "fail") return new Response("unavailable", { status: 404 });
++  if (url.hostname === "www.youtube.com" && url.pathname === "/watch") {
++    return new Response('"INNERTUBE_API_KEY":"fixture"');
++  }
++  if (url.hostname === "www.youtube.com" && url.pathname === "/youtubei/v1/player") {
++    return Response.json({
++      captions: { playerCaptionsTracklistRenderer: {
++        captionTracks: ["en", "fr"].map((languageCode) => ({
++          languageCode, baseUrl: `https://captions.invalid/${languageCode}`,
++        })),
++      } },
++    });
++  }
++  if (url.hostname === "captions.invalid") {
++    const text = process.env.VTD_TEST_DIRECT_TEXT || (url.pathname === "/fr" ? "Bonjour &amp; bienvenue" : "Hello &amp; welcome");
++    return new Response(`<transcript><text start="65.5" dur="2">${text}</text><text start="3661" dur="1">[Music]</text></transcript>`);
++  }
++  throw new Error(`Unexpected test fetch: ${url}`);
++};
+--- /dev/null
++++ b/scripts/tests/fixtures/ytdlp.cjs
+@@ -0,0 +1,10 @@
++const fs = require("node:fs");
++const path = require("node:path");
++const args = process.argv.slice(2);
++fs.writeFileSync(process.env.VTD_TEST_ARGS, JSON.stringify(args));
++if (process.env.VTD_TEST_SUBS === "missing") process.exit(0);
++const output = args[args.indexOf("-o") + 1];
++const extension = process.env.VTD_TEST_FORMAT;
++const fixture = process.env.VTD_TEST_BODY;
++const lang = process.env.VTD_TEST_WRONG_LANG || args[args.indexOf("--sub-lang") + 1];
++fs.writeFileSync(path.join(path.dirname(output), `fixture.${lang}.${extension}`), fixture);
+--- /dev/null
++++ b/scripts/tests/transcript.test.mjs
+@@ -0,0 +1,147 @@
++import assert from "node:assert/strict";
++import { spawnSync } from "node:child_process";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { test } from "node:test";
++
++const fixtures = fileURLToPath(new URL("./fixtures/", import.meta.url));
++const cli = fileURLToPath(new URL("../vtd.js", import.meta.url));
++const vtt = "WEBVTT\nLanguage: fr\n\nNOTE ignore this metadata\nnot speech\n\nSTYLE\n::cue { color: lime; }\n\ncue-a\n00:01:05.500 --> 00:01:07.000 align:start\nBonjour <00:01:06.000><b>&amp; bienvenue</b>\n2026\n\ncue-b\n01:01:01.000 --> 01:01:02.000\n[Music]\n";
++const srt = "1\r\n00:01:05,500 --> 00:01:07,000\r\nBonjour &amp; bienvenue\r\n2026\r\n\r\n2\r\n01:01:01,000 --> 01:01:02,000\r\n[Music]\r\n";
++
++function run(t, { args = [], direct = "ok", directText = "", format = "vtt", body = vtt, missing = false, wrongLang = "", url = "https://youtu.be/abcdefghijk" } = {}) {
++  const root = fs.mkdtempSync(path.join(os.tmpdir(), "vtd-test-"));
++  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
++  const bin = path.join(root, "yt-dlp");
++  fs.writeFileSync(bin, `#!${process.execPath}\n${fs.readFileSync(path.join(fixtures, "ytdlp.cjs"), "utf8")}`, { mode: 0o700 });
++  const argsFile = path.join(root, "args.json");
++  const tmp = path.join(root, "tmp");
++  fs.mkdirSync(tmp);
++  const result = spawnSync(process.execPath, ["--import", path.join(fixtures, "youtube-fetch.mjs"), cli,
++    "transcript", "--url", url, ...args, "--", "--ignore-config"], {
++    encoding: "utf8", timeout: 10000, maxBuffer: 1024 * 1024,
++    env: { ...process.env, PATH: root, TMPDIR: tmp, TMP: tmp, TEMP: tmp,
++      VTD_TEST_ARGS: argsFile, VTD_TEST_DIRECT: direct, VTD_TEST_FORMAT: format,
++      VTD_TEST_BODY: body, VTD_TEST_SUBS: missing ? "missing" : "present", VTD_TEST_WRONG_LANG: wrongLang,
++      VTD_TEST_DIRECT_TEXT: directText },
++  });
++  assert.ifError(result.error);
++  assert.deepEqual(fs.readdirSync(tmp), [], "temporary subtitle directory must be cleaned on success and failure");
++  return { ...result, ytArgs: fs.existsSync(argsFile) ? JSON.parse(fs.readFileSync(argsFile, "utf8")) : null };
++}
++
++test("direct transcript selects the requested language instead of the first track", (t) => {
++  const result = run(t, { args: ["--lang", "fr"] });
++  assert.equal(result.status, 0, result.stderr);
++  assert.equal(result.stdout, "Bonjour & bienvenue\n");
++  assert.equal(result.ytArgs, null);
++});
++
++test("direct timestamps use seconds, retain hour offsets, and honor cue cleaning", (t) => {
++  const result = run(t, { args: ["--lang", "fr", "--timestamps", "--keep-brackets"] });
++  assert.equal(result.status, 0, result.stderr);
++  assert.equal(result.stdout, "[1:05] Bonjour & bienvenue\n[1:01:01] [Music]\n");
++});
++
++test("direct default output stays English and strips bracketed cues", (t) => {
++  assert.equal(run(t).stdout, "Hello & welcome\n");
++  assert.equal(run(t, { args: ["--timestamps"] }).stdout, "[1:05] Hello & welcome\n");
++});
++
++for (const [format, body] of [["vtt", vtt], ["srt", srt]]) {
++  test(`${format} fallback preserves cue times, multiline/numeric speech, and forwarded isolation`, (t) => {
++    const result = run(t, { direct: "fail", format, body, args: ["--lang", "fr", "--timestamps", "--keep-brackets"] });
++    assert.equal(result.status, 0, result.stderr);
++    assert.equal(result.stdout, "[1:05] Bonjour & bienvenue 2026\n[1:01:01] [Music]\n");
++    assert.equal(result.ytArgs[result.ytArgs.indexOf("--sub-lang") + 1], "fr");
++    assert.equal(result.ytArgs[result.ytArgs.indexOf("--sub-format") + 1], "vtt/srt");
++    assert.ok(result.ytArgs.includes("--ignore-config"));
++  });
++  test(`${format} fallback without timestamps remains a clean paragraph`, (t) => {
++    const result = run(t, { direct: "fail", format, body });
++    assert.equal(result.status, 0, result.stderr);
++    assert.equal(result.stdout, "Bonjour & bienvenue 2026\n");
++  });
++}
++
++test("non-YouTube VTT supports minute-only cue times and repeated timed speech", (t) => {
++  const result = run(t, { url: "https://video.invalid/example", args: ["--timestamps"],
++    body: "WEBVTT\n\n01:05.500 --> 01:07.000\nAgain\n\n01:08.000 --> 01:09.000\nAgain\n" });
++  assert.equal(result.status, 0, result.stderr);
++  assert.equal(result.stdout, "[1:05] Again\n[1:08] Again\n");
++});
++
++test("unavailable requested language cannot silently return a different track", (t) => {
++  const result = run(t, { args: ["--lang", "de"], missing: true });
++  assert.notEqual(result.status, 0);
++  assert.equal(result.stdout, "");
++  assert.match(result.stderr, /no subtitles found.*lang=de/);
++});
++
++test("fallback cannot accept a subtitle file in a different language", (t) => {
++  const result = run(t, { direct: "fail", args: ["--lang", "fr"], wrongLang: "en" });
++  assert.notEqual(result.status, 0);
++  assert.equal(result.stdout, "");
++  assert.match(result.stderr, /language|lang=fr/);
++});
++
++test("transcript requires one language code, not a multi-language selector", (t) => {
++  const result = run(t, { args: ["--lang", "fr,en"] });
++  assert.notEqual(result.status, 0);
++  assert.equal(result.stdout, "");
++  assert.match(result.stderr, /language|--lang/);
++  assert.equal(result.ytArgs, null);
++});
++
++for (const [format, body] of [["vtt", "WEBVTT\n\n"], ["srt", "1\ninvalid --> 00:00:02,000\nHello\n"], ["ass", "[Events]\nDialogue: 0,0:00:01.00,0:00:02.00,Hello"]]) {
++  test(`invalid or unsupported ${format} transcript fails without an untimed success`, (t) => {
++    const result = run(t, { direct: "fail", format, body, args: ["--timestamps"] });
++    assert.notEqual(result.status, 0);
++    assert.equal(result.stdout, "");
++    assert.match(result.stderr, /empty|invalid|unsupported/i);
++  });
++}
++
++for (const timestamps of [false, true]) {
++  test(`direct text preserves escaped angle brackets (timestamps=${timestamps})`, (t) => {
++    const result = run(t, { args: timestamps ? ["--timestamps"] : [],
++      directText: "When x &lt; 5 and y &gt; 2, type &lt;b&gt;." });
++    assert.equal(result.status, 0, result.stderr);
++    assert.equal(result.stdout, `${timestamps ? "[1:05] " : ""}When x < 5 and y > 2, type <b>.\n`);
++  });
++  for (const format of ["vtt", "srt"]) {
++    test(`${format} preserves literal text while stripping real markup (timestamps=${timestamps})`, (t) => {
++      const header = format === "vtt" ? "WEBVTT\n\n" : "1\n";
++      const result = run(t, { direct: "fail", format, args: timestamps ? ["--timestamps"] : [],
++        body: `${header}00:01:05.500 --> 00:01:07.000\n<b>When x &lt; 5 and y &gt; 2, type &lt;b&gt;.</b>\n` });
++      assert.equal(result.status, 0, result.stderr);
++      assert.equal(result.stdout, `${timestamps ? "[1:05] " : ""}When x < 5 and y > 2, type <b>.\n`);
++    });
++  }
++}
++
++for (const format of ["vtt", "srt"]) {
++  test(`${format} paragraph deduplicates overlapping lines without losing cue times`, (t) => {
++    const header = format === "vtt" ? "WEBVTT\n\n" : "";
++    const body = `${header}1\n00:01:05.500 --> 00:01:07.000\nHello\nworld\n\n2\n00:01:08.000 --> 00:01:10.000\nworld\nagain\n`;
++    const paragraph = run(t, { direct: "fail", format, body });
++    assert.equal(paragraph.status, 0, paragraph.stderr);
++    assert.equal(paragraph.stdout, "Hello world again\n");
++    const timed = run(t, { direct: "fail", format, body, args: ["--timestamps"] });
++    assert.equal(timed.status, 0, timed.stderr);
++    assert.equal(timed.stdout, "[1:05] Hello world\n[1:08] world again\n");
++  });
++}
++
++for (const [directText, expected] of [["very\nvery important", "very very important"], ["we\nknow we can", "we know we can"]]) {
++  test(`direct multiline speech preserves deliberate repetition: ${expected}`, (t) => {
++    const paragraph = run(t, { directText });
++    assert.equal(paragraph.status, 0, paragraph.stderr);
++    assert.equal(paragraph.stdout, expected + "\n");
++    const timed = run(t, { directText, args: ["--timestamps"] });
++    assert.equal(timed.status, 0, timed.stderr);
++    assert.equal(timed.stdout, `[1:05] ${expected}\n`);
++  });
++}
+--- a/scripts/vtd.js
++++ b/scripts/vtd.js
+@@ -123,7 +123,7 @@
+   return `${m}:${String(sec).padStart(2, "0")}`;
+ }
+
+-function cleanSegments(segments, { keepBrackets } = {}) {
++function cleanSegments(segments, { keepBrackets, subtitleMarkup } = {}) {
+   const cleaned = [];
+   let prev = "";
+
+@@ -133,9 +133,11 @@
+       .trim();
+     if (!s) continue;
+
+-    // Subtitles often contain HTML-ish tags; strip them.
+-    const withoutTags = s.replace(/<[^>]+>/g, "").trim();
+-    const withoutBrackets = keepBrackets ? withoutTags : withoutTags.replace(/\[[^\]]*\]/g, "").trim();
++    // Strip actual subtitle markup before decoding escaped literal speech.
++    // The direct transcript library already returns text, not subtitle markup.
++    const withoutTags = subtitleMarkup ? s.replace(/<[^>]+>/g, "").trim() : s;
++    const decoded = decodeHtmlEntities(withoutTags);
++    const withoutBrackets = keepBrackets ? decoded : decoded.replace(/\[[^\]]*\]/g, "").trim();
+     const withoutCurlies = withoutBrackets.replace(/\{[^}]+\}/g, "").replace(/♪/g, "").trim();
+     const t = withoutCurlies.replace(/\s+/g, " ").trim();
+     if (!t) continue;
+@@ -158,43 +160,47 @@
+   return cleaned;
+ }
+
+-function toParagraph(segments, { keepBrackets } = {}) {
+-  const cleaned = cleanSegments(segments, { keepBrackets });
++function toParagraph(segments, { keepBrackets, subtitleMarkup } = {}) {
++  const cleaned = cleanSegments(segments, { keepBrackets, subtitleMarkup });
+   return cleaned.join(" ").replace(/\s+/g, " ").trim();
+ }
+
+-function parseSrt(text) {
+-  const lines = String(text).split(/\r?\n/);
+-  const segments = [];
+-  for (const line of lines) {
+-    const l = line.trim();
+-    if (!l) continue;
+-    if (/^\d+$/.test(l)) continue;
+-    if (l.includes("-->")) continue;
+-    segments.push(l);
+-  }
+-  return segments;
+-}
+-
+-function parseVtt(text) {
+-  const lines = String(text).split(/\r?\n/);
+-  const segments = [];
+-  for (const line of lines) {
+-    const l = line.trim();
+-    if (!l) continue;
+-    if (l === "WEBVTT") continue;
+-    if (l.startsWith("Kind:") || l.startsWith("Language:")) continue;
+-    if (l.includes("-->")) continue;
+-    // cue settings like "align:start position:0%"
+-    if (/^(align|position|size|line):/i.test(l)) continue;
+-    // Remove inline timestamps like "<00:00:00.000>" (common in YouTube VTT).
+-    const cleaned = l.replace(/<\d{2}:\d{2}:\d{2}\.\d{3}>/g, "").trim();
+-    if (cleaned) segments.push(cleaned);
+-  }
+-  return segments;
+-}
+-
+-async function ytDlpSubtitlesToTemp({ url, lang, ytdlpPath, extra }) {
++function parseCueTime(value) {
++  const match = value.match(/^(?:(\d{2,}):)?([0-5]\d):([0-5]\d)[.,](\d{3})$/);
++  if (!match) throw new Error(`invalid subtitle timestamp: ${value}`);
++  return Number(match[1] || 0) * 3600 + Number(match[2]) * 60 + Number(match[3]) + Number(match[4]) / 1000;
++}
++
++function parseSubtitles(text) {
++  const cues = [];
++  for (const block of text.replace(/^\uFEFF/, "").trim().split(/\r?\n\s*\r?\n/)) {
++    if (!block || /^(WEBVTT|NOTE|STYLE|REGION)(?:\s|$)/.test(block)) continue;
++    const lines = block.split(/\r?\n/).map((line) => line.trim());
++    const index = lines.findIndex((line) => line.includes("-->"));
++    if (index < 0 || index > 1) throw new Error("invalid subtitle cue: missing timing line");
++    const timing = lines[index].match(/^(\S+)\s+-->\s+(\S+)(?:\s.*)?$/);
++    if (!timing) throw new Error(`invalid subtitle timing line: ${lines[index]}`);
++    const offset = parseCueTime(timing[1]);
++    if (parseCueTime(timing[2]) < offset) throw new Error("invalid subtitle cue: end precedes start");
++    cues.push({ offset, text: lines.slice(index + 1).join("\n") });
++  }
++  return cues;
++}
++
++function renderTranscript(cues, { timestamps, keepBrackets, subtitleMarkup = false }) {
++  const cleaning = { keepBrackets, subtitleMarkup };
++  const output = timestamps
++    ? cues.map((cue) => {
++      if (!Number.isFinite(cue.offset) || cue.offset < 0) throw new Error("invalid transcript offset (expected nonnegative seconds)");
++      const text = toParagraph([cue.text], cleaning);
++      return text ? `[${formatTimestamp(cue.offset)}] ${text}` : "";
++    }).filter(Boolean).join("\n")
++    : toParagraph(cues.flatMap((cue) => subtitleMarkup ? cue.text.split(/\r?\n/) : [cue.text]), cleaning);
++  if (!output) throw new Error("empty transcript");
++  return output + "\n";
++}
++
++async function ytDlpSubtitlesToTemp({ url, lang, ytdlpPath, extra, subtitleFormat }) {
+   const ytdlp = ytdlpPath || resolveBin("yt-dlp", "/opt/homebrew/bin/yt-dlp");
+   if (!ytdlp) die("missing yt-dlp; install `yt-dlp` and ensure it is on PATH");
+
+@@ -211,6 +217,7 @@
+     "-o",
+     outTemplate,
+   );
++  if (subtitleFormat) args.push("--sub-format", subtitleFormat);
+   if (extra?.length) args.push(...extra);
+   args.push(url);
+
+@@ -236,26 +243,20 @@
+
+ async function cmdTranscript({ url, lang, timestamps, keepBrackets, extra }) {
+   if (!url) die("missing --url");
++  if (typeof lang !== "string" || !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(lang)) {
++    throw new Error("transcript --lang requires one language code, such as en or pt-BR");
++  }
+
+   if (isYouTubeUrl(url)) {
+     const id = extractYouTubeId(url);
+     if (id) {
+       try {
+         // Preferred path: direct transcript fetch (no yt-dlp / no files).
+-        const transcript = await YoutubeTranscript.fetchTranscript(id);
+-        if (timestamps) {
+-          for (const entry of transcript) {
+-            const ts = formatTimestamp(entry.offset / 1000);
+-            process.stdout.write(`[${ts}] ${decodeHtmlEntities(entry.text).replace(/\s+/g, " ").trim()}\n`);
+-          }
+-          return;
+-        }
+-        const paragraph = toParagraph(transcript.map((e) => decodeHtmlEntities(e.text)), { keepBrackets });
+-        if (!paragraph) die("empty transcript");
+-        process.stdout.write(paragraph + "\n");
++        const transcript = await YoutubeTranscript.fetchTranscript(id, { lang });
++        process.stdout.write(renderTranscript(transcript, { timestamps, keepBrackets }));
+         return;
+-      } catch {
+-        // Fallback below: use yt-dlp subtitles when direct transcript fails.
++      } catch (error) {
++        process.stderr.write(`Direct transcript failed (${error.message}); trying yt-dlp for lang=${lang}.\n`);
+       }
+     }
+   }
+@@ -264,20 +265,15 @@
+     url,
+     lang,
+     extra,
++    subtitleFormat: "vtt/srt",
+   });
+
+   try {
++    const stem = path.basename(subtitlePath, path.extname(subtitlePath));
++    if (!stem.endsWith(`.${lang}`)) throw new Error(`subtitle language does not match lang=${lang}`);
+     const raw = fs.readFileSync(subtitlePath, "utf8");
+-    const segments = subtitlePath.endsWith(".srt") ? parseSrt(raw) : parseVtt(raw);
+-    if (timestamps) {
+-      // Subtitle timestamps are inconsistent across sites; keep output stable here.
+-      const paragraph = toParagraph(segments, { keepBrackets });
+-      process.stdout.write(paragraph + "\n");
+-      return;
+-    }
+-    const paragraph = toParagraph(segments, { keepBrackets });
+-    if (!paragraph) die("empty transcript from subtitles");
+-    process.stdout.write(paragraph + "\n");
++    if (!/\.(srt|vtt)$/i.test(subtitlePath)) throw new Error("unsupported transcript subtitle format: expected VTT or SRT");
++    process.stdout.write(renderTranscript(parseSubtitles(raw), { timestamps, keepBrackets, subtitleMarkup: true }));
+   } finally {
+     fs.rmSync(tmpDir, { recursive: true, force: true });
+   }
+@@ -389,7 +385,7 @@
+       "flags:",
+       "  --url URL          video URL",
+       "  --lang CODE        subtitle language (default: en)",
+-      "  --timestamps       print timestamps when available",
++      "  --timestamps       print cue start times; fail if no usable timed transcript",
+       "  --keep-brackets    keep bracketed cues like [Music]",
+     ],
+     download: [

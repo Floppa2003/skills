@@ -333,6 +333,9 @@ def stage_candidate(spec: SkillSpec, repo: Path, stage_root: Path) -> Path:
     if spec.adapter == "uiux":
         destination.mkdir()
         shutil.copy2(repo / ".claude/skills/ui-ux-pro-max/SKILL.md", destination / "SKILL.md")
+        references = repo / ".claude/skills/ui-ux-pro-max/references"
+        if references.exists():
+            _copy_tree(references, destination / "references", repo)
         source_root = repo / "src/ui-ux-pro-max"
         for name in ("scripts", "data", "templates"):
             source = source_root / name
