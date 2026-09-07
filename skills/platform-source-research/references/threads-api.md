@@ -4,9 +4,9 @@ Use the Threads API contract in [route-contracts.md](route-contracts.md). This r
 
 ## Contract And Access
 
-Checked 2026-09-07 against Meta's [keyword-search documentation](https://developers.facebook.com/documentation/threads/keyword-search.md) and [official API collection](https://www.postman.com/meta/threads/documentation/dht3nzz/threads-api). Recheck the relevant contract before a new collection run and reuse that check within the run.
+Checked 2026-09-07 against Meta's [keyword-search documentation](https://developers.facebook.com/documentation/threads/keyword-search.md) and [official API collection](https://www.postman.com/meta/threads/documentation/dht3nzz/threads-api). Recheck the relevant contract before each collection run; reuse that check within the run.
 
-The API needs a Meta app, a user access token, `threads_basic`, and approved `threads_keyword_search` permission for public search. Without search approval, results are limited to the authenticated user's own posts; token presence or HTTP success does not establish public coverage. Inspect permission status through the approved connection, never token values in chat or private configuration files.
+The API needs a Meta app, a user access token, `threads_basic`, and approved `threads_keyword_search` permission for public search. Without search approval, results cover only the authenticated user's own posts; token presence or HTTP success does not establish public coverage. Inspect permission status through the approved connection, never token values in chat or private configuration files.
 
 ## Requests And Coverage
 

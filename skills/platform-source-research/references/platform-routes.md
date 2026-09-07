@@ -44,7 +44,7 @@ For structured keyword, hashtag, or profile collection, consider the Apify colle
 
 ## RuTube And VK Video
 
-Start with the public video page using an approved browser or crawler. Capture canonical URL, title, uploader, date, description, visible captions, and relevant timestamp. Use a downloader or transcript tool only when it explicitly supports the supplied URL and has been approved for the task.
+Start with the public video page using an approved browser or crawler. Capture canonical URL, title, uploader, date, description, visible captions, and relevant timestamp. Use a downloader or transcript tool only if it explicitly supports the supplied URL and is approved for the task.
 
 ## Habr And VC.ru
 
@@ -64,4 +64,4 @@ For individual public pages, profiles, companies, or jobs, use the existing user
 
 ## Handoff To Analysis
 
-When the user asks for findings rather than raw sources, pass the collected bundle to `deep-research` or the relevant domain skill. The analysis must cite platform URLs and distinguish direct evidence from inference.
+For requested findings rather than raw sources, pass the collected bundle to `deep-research` or the relevant domain skill. The analysis must cite platform URLs and distinguish direct evidence from inference.

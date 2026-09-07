@@ -4,13 +4,13 @@ Use only for the Local public social extraction contract in [route-contracts.md]
 
 ## Capability And Prerequisites
 
-Checked against [Instaloader 4.15.3](https://github.com/instaloader/instaloader/releases/tag/v4.15.3) and its [CLI documentation](https://instaloader.github.io/cli-options.html) on 2026-09-07. Check the installed version/help before relying on these flags. If missing, report the prerequisite; installation is a separate approved action. The base package is sufficient; the optional `browser-cookie3` extra is unnecessary for this route.
+Checked against [Instaloader 4.15.3](https://github.com/instaloader/instaloader/releases/tag/v4.15.3) and its [CLI documentation](https://instaloader.github.io/cli-options.html) on 2026-09-07. Check the installed version/help before relying on these flags. If missing, report the prerequisite; installation is a separate approved action. The base package suffices; the optional `browser-cookie3` extra is unnecessary for this route.
 
 Public post/Reel metadata and captions may be retrievable without login. Comments, hashtags, locations, Stories, saved items and private history require login in the documented workflow and are outside this route. Even public posts may be login-gated or rate-limited; do not interpret failed extraction as a deleted or empty post.
 
 ## Bounded Metadata Collection
 
-Normalize supplied or browser-verified `/p/<shortcode>/` and `/reel/<shortcode>/` links. Use a finite, deduplicated list of shortcodes. Set `ARTIFACT_DIR` to the task's canonical directory and `REQUEST_TIMEOUT` to its positive per-request timeout; set a separate wall-clock deadline in the runner. The following collects one post's JSON and caption text without downloading media:
+Normalize supplied or browser-verified `/p/<shortcode>/` and `/reel/<shortcode>/` links. Use a finite, deduplicated list of shortcodes. Set `ARTIFACT_DIR` to the task's canonical directory and `REQUEST_TIMEOUT` to its positive per-request timeout; set a separate wall-clock deadline in the runner. This collects one post's JSON and caption text without downloading media:
 
 ```bash
 instaloader \
