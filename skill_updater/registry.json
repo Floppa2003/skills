@@ -540,7 +540,7 @@
       "overlay": "overlays/playwright.patch",
       "enabled": true,
       "installed_commit": "49f948faa9258a0c61caceaf225e179651397431",
-      "installed_hash": "39666dcb5e2bb98e17895aef7309a764a604d84f7d4e19da84ab4c8b107fa9d4",
+      "installed_hash": "2b14b6a16ed162d738a9b1d61cf35c499b93d2b7bc4683cb94ef996209268f72",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [],

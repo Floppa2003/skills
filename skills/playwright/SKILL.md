@@ -42,7 +42,8 @@ User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills
 
 ## Quick start
 
-Use the wrapper script:
+Use the wrapper script. Before running examples, follow
+[session lifecycle](references/workflows.md#sessions-and-lifecycle):
 
 ```bash
 "$PWCLI" open https://playwright.dev --headed
@@ -67,6 +68,7 @@ playwright-cli --help
 3. Interact using refs from the latest snapshot.
 4. Re-snapshot after navigation or significant DOM changes.
 5. Capture artifacts (screenshot, pdf, traces) when useful.
+6. On success, failure, cancellation, or timeout, finalize captures, close the task-owned session, and verify its resources stopped. Follow [session lifecycle](references/workflows.md#sessions-and-lifecycle); preserve user/shared sessions and explicitly retained deliverables.
 
 Minimal loop:
 
