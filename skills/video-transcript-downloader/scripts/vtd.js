@@ -123,7 +123,7 @@ function formatTimestamp(seconds) {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-function cleanSegments(segments, { keepBrackets } = {}) {
+function cleanSegments(segments, { keepBrackets, subtitleMarkup } = {}) {
   const cleaned = [];
   let prev = "";
 
@@ -133,9 +133,11 @@ function cleanSegments(segments, { keepBrackets } = {}) {
       .trim();
     if (!s) continue;
 
-    // Subtitles often contain HTML-ish tags; strip them.
-    const withoutTags = s.replace(/<[^>]+>/g, "").trim();
-    const withoutBrackets = keepBrackets ? withoutTags : withoutTags.replace(/\[[^\]]*\]/g, "").trim();
+    // Strip actual subtitle markup before decoding escaped literal speech.
+    // The direct transcript library already returns text, not subtitle markup.
+    const withoutTags = subtitleMarkup ? s.replace(/<[^>]+>/g, "").trim() : s;
+    const decoded = decodeHtmlEntities(withoutTags);
+    const withoutBrackets = keepBrackets ? decoded : decoded.replace(/\[[^\]]*\]/g, "").trim();
     const withoutCurlies = withoutBrackets.replace(/\{[^}]+\}/g, "").replace(/♪/g, "").trim();
     const t = withoutCurlies.replace(/\s+/g, " ").trim();
     if (!t) continue;
@@ -158,43 +160,47 @@ function cleanSegments(segments, { keepBrackets } = {}) {
   return cleaned;
 }
 
-function toParagraph(segments, { keepBrackets } = {}) {
-  const cleaned = cleanSegments(segments, { keepBrackets });
+function toParagraph(segments, { keepBrackets, subtitleMarkup } = {}) {
+  const cleaned = cleanSegments(segments, { keepBrackets, subtitleMarkup });
   return cleaned.join(" ").replace(/\s+/g, " ").trim();
 }
 
-function parseSrt(text) {
-  const lines = String(text).split(/\r?\n/);
-  const segments = [];
-  for (const line of lines) {
-    const l = line.trim();
-    if (!l) continue;
-    if (/^\d+$/.test(l)) continue;
-    if (l.includes("-->")) continue;
-    segments.push(l);
-  }
-  return segments;
+function parseCueTime(value) {
+  const match = value.match(/^(?:(\d{2,}):)?([0-5]\d):([0-5]\d)[.,](\d{3})$/);
+  if (!match) throw new Error(`invalid subtitle timestamp: ${value}`);
+  return Number(match[1] || 0) * 3600 + Number(match[2]) * 60 + Number(match[3]) + Number(match[4]) / 1000;
 }
 
-function parseVtt(text) {
-  const lines = String(text).split(/\r?\n/);
-  const segments = [];
-  for (const line of lines) {
-    const l = line.trim();
-    if (!l) continue;
-    if (l === "WEBVTT") continue;
-    if (l.startsWith("Kind:") || l.startsWith("Language:")) continue;
-    if (l.includes("-->")) continue;
-    // cue settings like "align:start position:0%"
-    if (/^(align|position|size|line):/i.test(l)) continue;
-    // Remove inline timestamps like "<00:00:00.000>" (common in YouTube VTT).
-    const cleaned = l.replace(/<\d{2}:\d{2}:\d{2}\.\d{3}>/g, "").trim();
-    if (cleaned) segments.push(cleaned);
+function parseSubtitles(text) {
+  const cues = [];
+  for (const block of text.replace(/^\uFEFF/, "").trim().split(/\r?\n\s*\r?\n/)) {
+    if (!block || /^(WEBVTT|NOTE|STYLE|REGION)(?:\s|$)/.test(block)) continue;
+    const lines = block.split(/\r?\n/).map((line) => line.trim());
+    const index = lines.findIndex((line) => line.includes("-->"));
+    if (index < 0 || index > 1) throw new Error("invalid subtitle cue: missing timing line");
+    const timing = lines[index].match(/^(\S+)\s+-->\s+(\S+)(?:\s.*)?$/);
+    if (!timing) throw new Error(`invalid subtitle timing line: ${lines[index]}`);
+    const offset = parseCueTime(timing[1]);
+    if (parseCueTime(timing[2]) < offset) throw new Error("invalid subtitle cue: end precedes start");
+    cues.push({ offset, text: lines.slice(index + 1).join("\n") });
   }
-  return segments;
+  return cues;
 }
 
-async function ytDlpSubtitlesToTemp({ url, lang, ytdlpPath, extra }) {
+function renderTranscript(cues, { timestamps, keepBrackets, subtitleMarkup = false }) {
+  const cleaning = { keepBrackets, subtitleMarkup };
+  const output = timestamps
+    ? cues.map((cue) => {
+      if (!Number.isFinite(cue.offset) || cue.offset < 0) throw new Error("invalid transcript offset (expected nonnegative seconds)");
+      const text = toParagraph([cue.text], cleaning);
+      return text ? `[${formatTimestamp(cue.offset)}] ${text}` : "";
+    }).filter(Boolean).join("\n")
+    : toParagraph(cues.flatMap((cue) => subtitleMarkup ? cue.text.split(/\r?\n/) : [cue.text]), cleaning);
+  if (!output) throw new Error("empty transcript");
+  return output + "\n";
+}
+
+async function ytDlpSubtitlesToTemp({ url, lang, ytdlpPath, extra, subtitleFormat }) {
   const ytdlp = ytdlpPath || resolveBin("yt-dlp", "/opt/homebrew/bin/yt-dlp");
   if (!ytdlp) die("missing yt-dlp; install `yt-dlp` and ensure it is on PATH");
 
@@ -211,6 +217,7 @@ async function ytDlpSubtitlesToTemp({ url, lang, ytdlpPath, extra }) {
     "-o",
     outTemplate,
   );
+  if (subtitleFormat) args.push("--sub-format", subtitleFormat);
   if (extra?.length) args.push(...extra);
   args.push(url);
 
@@ -236,26 +243,20 @@ async function ytDlpSubtitlesToTemp({ url, lang, ytdlpPath, extra }) {
 
 async function cmdTranscript({ url, lang, timestamps, keepBrackets, extra }) {
   if (!url) die("missing --url");
+  if (typeof lang !== "string" || !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(lang)) {
+    throw new Error("transcript --lang requires one language code, such as en or pt-BR");
+  }
 
   if (isYouTubeUrl(url)) {
     const id = extractYouTubeId(url);
     if (id) {
       try {
         // Preferred path: direct transcript fetch (no yt-dlp / no files).
-        const transcript = await YoutubeTranscript.fetchTranscript(id);
-        if (timestamps) {
-          for (const entry of transcript) {
-            const ts = formatTimestamp(entry.offset / 1000);
-            process.stdout.write(`[${ts}] ${decodeHtmlEntities(entry.text).replace(/\s+/g, " ").trim()}\n`);
-          }
-          return;
-        }
-        const paragraph = toParagraph(transcript.map((e) => decodeHtmlEntities(e.text)), { keepBrackets });
-        if (!paragraph) die("empty transcript");
-        process.stdout.write(paragraph + "\n");
+        const transcript = await YoutubeTranscript.fetchTranscript(id, { lang });
+        process.stdout.write(renderTranscript(transcript, { timestamps, keepBrackets }));
         return;
-      } catch {
-        // Fallback below: use yt-dlp subtitles when direct transcript fails.
+      } catch (error) {
+        process.stderr.write(`Direct transcript failed (${error.message}); trying yt-dlp for lang=${lang}.\n`);
       }
     }
   }
@@ -264,20 +265,15 @@ async function cmdTranscript({ url, lang, timestamps, keepBrackets, extra }) {
     url,
     lang,
     extra,
+    subtitleFormat: "vtt/srt",
   });
 
   try {
+    const stem = path.basename(subtitlePath, path.extname(subtitlePath));
+    if (!stem.endsWith(`.${lang}`)) throw new Error(`subtitle language does not match lang=${lang}`);
     const raw = fs.readFileSync(subtitlePath, "utf8");
-    const segments = subtitlePath.endsWith(".srt") ? parseSrt(raw) : parseVtt(raw);
-    if (timestamps) {
-      // Subtitle timestamps are inconsistent across sites; keep output stable here.
-      const paragraph = toParagraph(segments, { keepBrackets });
-      process.stdout.write(paragraph + "\n");
-      return;
-    }
-    const paragraph = toParagraph(segments, { keepBrackets });
-    if (!paragraph) die("empty transcript from subtitles");
-    process.stdout.write(paragraph + "\n");
+    if (!/\.(srt|vtt)$/i.test(subtitlePath)) throw new Error("unsupported transcript subtitle format: expected VTT or SRT");
+    process.stdout.write(renderTranscript(parseSubtitles(raw), { timestamps, keepBrackets, subtitleMarkup: true }));
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -389,7 +385,7 @@ function usage(command) {
       "flags:",
       "  --url URL          video URL",
       "  --lang CODE        subtitle language (default: en)",
-      "  --timestamps       print timestamps when available",
+      "  --timestamps       print cue start times; fail if no usable timed transcript",
       "  --keep-brackets    keep bracketed cues like [Music]",
     ],
     download: [
