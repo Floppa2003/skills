@@ -620,12 +620,15 @@
       "overlay": null,
       "enabled": false,
       "installed_commit": null,
-      "installed_hash": "8935d65e4f57bec841a427ff6ab6220e939bd05e993c3a45299aeb16fd23505d",
+      "installed_hash": "0d1bae59f45158745426b98bae0c080b196cadd7ae38de8db92656f5435223b8",
       "skip_reason": "locally authored skill; intentionally unmanaged",
       "required_paths": [
         "SKILL.md",
         "references/platform-routes.md",
-        "references/youtube-transcriptapi.md"
+        "references/youtube-transcriptapi.md",
+        "references/instagram-instaloader.md",
+        "references/threads-api.md",
+        "references/apify-social.md"
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
