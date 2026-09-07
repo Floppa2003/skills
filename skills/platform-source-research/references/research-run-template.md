@@ -1,6 +1,6 @@
 # Research Run
 
-Use one copy of this template as the task-local canonical record for recurring or multi-session research. Name the file `research-run.md`. Keep it beside the task's generated artifacts, not as a global registry.
+Use this template as the single task-local canonical record for recurring or multi-session research. Name the file `research-run.md`. Keep it beside the task's generated artifacts, not as a global registry.
 
 ## Scope
 

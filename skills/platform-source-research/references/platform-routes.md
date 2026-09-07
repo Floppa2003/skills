@@ -24,9 +24,27 @@ Use `video-transcript-downloader` first for subtitles or a transcript unless the
 
 Consider TranscriptAPI for structured video or channel search, within-channel search, paginated channel or playlist listings, or an alternative transcript source when direct extraction is unavailable. Select it only under the YouTube TranscriptAPI contract in `route-contracts.md`; an existing key or a failed free route does not authorize its use. Load [youtube-transcriptapi.md](youtube-transcriptapi.md) only when considering or using this provider. If it is not authorized or available, retain the free route and report any access gap.
 
+## Instagram
+
+Start with public browser-visible posts and bounded open-web discovery. For captions and metadata from known public post or Reel URLs, use an installed Instaloader only under the Local public social extraction contract; read [instagram-instaloader.md](instagram-instaloader.md). Use `video-transcript-downloader` only for a supported video URL, not as a profile or comment search engine.
+
+For structured public profiles, posts, Reels, or comments, consider the Apify collection contract and [apify-social.md](apify-social.md). Instagram profile/hashtag/place discovery is not global full-text post search. Preserve carousel children and distinguish post captions from spoken words, comment counts from collected comments, and a partial view from complete history.
+
+## Threads
+
+For individual public posts, use the public browser route; open-web searches may find candidates on `threads.com` or older `threads.net` links. Follow public redirects and preserve the canonical post identity, author, time, root post, and observed reply relationships.
+
+For keyword/topic search, prefer the official API when the Threads API contract is satisfied; read [threads-api.md](threads-api.md). Otherwise keep public-web coverage explicit. Search permission does not establish access to every conversation, reply, or private profile.
+
+## TikTok
+
+Use public browser/open-web discovery first. For a supplied public video URL, reuse `video-transcript-downloader` if its installed extractor supports that operation; record failures without importing account cookies. A listed extractor is not a successful live test, and profile/hashtag extraction can fail while a single video works.
+
+For structured keyword, hashtag, or profile collection, consider the Apify collection contract and [apify-social.md](apify-social.md). Retrieve comment text separately when needed. Preserve video URL, author, publication and retrieval times, and distinguish description/hashtags, available subtitles, and actual audio or visual evidence; missing subtitles do not authorize a new transcription service.
+
 ## RuTube And VK Video
 
-Start with the public video page using an approved browser or crawler. Capture canonical URL, title, uploader, date, description, visible captions, and relevant timestamp. Use a downloader or transcript tool only when it explicitly supports the supplied URL and has been approved for the task.
+Start with the public video page using an approved browser or crawler. Capture canonical URL, title, uploader, date, description, visible captions, and relevant timestamp. Use a downloader or transcript tool only if it explicitly supports the supplied URL and is approved for the task.
 
 ## Habr And VC.ru
 
@@ -46,4 +64,4 @@ For individual public pages, profiles, companies, or jobs, use the existing user
 
 ## Handoff To Analysis
 
-When the user asks for findings rather than raw sources, pass the collected bundle to `deep-research` or the relevant domain skill. The analysis must cite platform URLs and distinguish direct evidence from inference.
+For requested findings rather than raw sources, pass the collected bundle to `deep-research` or the relevant domain skill. The analysis must cite platform URLs and distinguish direct evidence from inference.
