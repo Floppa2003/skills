@@ -1,0 +1,4 @@
+interface:
+  display_name: "What Could Go Wrong"
+  short_description: "Premortem risks before committing to a decision"
+  default_prompt: "Use $os-what-could-go-wrong to review the failure risks of this decision before I commit."

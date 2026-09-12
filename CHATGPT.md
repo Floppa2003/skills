@@ -287,6 +287,12 @@ Process, convert, OCR, extract, redact, sign, and fill documents using the Nutri
 
 Entrypoint: `skills/nutrient-document-processing/SKILL.md`
 
+## os-what-could-go-wrong
+
+Use when the user requests a premortem, asks what could go wrong with a decision, or needs a failure-risk review before a costly or hard-to-reverse commitment. Not for routine status, ordinary code review, or executing an already approved action without a request to reassess it.
+
+Entrypoint: `skills/os-what-could-go-wrong/SKILL.md`
+
 ## platform-source-research
 
 Use when collecting primary public evidence from X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, or VC.ru; when a research task needs platform-specific posts, comments, videos, channels, profiles, or source links rather than generic web results.
