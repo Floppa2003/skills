@@ -1182,6 +1182,26 @@
       "required_paths": [],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "os-what-could-go-wrong",
+      "repo": "kharmanskyi/open-steps",
+      "path": "skills/os-what-could-go-wrong",
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": "overlays/os-what-could-go-wrong.patch",
+      "enabled": true,
+      "installed_commit": "a5a563e7435c418855051086c4533d41ef80f5d8",
+      "installed_hash": "b28e06d761a877c781cd5c92798366c37e4c243c28a67f6a8a4e043fce7bc840",
+      "skip_reason": null,
+      "required_paths": [
+        "references/premortem-prompt.md",
+        "references/why-these-rules.md",
+        "references/01-office-lease.md",
+        "LICENSE"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }
