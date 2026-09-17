@@ -1202,6 +1202,23 @@
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "browser-skill",
+      "repo": "Tencent/BrowserSkill",
+      "path": "skill",
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": "overlays/browser-skill.patch",
+      "enabled": true,
+      "installed_commit": "75e2c64abaf4b7cc75682d94b0c1fd5db0cbd5e5",
+      "installed_hash": "d9c3cbfce2fefb8b7ef239e433dac76a2a296683985d13a35bbbc726b4a376ff",
+      "skip_reason": null,
+      "required_paths": [
+        ".bsk-source"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }

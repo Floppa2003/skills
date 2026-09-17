@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Skill"
+  short_description: "Help with Browser Skill tasks and workflows"
+  default_prompt: "Use $browser-skill to help with a relevant task."
