@@ -83,6 +83,12 @@ You MUST use this before any creative work - creating features, building compone
 
 Entrypoint: `skills/brainstorming/SKILL.md`
 
+## browser-skill
+
+Use when the user asks to automate their logged-in Chromium browser: visit and read pages, fill forms, scrape data, click through flows, regression-test a PR's UI, validate a deployed page, or operate a tab they identify. Requires the bsk CLI and browser extension.
+
+Entrypoint: `skills/browser-skill/SKILL.md`
+
 ## chrome-cdp
 
 Interact with local Chrome browser session (only on explicit user approval after being asked to inspect, debug, or interact with a page open in Chrome)
