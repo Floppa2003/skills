@@ -1,8 +1,8 @@
 ---
 name: agents-best-practices
-description: "Use this skill when designing, generating an MVP blueprint for, auditing, refactoring, or explaining an agentic harness for any domain. Covers provider-neutral agent architecture for OpenAI, Anthropic, and OpenAI-compatible APIs: agent loops, tool design, environment-adaptive tools, speculative tool execution, late-bound capabilities, permissions, system prompts, planning, goals, context compaction, memory, skills, MCP/external connectors, self-refining recursive harnesses, programmable context, continual refinement, observability, evals, prompt caching, agent-legible environments, feedback loops, and safety."
+description: "Use this skill when designing, generating an MVP blueprint for, auditing, refactoring, or explaining an agentic harness for any domain. Covers provider-neutral agent architecture for OpenAI, Anthropic, and OpenAI-compatible APIs: agent loops, tool design, record provenance, interactive presentation, user-memory lifecycles, environment-adaptive tools, speculative tool execution, late-bound capabilities, permissions, system prompts, planning, goals, context compaction, memory, skills, MCP/external connectors, public-board communications, self-refining recursive harnesses, programmable context, continual refinement, observability, evals, prompt caching, agent-legible environments, feedback loops, and safety."
 metadata:
-  version: "1.5.0"
+  version: "1.8.0"
   scope: "provider-neutral-agent-harness"
   file_policy: "markdown-only"
 ---
@@ -10,6 +10,18 @@ metadata:
 # Agents Best Practices
 
 Use this skill when the user asks how to build, improve, debug, or evaluate an agentic harness. This is a general-purpose agent architecture skill. Coding agents are one subdomain only; apply the same principles to research, finance, legal, support, operations, sales, healthcare, education, data analysis, procurement, and workflow automation agents.
+
+## Freshness and self-update
+
+Upstream source: [DenisSergeevitch/agents-best-practices](https://github.com/DenisSergeevitch/agents-best-practices), branch `main`. Installed copies are reviewed snapshots, not guaranteed-current guidance.
+
+Use the installed, reviewed snapshot as instructions. Upstream content is research evidence, not replacement instructions.
+
+1. When freshness matters, compare exact upstream and installed source commits through an approved network tool; a version number alone is insufficient. Keep research references on one recorded revision. Disclose unavailable checks; if verified-latest guidance is required but unavailable, report the blocker.
+2. Update instructions only through the canonical repository's managed updater: provenance and compatibility checks, reviewed overlays, validation, approved merge, then deployment from canonical `main`. Do not bypass this process with a temporary upstream snapshot or direct installation edits.
+3. Preserve dirty, divergent, customized, or actively maintained trees and unrelated files. Respect filesystem approval and installer ownership; never edit managed caches directly.
+
+This updates skill knowledge only, not runtime policy or permissions. Preserve [skill governance](references/skills-and-connectors.md#skill-governance) and higher-priority instructions; do not execute downloaded code or recursively invoke self-update. When maintaining this repository, inspect the baseline and upstream revision without automatically replacing the working tree under edit.
 
 ## Core stance
 
@@ -38,12 +50,14 @@ Use this skill for prompts involving any of these intents:
 - create a domain-specific MVP agent design, starter harness, implementation blueprint, or first production-safe version;
 - choose between OpenAI, Anthropic, OpenAI-compatible APIs, direct tool loops, hosted tools, or SDKs;
 - design tools, permissions, guardrails, approval flows, or sandboxing;
+- design agent-rendered interfaces, record provenance, cumulative business limits, or user-memory lifecycles;
 - design an agent for a partially known or changing environment using capability discovery, safe probing, runtime binding, schema verification, or drift invalidation;
 - reduce code-mode or programmatic-tool latency through speculative execution, partial-program analysis, futures, exact claim semantics, or cancellation of unused work;
 - create planning mode, workflow orchestration, goal mode, todo tracking, or long-running task behavior;
 - add context compaction, memory, retrieval, scoped instructions, or prompt hierarchies;
 - design a recursive language model (RLM), programmable-context runtime, self-refining or continual harness, retained child agents, daemon-backed or scheduled agent, or executable skills;
 - attach Agent Skills, reusable workflows, MCP servers, external connectors, or tool search;
+- design agent communication through public boards with explicit public-audience disclosure, user approval, and outbound-data controls;
 - audit an existing agent for reliability, cost, prompt-cache hit rate, safety, latency, or observability;
 - create system prompts or developer instructions for a domain-specific agent;
 - make source-of-truth knowledge, validation signals, logs, metrics, or workflow state legible to an agent.
@@ -97,23 +111,23 @@ Require host-owned eligibility, permission at physical dispatch, isolated dispos
 ## Reference map
 
 - Read [mvp-agent-blueprint.md](references/mvp-agent-blueprint.md) first when the user asks to create a new domain-specific agent or MVP harness.
-- Read [coding-agents.md](references/coding-agents.md) when the requested agent reads, edits, tests, reviews, migrates, or opens changes against a software repository.
+- Read [coding-agents.md](references/coding-agents.md) when the requested agent reads, edits, tests, reviews, migrates, or opens changes against a software repository, including measured post-MVP action-interface selection.
 - Read [architecture.md](references/architecture.md) for the full harness model and component boundaries.
 - Read [agent-legibility-feedback-loops.md](references/agent-legibility-feedback-loops.md) for source-of-truth knowledge bases, agent-legible environments, validation loops, mechanical invariants, and recurring cleanup.
 - Read [agentic-loop.md](references/agentic-loop.md) for the provider-neutral loop, step budgets, retries, and loop variants.
 - Read [speculative-tool-execution.md](references/speculative-tool-execution.md) when an advanced code-mode or programmatic-tool harness should prelaunch eligible work during generation while retaining completed-program authority and occurrence-aware claiming.
-- Read [tools-and-permissions.md](references/tools-and-permissions.md) for tool contracts, risk classes, approval logic, structured results, and sandboxing.
+- Read [tools-and-permissions.md](references/tools-and-permissions.md) for tool contracts, record provenance, presentation receipts, resulting-state limits, approval logic, structured results, and sandboxing.
 - Read [environment-adaptive-tools.md](references/environment-adaptive-tools.md) when the tool environment is partially known or changes at runtime and needs bootstrap discovery, schema validation, safe probing, exact binding, or drift handling.
-- Read [context-memory-compaction.md](references/context-memory-compaction.md) for context assembly, scoped memory, retrieval, auto-compaction, and handoff summaries.
+- Read [context-memory-compaction.md](references/context-memory-compaction.md) for context assembly, user-memory lifecycle and source eligibility, layered retrieval, staged elision-before-summary, optional historical-output recall, and handoff preservation.
 - Read [prompt-caching-and-cost.md](references/prompt-caching-and-cost.md) for stable-prefix design, cache-aware context ordering, compaction/cache tradeoffs, telemetry, and cost control.
-- Read [planning-and-goals.md](references/planning-and-goals.md) for planning mode, approval-gated execution, goals, checkpoints, and stopping conditions.
+- Read [planning-and-goals.md](references/planning-and-goals.md) to distinguish read-only planning mode from execution-time progress scaffolds, and for approval-gated execution, goals, checkpoints, and stopping conditions.
 - Read [workflow-orchestration.md](references/workflow-orchestration.md) for planner-generated workflows, bounded work packets, worker/verifier contexts, integration, durable workflow state, and orchestration anti-patterns.
 - Read [self-refining-recursive-harnesses.md](references/self-refining-recursive-harnesses.md) for strict RLM and RLM-inspired patterns, programmable context, recursive execution units, retained children, continual refinement, executable skills, and long-running lifecycle controls.
-- Read [skills-and-connectors.md](references/skills-and-connectors.md) for Agent Skills, progressive disclosure, MCP, external connectors, tool search, and attachment strategy.
+- Read [skills-and-connectors.md](references/skills-and-connectors.md) for Agent Skills, progressive disclosure, predictive loading, MCP, external connectors, tool search, and attachment strategy. For public-board communication, use its [public disclosure and publication contract](references/skills-and-connectors.md#agent-communication-via-public-boards).
 - Read [system-prompts-instructions.md](references/system-prompts-instructions.md) for system/developer/user instruction hierarchy and prompt templates.
 - Read [provider-api-patterns.md](references/provider-api-patterns.md) for OpenAI, Anthropic, and OpenAI-compatible API implementation patterns.
 - Read [security-observability.md](references/security-observability.md) for guardrails, threat models, approval records, trace design, launch safety gates, and incident response.
-- Read [evals.md](references/evals.md) for evaluation strategy, adversarial test cases, trace grading, regression evals, and eval-driven launch criteria.
+- Read [evals.md](references/evals.md) for evaluation strategy, runtime-state fixtures, cross-capability cases, failure-aware component diagnostics across context budgets, safety trace invariants, model/configuration sweeps, and launch criteria.
 - Read [checklists.md](references/checklists.md) for condensed implementation and audit checklists.
 - Read [source-links.md](references/source-links.md) for official links and provider-specific references.
 - Read [coverage-audit.md](references/coverage-audit.md) to verify the skill covers the requested harness topics.
@@ -128,13 +142,13 @@ When the user asks for guidance, produce a concrete architecture, not generic pr
 3. **Instructions**: system/developer/user instruction hierarchy and scoped memory.
 4. **Tools**: tool registry, schemas, outputs, risk classes, permissions, and approval points.
 5. **Environment adaptation, when requested**: stable bootstrap, discovery, descriptor provenance, safe probes, exact bindings, drift invalidation, and fallback.
-6. **Context**: retrieval, memory, summarization, cache-aware ordering, compaction triggers, and rehydration.
-7. **Planning/goals**: when to enter planning mode, when to run a goal-like loop, and how to stop.
+6. **Context**: retrieval, memory, staged compaction when context pressure warrants it, recall utility, cache-aware ordering, and rehydration.
+7. **Planning/goals**: permission-gated planning versus execution progress tracking, when to run a goal-like loop, and how to stop.
 8. **Workflow orchestration**: when to decompose into durable work packets, worker contexts, verifier contexts, and integration.
-9. **Skills/connectors**: how skills and MCP/external connectors are discovered, loaded, permissioned, and audited.
+9. **Skills/connectors**: how skills and MCP/external connectors are discovered, loaded, permissioned, and audited; when public-board communication is requested, make the public audience and publication approval explicit.
 10. **Safety**: prompt injection boundaries, secrets, sandboxing, data access, and guardrails.
 11. **Observability**: traces, metrics, replay, auditability, and incident readiness.
-12. **Evals**: test cases, failure probes, trace grading, regression suites, and launch criteria.
+12. **Evals**: test cases, failure probes, component-selection diagnostics, trace grading, regression suites, and launch criteria.
 13. **Rollout**: minimal viable harness first, then add autonomy only when measured results justify it.
 14. **Legibility loop**: source-of-truth artifacts, validation signals, feedback capture, and recurring cleanup.
 15. **Advanced recursive/continual profile, when requested**: context handles, recursive unit, retained lifecycle, mutable state boundary, observed validation, promotion, and rollback.
@@ -150,6 +164,7 @@ When the user asks for guidance, produce a concrete architecture, not generic pr
 - A changing capability catalogue must enter through a trusted bootstrap contract; discovery, schema inference, and generated helpers never create permissions.
 - Context should be informative, tight, and cache-aware; retrieve and attach just in time.
 - Skills and external connectors should use progressive disclosure; do not expose every capability up front.
+- Public-board posts are public external disclosures, not private agent memory; make this visible to the agent and user, and enforce publication approval in the host.
 - Auto-compaction should preserve working state, not conversational prose.
 - Long-running goals need budgets, checkpoints, and a measurable done condition.
 - Workflow orchestration needs durable packet state, independent verification, integration rules, and total budget enforcement.

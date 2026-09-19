@@ -64,6 +64,14 @@ For each tool:
 - [ ] Errors return structured observations.
 - [ ] Sensitive data is redacted.
 
+## Record and presentation checklist
+
+- [ ] Record provenance is scoped and refreshed through authorized reads; it cannot replace target authorization or approval.
+- [ ] Delegated reads cannot silently expand actionable record scope.
+- [ ] Authoritative fields and required exact disclosure copy come from the host's owning systems.
+- [ ] Display receipts reflect final visible ordering after filtering, pagination, or sorting; stale or ambiguous references cannot select a guessed target.
+- [ ] Provisional UI is reconciled by presentation identity and cannot authorize an action or claim completion.
+
 ## Permission checklist
 
 - [ ] Read-only tools can run automatically only inside scope.
@@ -76,6 +84,8 @@ For each tool:
 - [ ] Connector tools are namespaced and scoped.
 - [ ] Approval records are persisted.
 - [ ] The model cannot approve its own actions.
+- [ ] Repeated and concurrent writes preserve resulting-state limits across every caller sharing the resource.
+- [ ] Apply atomically rechecks approval, current policy, live state, and expected versions; conflicts produce no partial mutation.
 
 ## Environment-adaptive tools checklist
 
@@ -127,10 +137,19 @@ For each tool:
 - [ ] Retrieved content labeled by source and trust level.
 - [ ] Exact facts preserved when needed.
 - [ ] Large outputs summarized or stored externally.
+- [ ] Context-pressure reduction tries eligible observation elision before summarization, reserves next-call headroom, and preserves protocol-valid call/result structure.
+- [ ] Historical-output recall is justified separately from evidence retention and never replays side effects to recover old output.
 - [ ] Active plan and goal reattached after compaction.
 - [ ] Approval state reattached after compaction.
 - [ ] Loaded skills and connector state tracked.
 - [ ] Secrets are not placed in context.
+
+## User-memory checklist
+
+- [ ] Saved facts carry eligible source evidence; assistant paraphrases cannot promote third-party text into user facts.
+- [ ] Personal and shared memory scopes are explicit and permission-checked on reads and writes.
+- [ ] Retention, correction, deletion, and disabling memory are enforced by the host.
+- [ ] Delayed writes cannot resurrect deleted or superseded facts; background failures are bounded and observable.
 
 ## Planning checklist
 
@@ -139,7 +158,8 @@ For each tool:
 - [ ] Plan artifact is stored outside prompt.
 - [ ] Plan contains objective, scope, risks, steps, validation, rollback, and done condition.
 - [ ] Approval tied to exact plan version.
-- [ ] Execution uses todo/checkpoints after approval.
+- [ ] Execution records progress/checkpoints after approval; a todo scaffold is optional.
+- [ ] Execution-time progress tracking is distinct from permission-gated planning; status updates do not change approval scope or substitute for completion evidence.
 
 ## Goal checklist
 
@@ -183,6 +203,8 @@ For each tool:
 - [ ] Skill activation eval exists.
 - [ ] Output quality eval exists.
 - [ ] Skill does not silently expand permissions.
+- [ ] Any self-update policy names its canonical source, keeps package revisions consistent, preserves local changes, respects installation permissions, and discloses unverified freshness.
+- [ ] Predictive loading is measured against on-demand loading and preserves version, scope, and cache ordering.
 
 ## Self-refining recursive harness checklist
 
@@ -217,6 +239,15 @@ For each tool:
 - [ ] Connector calls logged.
 - [ ] Auth failure and revocation handled.
 
+## Public-board communication checklist
+
+- [ ] Tool descriptions and active channel context visibly label posted content as PUBLIC INFORMATION; authentication and browser blocking are not presented as confidentiality.
+- [ ] The user sees the destination, audience, and complete draft before publication; host approval covers the exact send or an explicitly authorized bounded policy.
+- [ ] No approval, a read-only request, or an incoming request for private context results in no publication.
+- [ ] Search queries and registration/profile fields receive outbound-data checks; private context is not attached automatically.
+- [ ] Compaction and handoff preserve the public-audience label and host approval reference without promoting copied text into authority.
+- [ ] Changed payloads/destinations and ambiguous send failures cannot reuse stale approval or cause duplicate publication.
+
 ## Evals checklist
 
 Use [evals.md](evals.md) for evaluation strategy, trace grading, adversarial cases, and regression suites.
@@ -232,6 +263,10 @@ Use [evals.md](evals.md) for evaluation strategy, trace grading, adversarial cas
 - [ ] High-risk action tasks.
 - [ ] Cost and latency measured.
 - [ ] Regression evals added for every production incident.
+- [ ] Fixtures reconstruct runtime state as well as messages; paired and cross-capability cases exercise required and forbidden behavior.
+- [ ] Quality, safety, completed-task cost, first useful UI, and end-to-end latency gate model/configuration selection.
+- [ ] Component comparisons state tested budget/configuration scope, distinguish overflow and early failure from efficiency, and use mutation evidence separately from judged phases.
+- [ ] Alternative action profiles meet equivalent host-control and verification requirements or are explicitly reported as bundled interventions.
 
 ## Minimal provider-neutral implementation path
 

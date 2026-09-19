@@ -27,21 +27,27 @@ jobs:
       - name: Prepare update branch
         run: git switch --force-create "$UPDATE_BRANCH" origin/main
       - name: Refresh canonical skills
+        id: refresh
         shell: bash
         run: |
           set -euo pipefail
-          if ! python3 skill_updater/update_skills.py refresh --apply; then
-            echo "Updater diagnostics:"
-            cat skill_updater/logs/last_run_summary.json || true
-            exit 1
+          rm -f skill_updater/logs/last_run_summary.json
+          if python3 skill_updater/update_skills.py refresh --apply; then
+            status=0
+          else
+            status=$?
           fi
+          python3 skill_updater/check_refresh_result.py --exit-code "$status" \
+            --output "$GITHUB_OUTPUT" --report "$GITHUB_STEP_SUMMARY"
       - name: Run updater tests
-        run: python3 -m unittest skill_updater.tests.test_update_skills
+        run: python3 -m unittest discover -s skill_updater/tests
       - name: Regenerate ChatGPT manifest
         run: |
           python3 -m pip install --disable-pip-version-check --require-hashes -r scripts/requirements-chatgpt.txt
           python3 scripts/build_chatgpt_md.py
           python3 scripts/build_chatgpt_md.py --check
+      - name: Validate canonical repository
+        run: python3 scripts/validate_repository.py
       - name: Commit and propose changes
         shell: bash
         run: |
@@ -58,3 +64,15 @@ jobs:
           git push --force-with-lease origin "HEAD:refs/heads/$UPDATE_BRANCH"
           echo "Review and open a pull request:"
           echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/main...${UPDATE_BRANCH}?expand=1"
+      - name: Preserve updater diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: upstream-refresh-diagnostics
+          path: skill_updater/logs/last_run_summary.json
+          if-no-files-found: warn
+      - name: Report unresolved skill failures
+        if: steps.refresh.outputs.partial == 'true'
+        run: |
+          echo "::error::Refresh incomplete; validated changes, if any, were proposed for review. See diagnostics for blocked skills."
+          exit 1

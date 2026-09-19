@@ -38,7 +38,15 @@ Commit the skill changes and regenerated `CHATGPT.md` together.
 `skill_updater/registry.json` records each original upstream, reviewed Codex
 overlay, source commit, and canonical tree hash. The scheduled upstream workflow
 updates a dedicated review branch and prints its compare URL; it never updates
-`main` directly. Open and review the pull request from that URL.
+`main` directly. Open and review the pull request from that URL. A complete
+partial refresh can publish validated updates while preserving blocked skills;
+the run remains failed and retains a diagnostic artifact naming the blockers.
+Global failures or failed validation prevent publication.
+
+Keep overlays limited to necessary compatibility and behavioral differences.
+Preserve compatible upstream text; remove only provable redundancy, never
+constraints or caveats. Keep normal patch context, verify replay against the
+pinned upstream, and review conflicts instead of forcing patches through.
 
 ```bash
 python3 skill_updater/update_skills.py refresh --check

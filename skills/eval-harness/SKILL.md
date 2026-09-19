@@ -1,6 +1,7 @@
 ---
 name: eval-harness
 description: Formal evaluation framework for agentic coding sessions implementing eval-driven development (EDD) principles. Use when an agentic coding workflow needs a formal eval before it is trusted or changed.
+license: MIT
 ---
 
 # Eval Harness Skill

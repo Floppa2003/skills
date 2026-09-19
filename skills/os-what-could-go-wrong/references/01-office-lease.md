@@ -249,9 +249,12 @@ mentors signal departure", which cannot.
    depend on" and "what others do about it" produced no card of their own. Both
    still get a line saying where the mechanism went instead. That is the
    difference between a sweep and a list of whatever came to mind.
-5. **Still unfixed, and visible above: the report leaks specialist words.**
+5. **Still visible above: the report leaks specialist words.**
    "Dilapidations", "escrow", "covenant", "in escrow or the landlord's money" -
    all appear without saying what the person would actually see happen, which
    is the rule at the top of the analysis prompt. Part one is clean; the detail
-   is not. The rule is right and the output does not fully obey it yet, so a
-   later example should be the one that closes this, not a promise here.
+   is not. The output here is kept as it came, because a record that gets
+   edited stops being a record. The example where the rule holds further down
+   is [example 2](02-clinic-database-move.md), a database move: its detail
+   layer says what a clinic would see beside every specialist term but four,
+   and it lists those four.
