@@ -64,7 +64,7 @@ git clone https://github.com/DenisSergeevitch/agents-best-practices.git \
   .claude/skills/agents-best-practices
 ```
 
-**Keeping the skill current:** On each new task, the skill checks this repository's `main` revision and uses a consistent upstream snapshot when the installed copy is stale. Its [self-update instructions](SKILL.md#freshness-and-self-update) preserve local changes and installer-managed copies, respect write permissions, and disclose when freshness cannot be verified.
+**Keeping the skill current:** The installed reviewed snapshot remains authoritative. Upstream may inform research; replacing instructions requires the [managed update process](SKILL.md#freshness-and-self-update), preserving local changes and permissions and disclosing unverified freshness.
 
 <div align="center">
 
