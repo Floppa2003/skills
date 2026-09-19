@@ -287,6 +287,12 @@ Use when reviewing ML system design docs, ML/AI project repos, design-doc PRs, R
 
 Entrypoint: `skills/ml-system-design-review/SKILL.md`
 
+## no-ai-slop
+
+Edit drafts into sharper, more human writing while preserving the writer's personal voice, or detect AI-slop patterns without rewriting. Use when the user wants a draft clearer, more direct, more opinionated, or less AI-sounding, or asks whether writing reads as AI.
+
+Entrypoint: `skills/no-ai-slop/SKILL.md`
+
 ## nutrient-document-processing
 
 Process, convert, OCR, extract, redact, sign, and fill documents using the Nutrient DWS API. Works with PDFs, DOCX, XLSX, PPTX, HTML, and images. Use when converting, OCRing, extracting from, redacting, signing, or filling documents via the Nutrient DWS API.
