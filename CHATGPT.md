@@ -181,7 +181,7 @@ Entrypoint: `skills/eval-harness/SKILL.md`
 
 ## executing-plans
 
-Use when you have a written implementation plan to execute in a separate session with review checkpoints
+Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available
 
 Entrypoint: `skills/executing-plans/SKILL.md`
 
