@@ -1219,6 +1219,21 @@
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "no-ai-slop",
+      "repo": "petergyang/no-ai-slop",
+      "path": "skills/no-ai-slop",
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": null,
+      "enabled": true,
+      "installed_commit": "000650b156983f5159695b441477f4e63b25dc85",
+      "installed_hash": "1e1c0700528be2da5a108fa3fffcd961bc3bb6317529e51fb5cb757d58a24adf",
+      "skip_reason": null,
+      "required_paths": [],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }
