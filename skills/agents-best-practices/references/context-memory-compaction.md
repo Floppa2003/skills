@@ -75,6 +75,41 @@ connector state
 
 Do not treat all memory as equally authoritative. A user preference can shape formatting; it cannot override safety policy.
 
+## User-memory lifecycle
+
+Persistent facts about a person need a separate data-handling contract from session history or reusable harness instructions. Make persistence optional per deployment, and keep current user constraints available in the active conversation even when persistence is disabled or unavailable.
+
+### Eligible facts and scope
+
+- Persist only eligible user assertions or explicit confirmations, with references to the original evidence. Quoted material, tool results, and assistant guesses are not user assertions; an assistant repeating third-party text does not make it eligible. Excluding tool-result messages alone cannot establish provenance.
+- Resolve the person and tenant through the trusted host. A shared account or organization ID is insufficient for a personal profile; when individual identity is unavailable, omit personal memory. Check current subject, tenant, and resource permissions on every read and write.
+- Route every save through a host validator for permitted fact categories, provenance, scope, size, and retention. Apply deployment policy and any required user choice there; a model-generated save request does not authorize persistence.
+- Let users inspect, correct, and delete stored facts. Corrections supersede older evidence; deletion and expiry remove facts from future retrieval and invalidate derived profiles or caches. Keep only the non-content metadata necessary to prevent replay, under an explicit retention policy. A rollback or append-only audit record must not restore deleted personal content.
+
+For typed records, versions, and evidence references, reuse the [supplemental harness ledger](self-refining-recursive-harnesses.md#supplemental-harness-ledger). Its generic history model remains subject to this personal-data lifecycle. Fact capture does not imply behavioral self-refinement; changes to reusable instructions still follow the [refinement transaction](self-refining-recursive-harnesses.md#refinement-transaction).
+
+### Optional extraction outside the response path
+
+After the single-loop baseline is measured, a latency-sensitive application may add a bounded extractor that proposes fact changes after a turn or session. This worker is post-MVP and optional. Limit its source window, frequency, queue, time, tokens, and retries; it uses the same validated write path as an explicit save.
+
+Identify each extraction by subject, source-event window, and idempotency key. Capture expected fact versions and the applicable deletion generation with that window. The storage transaction must atomically check those values and current policy while applying the fact change and recording its idempotency result. A generation check followed by a separate save leaves a deletion race.
+
+Deletion or expiry must invalidate pending work and fence replay of pre-deletion evidence, including work reconstructed from old transcripts. A stale extractor cannot refresh its generation and retry the same evidence; a later explicit user assertion may create a new fact. Version conflicts require reconciliation with current facts and newer user corrections, never blind overwrite.
+
+Treat extraction as eventually consistent. Do not report a fact as saved before a committed result, and do not make the next turn depend on background completion. On timeout, failed validation, ambiguous provenance, or unavailable storage, retain the active conversation constraint and record a bounded failure; uncertain commits are reconciled through the idempotency record before retry. If a request requires durable persistence, expose its actual status to the user.
+
+### Memory read paths
+
+Use three paths within the same permission and freshness checks:
+
+| Path | Include |
+|---|---|
+| Always present | A small set of permitted, current facts necessary for nearly every request. |
+| Preloaded for this turn | Relevant facts selected from observed task or entry-point signals before the model call. |
+| Explicit lookup | Remaining facts retrieved only when needed. |
+
+All three paths filter deleted, expired, and inaccessible facts. Omit uncertain or stale facts; ask for a current value when the task depends on it. Keep personal context outside globally shared prompt content using [cache-aware ordering](prompt-caching-and-cost.md#core-rule-stable-prefix-dynamic-suffix). Measure memory behavior with the existing [eval methodology](evals.md), rather than treating retrieval volume as success.
+
 ## Retrieval strategy
 
 Use just-in-time retrieval:
@@ -174,19 +209,34 @@ Trigger compaction when:
 
 Avoid recursive compaction. If compaction fails repeatedly, stop and ask for a narrower task or larger context budget.
 
+### Staged reduction under context pressure
+
+Count the complete next-call input, including instructions and tool schemas, and reserve output capacity and observation headroom before choosing thresholds. Use an earlier soft threshold for cheap reduction and a later hard threshold for summarization, both within the usable input budget. Preserve the preamble, active state identified above, and a recent high-value window; only eligible older history is a reduction candidate. Thresholds and the protected window are tuning parameters, not portable constants.
+
+At the soft threshold, replace bulky stale tool-observation bodies with compact stubs before paying for an LLM summary. Recount tokens after elision; if the input is below the hard threshold and no handoff is required, no summarization call is needed. Summarize the oldest unprotected events only when the hard threshold still binds or an operational handoff requires it. Do not elide exact evidence still needed for the next decision. Retained messages must remain protocol-valid: preserve call/result identities and statuses, and never orphan pending tool calls or their results.
+
+This policy combines familiar mechanisms; it is not a guarantee that more compression improves reasoning. Compare it with simpler policies using [component diagnostics](evals.md#component-diagnostics), and retain the existing [cache-stability rules](#compaction-and-cache-stability).
+
 ## Compaction algorithm
 
 Provider-neutral algorithm:
 
 ```text
-1. Select history since last compaction boundary.
-2. Preserve recent high-value messages and exact user constraints.
-3. Summarize old messages into a structured handoff.
-4. Store bulky artifacts externally and reference them.
-5. Rebuild the context with summary + active artifacts.
-6. Reattach active plan, workflow state, goal, approvals, loaded instructions, invoked skills, and connector state.
-7. Add a compaction boundary event to the trace.
+1. Select eligible history since the last compaction boundary while protecting the preamble, recent high-value messages, and active state.
+2. Elide bulky stale observation bodies when the soft threshold binds; leave stubs with call identity, status, removed size, and an authorized source/artifact reference where available.
+3. Recount the next-call input; skip summarization if it is below the hard threshold and no handoff is required.
+4. If the hard threshold still binds or a handoff is required, summarize the oldest unprotected events into a structured handoff without breaking tool-call/result structure.
+5. Store bulky artifacts externally under retention policy and reference them.
+6. Rebuild context with any handoff, protected recent history, stubs, and active artifact references.
+7. Reattach active plan, workflow state, goal, approvals, loaded instructions, invoked skills, and connector state.
+8. Trace the reduction stage, before/after token counts, and any summarization call and cost; record a compaction boundary when a handoff replaces history.
 ```
+
+## Historical-output recall
+
+Durable evidence retention and a model-facing historical-output recall tool are separate decisions. Keep records required by audit, recovery, or product policy even if the model never recalls them. Do not assume that exposing recall improves task completion merely because it makes elision reversible; compare its incremental utility with elision alone at matched thresholds and with safe re-reading, using [component diagnostics](evals.md#component-diagnostics).
+
+When recall is justified, use a bounded host lookup for exact stored observations that are costly or impossible to reproduce. Historical results retain their original source, time/version, and trust labels; they are not fresh environment state or restored authority. Check current access policy on retrieval. A re-read or read-only rerun may observe changed state; never replay a write or other side effect merely to recover an old observation. Reuse [tool error and retry contracts](tools-and-permissions.md#error-handling) rather than introducing a second recovery policy.
 
 ## Handoff summary format
 

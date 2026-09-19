@@ -14,7 +14,7 @@ Use this reference to test the model-harness combination: model, instructions, c
    Test the same harness with several model choices, and the same model with several harness variants. This separates model capability from scaffold effects and catches brittle coupling.
 
 4. Grade traces, not only final answers.
-   Final output can look right while the run used the wrong tool, skipped approval, leaked state, retried wastefully, or ignored a failed observation.
+   Final output can look right while the run skipped approval, leaked state, retried wastefully, or ignored a failed observation. Preserve these invariants while accepting different valid routes to the required outcome.
 
 5. Measure quality, safety, cost, and latency together.
    The best harness is not the one with the highest task score if it is too slow, expensive, approval-heavy, or unsafe for the autonomy level.
@@ -33,12 +33,18 @@ fixtures
 expected_trace_events
 forbidden_trace_events
 expected_final_status
+expected_final_state
+expected_rendered_output
 quality_rubric
 cost_latency_budget
 grading_notes
 ```
 
 Use stable fixtures and record model, provider, harness version, tool bundle, prompt/instruction version, and random seed or sampling settings when available.
+
+`initial_state` includes the harness and backend state needed to reproduce the decision: messages, resource provenance, identity and permissions, approval records, pending changes, memory, and the latest rendered component state and ordering where applicable. A stateless model API does not make the harness stateless. Restore consistent fixtures together; a transcript alone must not recreate authority.
+
+Include long, busy, or contradictory preconditions that expose the behavior under test. Inject earlier state directly unless carrying or updating it across turns is itself the test. Simulated conversations can discover failures; reduce them to controlled cases for attributable regression measurement.
 
 ## What to test
 
@@ -53,6 +59,17 @@ Use a balanced suite:
 - failure tasks with malformed tool output, timeout, auth expiry, empty results, or huge results;
 - adversarial tasks that try prompt injection, data exfiltration, scope expansion, or approval bypass;
 - false-success tasks where the harness must avoid claiming completion without evidence.
+
+Pair each required behavior with a nearby case where it should be absent: serve/refuse, act/ask, load/skip a skill, or save/reject a memory. Include requests spanning neighboring capabilities and assert both obligations in the same outcome; separate passing suites can miss an answer that handles only half the request.
+
+For tools that render records, change business state, or maintain user memory, include these contract cases:
+
+- **Rendered references:** resolving “the second one” must use the final display after invalid records are filtered or the client changes their order; check displayed IDs and layout, authoritative fields, and exact required disclosures.
+- **Record access:** an invented or copied ID, a previously seen ID after permission revocation, and an ID read only by a delegate exercise separate provenance and authorization checks; no case may grant write access merely because a record was visible.
+- **Resulting-state limits:** repeated calls and concurrent workers targeting the same resource cannot combine to exceed a limit; applying a staged action must recheck current policy and reject stale target or approval bindings.
+- **Memory lifecycle:** test eligible extraction, rejected sources including third-party text repeated by the assistant, and whether a stored fact changes a later answer. Cover operator/tenant isolation, retention, and correction or deletion while an older extraction is still running.
+
+Use [tools and permissions](tools-and-permissions.md) and [context and memory](context-memory-compaction.md) for these contracts; keep their detailed eval cases here.
 
 ## Named public suites
 
@@ -73,6 +90,8 @@ Use public benchmark names as calibration examples, not as the only valid evals.
 These suites are useful names because they remind evaluators to test different work shapes: repo edits, web use, scientific reasoning, customer workflows, and algorithmic coding. For a product harness, build local cases in the same spirit with the product's real tools, policies, data, and failure modes.
 
 ## Trace grading
+
+Grade final business state, emitted UI, and write arguments with code where fields decide correctness. Use a rubric for semantic requirements. Pin a tool choice or ordering only when it is part of the contract, such as a required grounding read or authorization before a write; otherwise accept any route satisfying the outcome and safety invariants.
 
 Grade events such as:
 
@@ -107,6 +126,29 @@ single agent vs decomposed workers
 ```
 
 Track both lift and cost. A component that improves rare cases but harms common cases should stay off the MVP path until the product needs it.
+
+## Component diagnostics
+
+Use matched task outcomes to explain which limitation an intervention addresses, not only whether aggregate success changes. Cross representative context-window budgets with context policies while holding the model, tasks, and other components fixed. Separately ablate progress tracking and action profiles; if resource limits permit only selected combinations, state that scope instead of claiming a full factorial result or unmeasured interactions. Repeat runs where practical, report paired uncertainty, and keep tuning cases separate from held-out evaluation.
+
+| Intervention | Matched comparison | Measurements that distinguish the mechanism |
+|---|---|---|
+| Context reduction | No cross-turn management, elision, summarization, and staged elision-before-summary at each budget | Success, context-overflow terminations, peak next-call input, reduction-stage counts, summarization calls/cost, and preservation of required active state. Distinguish keeping runs alive from changing behavior. |
+| Historical-output recall | Elision with/without recall at identical thresholds; also test staged reduction with/without recall when proposing that combination | Invocation rate, fraction of tasks using recall, recoveries that affect a later decision, task lift, and total retrieval/re-read cost. Keep audit retention constant; lack of model usage does not justify deleting required records. |
+| Progress scaffold | Tracking on/off with the same permission mode, completion criteria, and required checks | Time/calls until an actual source edit, abandonment before useful work, unmet done conditions at stop, post-edit verification on unchanged state, long-tail trajectory cost, and verification coverage. |
+| Action interface | Explicit workspace tools versus a shell-centric or programmatic profile with equivalent host controls and diagnostics | Out-of-interface emissions, localization failures, actual mutations, repeated edits, action granularity, calls/tokens, success, and safety invariants. If controls or instructions differ, declare the bundled intervention. |
+
+Record runtime termination reasons separately: completed, model stopped without meeting the done condition, context overflow, step/time/cost limit, repeated failure, approval pause, and policy denial. Phase-level call, token, and time totals can locate redundant work, but fewer turns or lower mean cost may simply reflect earlier failure. Apply the same quality floor and [completed-task economics](#model-and-configuration-sweeps) to all profiles, including failed attempts.
+
+Derive physical writes and literal no-edit termination from runtime mutation evidence or observed file state, including shell-mediated changes. Semantic phase labels from a model judge are different measurements: a missing Fix label is not proof that no file was edited. When using judged phases or failure-stage attribution, publish their definitions and validate a sample against human labels; do not replace runtime permission, mutation, or completion evidence with judge agreement.
+
+The behavior contracts remain in [context reduction and recall](context-memory-compaction.md#staged-reduction-under-context-pressure), [progress scaffolds](planning-and-goals.md#execution-time-progress-scaffold), and [coding action interfaces](coding-agents.md#model--and-workload-dependent-action-interfaces). Keep their evaluation matrix here rather than duplicating it in those owners.
+
+## Model and configuration sweeps
+
+Compare candidate models and effort settings against the same quality floor and task mix. First hold the harness and prompt fixed to isolate configuration effects; then allow comparable prompt calibration per candidate on separate tuning cases and report held-out results with each prompt version. Keep those two comparisons distinct so a prompt fitted to one model does not settle the selection unfairly.
+
+Measure cost per successful task with failed attempts included in total cost, time to first useful rendered output, full-task latency, and tail percentiles as well as medians. Weight results by observed traffic where available and report difficult-task failures separately. Faster tokens or a cheaper call do not imply faster or cheaper completion. Use [prompt caching and cost](prompt-caching-and-cost.md) for cache measurements and stable-prefix design.
 
 ## Speculative tool execution evals
 
@@ -259,6 +301,10 @@ Every incident, review finding, or repeated manual correction should become a re
 4. Patch the harness, tool schema, permission policy, context builder, or instruction source.
 5. Add the case to the recurring suite.
 6. Track pass/fail by model and harness version.
+
+Select change-time coverage from a core set of common tasks, every safety case, affected capabilities, and their neighboring boundary cases. A tool change includes its callers; a shared prompt change runs the full suite. Run the full suite before release and periodically to catch regressions outside the selected set, using several trials and declared pass thresholds for nondeterministic cases.
+
+Re-scoring stored outcomes tests graders and preserves diagnostics; it does not test a changed model, prompt, skill, or runtime. Those changes need fresh executions of the selected cases. Record the case and scorer behind each known failure so a different failure on the same case remains visible.
 
 ## Domain overlays
 

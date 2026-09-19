@@ -37,13 +37,13 @@ For each user task:
 
 ## agent-transcript
 
-Requested GitHub PR/issue agent transcripts: redact, preview, and insert safely.
+Requested GitHub PR/issue agent transcripts: redact, trim, preview, and insert safely.
 
 Entrypoint: `skills/agent-transcript/SKILL.md`
 
 ## agents-best-practices
 
-Use this skill when designing, generating an MVP blueprint for, auditing, refactoring, or explaining an agentic harness for any domain. Covers provider-neutral agent architecture for OpenAI, Anthropic, and OpenAI-compatible APIs: agent loops, tool design, environment-adaptive tools, speculative tool execution, late-bound capabilities, permissions, system prompts, planning, goals, context compaction, memory, skills, MCP/external connectors, self-refining recursive harnesses, programmable context, continual refinement, observability, evals, prompt caching, agent-legible environments, feedback loops, and safety.
+Use this skill when designing, generating an MVP blueprint for, auditing, refactoring, or explaining an agentic harness for any domain. Covers provider-neutral agent architecture for OpenAI, Anthropic, and OpenAI-compatible APIs: agent loops, tool design, record provenance, interactive presentation, user-memory lifecycles, environment-adaptive tools, speculative tool execution, late-bound capabilities, permissions, system prompts, planning, goals, context compaction, memory, skills, MCP/external connectors, public-board communications, self-refining recursive harnesses, programmable context, continual refinement, observability, evals, prompt caching, agent-legible environments, feedback loops, and safety.
 
 Entrypoint: `skills/agents-best-practices/SKILL.md`
 
@@ -199,7 +199,7 @@ Entrypoint: `skills/firecrawl/SKILL.md`
 
 ## first-customer-finder
 
-Find and qualify evidence-backed potential first customers, early adopters, design partners, or beta users for a startup using recent public pain and buying signals. Use when Codex needs to analyze a product URL or idea, define an ideal customer profile, research public discussions and business pages, identify first-user prospects, rank lead fit and timing, prepare source-based outreach drafts, or create a shareable early-customer prospecting report without sending messages automatically.
+Find evidence-backed potential first customers, beta users, or design partners from public demand signals. Use for product-specific prospect research, qualified shortlists, source-grounded outreach drafts, and follow-up searches refined by the user's feedback and local prospect history. Does not send outreach automatically.
 
 Entrypoint: `skills/first-customer-finder/SKILL.md`
 

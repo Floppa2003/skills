@@ -1,11 +1,12 @@
 --- a/SKILL.md
 +++ b/SKILL.md
-@@ -1,17 +1,16 @@
+@@ -1,18 +1,17 @@
  ---
  name: eval-harness
 -description: Formal evaluation framework for Claude Code sessions implementing eval-driven development (EDD) principles. Use when a Claude Code workflow needs a formal eval before it is trusted or changed.
 -allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 +description: Formal evaluation framework for agentic coding sessions implementing eval-driven development (EDD) principles. Use when an agentic coding workflow needs a formal eval before it is trusted or changed.
+ license: MIT
  ---
  
  # Eval Harness Skill
@@ -21,7 +22,7 @@
  - Measuring agent reliability with pass@k metrics
  - Creating regression test suites for prompt or agent changes
  - Benchmarking agent performance across model versions
-@@ -27,10 +26,10 @@
+@@ -28,10 +27,10 @@
  ## Eval Types
  
  ### Capability Evals
@@ -34,7 +35,7 @@
  Success Criteria:
    - [ ] Criterion 1
    - [ ] Criterion 2
-@@ -66,7 +65,7 @@
+@@ -67,7 +66,7 @@
  ```
  
  ### 2. Model-Based Grader
@@ -43,14 +44,15 @@
  ```markdown
  [MODEL GRADER PROMPT]
  Evaluate the following code change:
-@@ -165,19 +164,19 @@
+@@ -166,19 +165,19 @@
  
  ### Pre-Implementation
  ```
 -/eval define feature-name
-+Invoke this skill to define feature-name
- ```
+-```
 -Creates eval definition file at `.claude/evals/feature-name.md`
++Invoke this skill to define feature-name
++```
 +Creates eval definition file at `evals/feature-name.md`
  
  ### During Implementation
@@ -67,7 +69,7 @@
  ```
  Generates full eval report
  
-@@ -185,8 +184,7 @@
+@@ -186,8 +185,7 @@
  
  Store evals in project:
  ```
@@ -77,7 +79,7 @@
      feature-xyz.md      # Eval definition
      feature-xyz.log     # Eval run history
      baseline.json       # Regression baselines
-@@ -224,7 +222,7 @@
+@@ -225,7 +223,7 @@
  [Write code]
  
  ### Phase 3: Evaluate

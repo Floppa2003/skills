@@ -13,8 +13,7 @@ Assume it already failed, then work backwards to find out why - while there is
 still time to change it. The attack runs in a fresh agent that had no part in
 the decision, because an agent that helped shape one reviews it far too
 gently: it defends its own reasoning, and it misses the thing that kills the
-plan out of politeness. This skill writes the brief, hands it over, and passes
-the answer back without softening it.
+plan out of politeness.
 
 Use this after a proposed choice is concrete enough to examine and before it
 can no longer be taken back. No other OpenSteps skill is required. The review
@@ -69,8 +68,7 @@ decision: a brief that argues gets a report that agrees.
 
 ## Step 2 - hand it to an agent that had no part in it
 
-Pick the depth, say which one in a single line, and carry on. The user can
-change it at any point.
+Pick the depth, say which in one line, and carry on; the user can change it at any point.
 
 | Depth | When |
 |---|---|
@@ -142,8 +140,7 @@ them only within the user's authorization.
   was checked.
 - **Keep cheap, reversible decisions proportionate.** An explicit request gets
   a Quick look. Skip only an unsolicited review, not the user's request.
-- **"Try it small first" is not a soft no.** Test the unknowns before the money
-  moves.
+- **"Try it small first" is not a soft no.** Test unknowns before money moves.
 - **The user may go ahead against all of it.** Note it once, set the tripwires
   up if they want them, and do not re-argue the report.
 

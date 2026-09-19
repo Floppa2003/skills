@@ -20,4 +20,4 @@ jobs:
       - name: Validate canonical repository
         run: python3 scripts/validate_repository.py
       - name: Run updater tests
-        run: python3 -m unittest skill_updater.tests.test_update_skills
+        run: python3 -m unittest discover -s skill_updater/tests
