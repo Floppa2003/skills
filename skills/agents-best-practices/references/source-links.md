@@ -135,6 +135,7 @@ Canonical guidance lives in [the public-board communication section](skills-and-
 
 ## Implementation examples
 
+- SoL-Pi [ObservationPack](https://github.com/NVlabs/SoL-Pi/tree/1559b5cb12c72da4a485bc50fe326586b216fb19/src/sol-pi/extensions/observation-pack) and [diagnostic receipt validation](https://github.com/NVlabs/SoL-Pi/blob/1559b5cb12c72da4a485bc50fe326586b216fb19/src/sol-pi/extensions/evidence-preserving-reducer/receipt.ts): Pi-specific implementations of archived output recall and checked log excerpts, not Codex skills. Quote authenticity does not establish completeness; retain the task-quality and privacy gates in the owning references.
 - Bun PR with generated workflow program examples: https://github.com/oven-sh/bun/pull/30412/changes
 - Prime Agent repository at researched revision: https://github.com/PrimeIntellect-ai/prime-agent/tree/a18809e00ea30638584d87b3afea7285a9d7296c
 - Prime Agent launch article: https://www.primeintellect.ai/blog/prime-agent

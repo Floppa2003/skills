@@ -44,7 +44,7 @@
       "overlay": "overlays/agents-best-practices.patch",
       "enabled": true,
       "installed_commit": "69442b0855bcd93d7647162ebfd78f0c8f2aa979",
-      "installed_hash": "92760ce2f4892b62efc2574d9571775c5685ec5fbaa09963f088edf04f5b8163",
+      "installed_hash": "03fc7d82f47b630b9d5588d003b07eac1e03959c9a4d330cf7a2ee05025d7aa1",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [],
