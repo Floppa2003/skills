@@ -238,6 +238,8 @@ Durable evidence retention and a model-facing historical-output recall tool are 
 
 When recall is justified, use a bounded host lookup for exact stored observations that are costly or impossible to reproduce. Historical results retain their original source, time/version, and trust labels; they are not fresh environment state or restored authority. Check current access policy on retrieval. A re-read or read-only rerun may observe changed state; never replay a write or other side effect merely to recover an old observation. Reuse [tool error and retry contracts](tools-and-permissions.md#error-handling) rather than introducing a second recovery policy.
 
+Bind recall handles to an immutable content hash and the original tool-call identity; pages must report byte or line ranges and truncation or end-of-source. If archiving fails, retain the original observation rather than replacing it with an unreadable handle.
+
 ## Handoff summary format
 
 Use this format:

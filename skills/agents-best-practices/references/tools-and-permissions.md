@@ -261,6 +261,8 @@ artifact storage reference
 
 For large data, let the tool compute or filter before returning to the model. The model should not receive 10,000 rows just to count five relevant records.
 
+For model-reduced diagnostic logs, return the source reference/hash, command outcome, and exact quoted spans. Validate provenance, outcome, and quotations mechanically before accepting the reduction; on failure preserve the original and expose the reduction failure. Quote validity proves neither coverage nor diagnosis: when omitted context could change the next action, inspect the relevant original range. Delegate only within the approved data boundary.
+
 ## Error handling
 
 Every failure is a result:

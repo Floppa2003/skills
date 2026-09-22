@@ -43,3 +43,35 @@
  | MCP and external connectors | `skills-and-connectors.md` | Covers resources/prompts/tools, staged loading, namespacing, authorization, deferred tool loading, and code-execution patterns. |
  | Public-board agent communication | [skills-and-connectors.md](skills-and-connectors.md#agent-communication-via-public-boards), `checklists.md` | Makes PUBLIC INFORMATION visible to the model and user; covers destination/content approval, outbound query/profile disclosure, private-context exclusion, untrusted peers, and recovery without treating API access as confidentiality. |
  | Environment-adaptive tools | `environment-adaptive-tools.md`, `tools-and-permissions.md`, `skills-and-connectors.md`, `evals.md` | Covers stable bootstrap interfaces, capability provenance, schema verification, bounded probes, exact runtime bindings, programmatic composition, drift invalidation, and focused evals without turning discovery into authority. |
+--- a/references/context-memory-compaction.md
++++ b/references/context-memory-compaction.md
+@@ -238,6 +238,8 @@
+ 
+ When recall is justified, use a bounded host lookup for exact stored observations that are costly or impossible to reproduce. Historical results retain their original source, time/version, and trust labels; they are not fresh environment state or restored authority. Check current access policy on retrieval. A re-read or read-only rerun may observe changed state; never replay a write or other side effect merely to recover an old observation. Reuse [tool error and retry contracts](tools-and-permissions.md#error-handling) rather than introducing a second recovery policy.
+ 
++Bind recall handles to an immutable content hash and the original tool-call identity; pages must report byte or line ranges and truncation or end-of-source. If archiving fails, retain the original observation rather than replacing it with an unreadable handle.
++
+ ## Handoff summary format
+ 
+ Use this format:
+--- a/references/tools-and-permissions.md
++++ b/references/tools-and-permissions.md
+@@ -261,6 +261,8 @@
+ 
+ For large data, let the tool compute or filter before returning to the model. The model should not receive 10,000 rows just to count five relevant records.
+ 
++For model-reduced diagnostic logs, return the source reference/hash, command outcome, and exact quoted spans. Validate provenance, outcome, and quotations mechanically before accepting the reduction; on failure preserve the original and expose the reduction failure. Quote validity proves neither coverage nor diagnosis: when omitted context could change the next action, inspect the relevant original range. Delegate only within the approved data boundary.
++
+ ## Error handling
+ 
+ Every failure is a result:
+--- a/references/source-links.md
++++ b/references/source-links.md
+@@ -135,6 +135,7 @@
+ 
+ ## Implementation examples
+ 
++- SoL-Pi [ObservationPack](https://github.com/NVlabs/SoL-Pi/tree/1559b5cb12c72da4a485bc50fe326586b216fb19/src/sol-pi/extensions/observation-pack) and [diagnostic receipt validation](https://github.com/NVlabs/SoL-Pi/blob/1559b5cb12c72da4a485bc50fe326586b216fb19/src/sol-pi/extensions/evidence-preserving-reducer/receipt.ts): Pi-specific implementations of archived output recall and checked log excerpts, not Codex skills. Quote authenticity does not establish completeness; retain the task-quality and privacy gates in the owning references.
+ - Bun PR with generated workflow program examples: https://github.com/oven-sh/bun/pull/30412/changes
+ - Prime Agent repository at researched revision: https://github.com/PrimeIntellect-ai/prime-agent/tree/a18809e00ea30638584d87b3afea7285a9d7296c
+ - Prime Agent launch article: https://www.primeintellect.ai/blog/prime-agent
