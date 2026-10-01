@@ -18,6 +18,7 @@ import whisper  # noqa: E402
 import config  # noqa: E402
 import download  # noqa: E402
 import watch  # noqa: E402
+import gemini  # noqa: E402
 
 
 class CodexOverlayTests(unittest.TestCase):
@@ -123,6 +124,36 @@ class CodexOverlayTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as error:
             self.run_local_watch("--whisper", "openai")
         self.assertEqual(error.exception.code, 2)
+
+    def test_accepted_upload_is_deleted_on_processing_failure(self) -> None:
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'control.mp4'
+            source.write_bytes(b'control')
+            accepted = json.dumps({'file': {'name': 'files/control', 'state': 'PROCESSING'}}).encode()
+            for failure in (SystemExit('poll failed'), (200, {}, b'bad json'),
+                            (200, {}, b'{"state":"FAILED"}')):
+                with (
+                    self.subTest(failure=str(failure)),
+                    mock.patch.object(gemini, '_call', side_effect=[(200, {'x-goog-upload-url': 'https://upload.test'}, b''), (200, {}, accepted), failure]),
+                    mock.patch.object(gemini, 'delete_file', return_value=None) as cleanup,
+                ):
+                    with self.assertRaises(SystemExit):
+                        gemini.upload_file(source, 'test-key', sleep=lambda _: None)
+                    cleanup.assert_called_once_with('files/control', 'test-key')
+
+    def test_failed_upload_cleanup_is_reported(self) -> None:
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'control.mp4'
+            source.write_bytes(b'control')
+            accepted = json.dumps({'file': {'name': 'files/control', 'state': 'PROCESSING'}}).encode()
+            with (
+                mock.patch.object(gemini, '_call', side_effect=[(200, {'x-goog-upload-url': 'https://upload.test'}, b''), (200, {}, accepted), SystemExit('poll failed')]),
+                mock.patch.object(gemini, 'delete_file', return_value='cleanup unavailable'),
+            ):
+                with self.assertRaisesRegex(SystemExit, 'cleanup unavailable'):
+                    gemini.upload_file(source, 'test-key', sleep=lambda _: None)
 
 
 if __name__ == "__main__":

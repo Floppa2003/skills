@@ -200,7 +200,7 @@
 +  default_prompt: "Use $video-watch to inspect this video visually and cite timestamps."
 --- a/evals/test_codex_overlay.py
 +++ b/evals/test_codex_overlay.py
-@@ -0,0 +1,129 @@
+@@ -0,0 +1,160 @@
 +from __future__ import annotations
 +
 +import os
@@ -221,6 +221,7 @@
 +import config  # noqa: E402
 +import download  # noqa: E402
 +import watch  # noqa: E402
++import gemini  # noqa: E402
 +
 +
 +class CodexOverlayTests(unittest.TestCase):
@@ -327,6 +328,36 @@
 +            self.run_local_watch("--whisper", "openai")
 +        self.assertEqual(error.exception.code, 2)
 +
++    def test_accepted_upload_is_deleted_on_processing_failure(self) -> None:
++        import json
++        with tempfile.TemporaryDirectory() as directory:
++            source = Path(directory) / 'control.mp4'
++            source.write_bytes(b'control')
++            accepted = json.dumps({'file': {'name': 'files/control', 'state': 'PROCESSING'}}).encode()
++            for failure in (SystemExit('poll failed'), (200, {}, b'bad json'),
++                            (200, {}, b'{"state":"FAILED"}')):
++                with (
++                    self.subTest(failure=str(failure)),
++                    mock.patch.object(gemini, '_call', side_effect=[(200, {'x-goog-upload-url': 'https://upload.test'}, b''), (200, {}, accepted), failure]),
++                    mock.patch.object(gemini, 'delete_file', return_value=None) as cleanup,
++                ):
++                    with self.assertRaises(SystemExit):
++                        gemini.upload_file(source, 'test-key', sleep=lambda _: None)
++                    cleanup.assert_called_once_with('files/control', 'test-key')
++
++    def test_failed_upload_cleanup_is_reported(self) -> None:
++        import json
++        with tempfile.TemporaryDirectory() as directory:
++            source = Path(directory) / 'control.mp4'
++            source.write_bytes(b'control')
++            accepted = json.dumps({'file': {'name': 'files/control', 'state': 'PROCESSING'}}).encode()
++            with (
++                mock.patch.object(gemini, '_call', side_effect=[(200, {'x-goog-upload-url': 'https://upload.test'}, b''), (200, {}, accepted), SystemExit('poll failed')]),
++                mock.patch.object(gemini, 'delete_file', return_value='cleanup unavailable'),
++            ):
++                with self.assertRaisesRegex(SystemExit, 'cleanup unavailable'):
++                    gemini.upload_file(source, 'test-key', sleep=lambda _: None)
++
 +
 +if __name__ == "__main__":
 +    unittest.main()
@@ -424,6 +455,53 @@
      elif '429' in lower or 'too many requests' in lower:
          hint = 'The service is rate limiting requests; wait before trying again.'
      elif re.search(r'\b403\b', lower) or 'forbidden' in lower:
+--- a/scripts/gemini.py
++++ b/scripts/gemini.py
+@@ -135,22 +135,29 @@
+         _, _, body = _call('POST', session, key, data=stream,
+                            headers={'Content-Length': str(size), 'X-Goog-Upload-Offset': '0',
+                                     'X-Goog-Upload-Command': 'upload, finalize'}, timeout=3600.0)
++    name = None
+     try:
+-        info = json.loads(body)['file']
+-        waited = 0.0
+-        while info.get('state') == 'PROCESSING':
+-            if waited >= max_wait:
+-                delete_file(info['name'], key)
+-                raise _fail('upload', f'still processing after {int(max_wait)}s', key)
+-            sleep(poll_seconds)
+-            waited += poll_seconds
+-            info = json.loads(_call('GET', f"{API}/v1beta/{info['name']}", key)[2])
+-        if info.get('state') != 'ACTIVE':
+-            delete_file(info['name'], key)
+-            raise _fail('upload', f"file state {info.get('state')}", key)
+-        return {'name': info['name'], 'uri': info['uri'], 'mime_type': info.get('mimeType') or mime}
+-    except (ValueError, KeyError, TypeError):
+-        raise _fail('upload', 'unreadable Files API response', key) from None
++        try:
++            info = json.loads(body)['file']
++            name = info['name']  # Retain ownership even if a later poll is malformed.
++            waited = 0.0
++            while info.get('state') == 'PROCESSING':
++                if waited >= max_wait:
++                    raise _fail('upload', f'still processing after {int(max_wait)}s', key)
++                sleep(poll_seconds)
++                waited += poll_seconds
++                info = json.loads(_call('GET', f"{API}/v1beta/{name}", key)[2])
++            if info.get('state') != 'ACTIVE':
++                raise _fail('upload', f"file state {info.get('state')}", key)
++            return {'name': name, 'uri': info['uri'], 'mime_type': info.get('mimeType') or mime}
++        except (ValueError, KeyError, TypeError, AttributeError):
++            raise _fail('upload', 'unreadable Files API response', key) from None
++    except BaseException as exc:
++        if name:
++            warning = delete_file(name, key)
++            if warning:
++                raise SystemExit(f'{type(exc).__name__}: {exc}\n{warning}') from None
++        raise
+ 
+ 
+ def delete_file(name: str, key: str) -> str | None:
 --- a/scripts/setup.py
 +++ b/scripts/setup.py
 @@ -92,10 +92,7 @@

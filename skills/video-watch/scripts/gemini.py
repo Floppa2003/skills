@@ -135,22 +135,29 @@ def upload_file(path: Path, key: str, *, poll_seconds: float = 2.0, max_wait: fl
         _, _, body = _call('POST', session, key, data=stream,
                            headers={'Content-Length': str(size), 'X-Goog-Upload-Offset': '0',
                                     'X-Goog-Upload-Command': 'upload, finalize'}, timeout=3600.0)
+    name = None
     try:
-        info = json.loads(body)['file']
-        waited = 0.0
-        while info.get('state') == 'PROCESSING':
-            if waited >= max_wait:
-                delete_file(info['name'], key)
-                raise _fail('upload', f'still processing after {int(max_wait)}s', key)
-            sleep(poll_seconds)
-            waited += poll_seconds
-            info = json.loads(_call('GET', f"{API}/v1beta/{info['name']}", key)[2])
-        if info.get('state') != 'ACTIVE':
-            delete_file(info['name'], key)
-            raise _fail('upload', f"file state {info.get('state')}", key)
-        return {'name': info['name'], 'uri': info['uri'], 'mime_type': info.get('mimeType') or mime}
-    except (ValueError, KeyError, TypeError):
-        raise _fail('upload', 'unreadable Files API response', key) from None
+        try:
+            info = json.loads(body)['file']
+            name = info['name']  # Retain ownership even if a later poll is malformed.
+            waited = 0.0
+            while info.get('state') == 'PROCESSING':
+                if waited >= max_wait:
+                    raise _fail('upload', f'still processing after {int(max_wait)}s', key)
+                sleep(poll_seconds)
+                waited += poll_seconds
+                info = json.loads(_call('GET', f"{API}/v1beta/{name}", key)[2])
+            if info.get('state') != 'ACTIVE':
+                raise _fail('upload', f"file state {info.get('state')}", key)
+            return {'name': name, 'uri': info['uri'], 'mime_type': info.get('mimeType') or mime}
+        except (ValueError, KeyError, TypeError, AttributeError):
+            raise _fail('upload', 'unreadable Files API response', key) from None
+    except BaseException as exc:
+        if name:
+            warning = delete_file(name, key)
+            if warning:
+                raise SystemExit(f'{type(exc).__name__}: {exc}\n{warning}') from None
+        raise
 
 
 def delete_file(name: str, key: str) -> str | None:
