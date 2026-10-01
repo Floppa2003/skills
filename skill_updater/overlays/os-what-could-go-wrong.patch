@@ -1,4 +1,4 @@
---- /dev/null
+--- a/LICENSE
 +++ b/LICENSE
 @@ -0,0 +1,21 @@
 +MIT License
@@ -60,7 +60,7 @@
  
  ## Language
  
-@@ -39,7 +33,9 @@
+@@ -38,7 +32,9 @@
  end of a discussion, it is the decision the discussion arrived at, and say
  which one you took it to be. If neither, ask which decision to attack.
  
@@ -71,7 +71,7 @@
  
  ```
  DECISION BRIEF
-@@ -58,20 +54,21 @@
+@@ -57,20 +53,21 @@
  
  Close the gaps in this order, and stop as soon as a gap is closed.
  
@@ -100,22 +100,26 @@
  
  | Depth | When |
  |---|---|
-@@ -81,32 +78,44 @@
+@@ -80,37 +77,44 @@
  When in doubt, Full. The cost of a full look is a few minutes; the cost of a
  quick look at a one-way door is the door.
  
--Dispatch one general-purpose agent. Send it four things and nothing else: the
--analysis prompt copied exactly from the bottom of this skill, `MODE: Full` or
--`MODE: Quick`, `LANGUAGE: <the language above>`, and the brief. Never send an
--instruction to run this skill: the fresh session would load it and start over.
+-Dispatch one fresh agent, not several: in Claude Code, a general-purpose
+-agent; elsewhere, whatever starts with an empty context. Send it four things
+-and nothing else: the analysis prompt copied exactly from the bottom of this
+-skill, `MODE: Full` or `MODE: Quick`, `LANGUAGE: <the language above>`, and the
+-brief. Never send an instruction to run this skill: the fresh session would
+-load it and start over.
 +Read the full [analysis prompt](references/premortem-prompt.md); resolve all
 +relative paths from this skill's directory. Use the runtime's native subagent
 +tool with conversation inheritance disabled (`fork_context=false` in Codex
 +when that parameter is available). Check the actual tool schema, not a guessed
 +tool name or a nested CLI command.
  
--One agent, not several. Where no fresh agent can be started, say so in the
--first line of the report, name the tool, and never use the word independent.
+-If no fresh agent can be started, run the prompt yourself with the same MODE,
+-LANGUAGE and brief. The prompt says you did not help make this decision; for
+-you that is false, so work from the brief alone and attack your own reasoning
+-hardest. Never call the result independent.
 +Dispatch one read-only agent. Send only the analysis prompt, `MODE: Full` or
 +`MODE: Quick`, `LANGUAGE: <the language above>`, and the factual brief with
 +source locations. Do not send the conversation, the author's reasoning, an
@@ -134,10 +138,11 @@
  
 -The user never sees what the agent returned: a tool result is visible only to
 -you. So your final message is that report, copied whole, first line to last.
--One line goes before it: the depth, and whether a fresh agent ran. Anything of
--your own comes after it, never instead of it: no summary in its place, no
--"details above", no reassurance the analysis did not earn, no dropped card
--because the user seemed committed. Bad news that arrives late is worth nothing.
+-One line goes before it: the depth, and whether a fresh agent ran (if not,
+-name your tool and say this session wrote the report). Anything of your own
+-comes after it, never instead of it: no summary in its place, no "details
+-above", no reassurance the analysis did not earn, no dropped card because the
+-user seemed committed. Bad news that arrives late is worth nothing.
 +Check returned claims against the cited evidence and brief. Send material
 +errors back to the same reviewer for correction. Preserve the corrected
 +verdict, caveats, and substantiated risks; do not silently soften or drop them.
@@ -155,15 +160,15 @@
  
  ## Hard rules
  
--1. **The agent that helped decide never attacks the decision.** Dispatch a
--   fresh one every time, even when you already hold the whole thing in
--   context. Skipping this does not save a step, it changes the answer.
+-1. **The agent that helped decide does not attack the decision when a fresh
+-   one can.** Dispatch one every time, even with it all in context. Skipping
+-   it changes the answer. Only a tool that cannot start one takes the fallback.
 +1. **Independent review requires a fresh agent.** An author self-review is
 +   not a substitute and must be labelled as described in step 2.
  2. **No quota of risks.** Publish what has a real chain behind it and nothing
-    else. Two well-evidenced risks beat six padded ones, and "only two
+    else. Three well-anchored risks beat seven padded ones, and "only two
     survived" is a finding worth saying out loud.
-@@ -121,30 +130,27 @@
+@@ -125,26 +129,27 @@
     ones are where technical decisions usually actually fail.
  7. **"The plan is sound" is a legitimate answer** once the attack has run. It
     is never a substitute for running one.
@@ -174,12 +179,12 @@
  
 -- **No date to be judged by means no premortem.** Pick a date that fits the
 -  decision, and say you picked it.
+-- **Something reversible and cheap does not need this.** Quick look, or say so.
 +- **Name the evaluation horizon.** Use a documented date or milestone; if none
 +  exists, ask when material or mark it unknown. Do not invent a deadline.
- - **The brief is where this is won or lost.** The fresh agent sees nothing else.
- - **Fewer than three risks is often the right answer.** Keep the record of what
-   was checked.
--- **Something reversible and cheap does not need this.** Quick look, or say so.
++- **The brief is where this is won or lost.** The fresh agent sees nothing else.
++- **Fewer than three risks is often the right answer.** Keep the record of what
++  was checked.
 +- **Keep cheap, reversible decisions proportionate.** An explicit request gets
 +  a Quick look. Skip only an unsolicited review, not the user's request.
  - **"Try it small first" is not a soft no.** Test unknowns before money moves.
@@ -194,9 +199,8 @@
 -The block below is the whole of
 -[`references/premortem-prompt.md`](references/premortem-prompt.md), inlined
 -when this skill loads through `scripts/prompt.sh`, so no file has to be read
--at dispatch time. If the block shows a literal command instead of the prompt,
--this harness does not run inline commands: open that file next to this one
--and use its full text.
+-at dispatch time. If it shows a literal command instead, your tool does not
+-run inline commands: open that file next to this one and use its full text.
 -
 -!`bash ${CLAUDE_SKILL_DIR}/scripts/prompt.sh`
 +- Read [references/premortem-prompt.md](references/premortem-prompt.md) before
@@ -205,7 +209,7 @@
 +  fictional example, not evidence or a source of reusable numeric thresholds.
 +  Its month-6/month-12 interval is inconsistent; the example's calculations
 +  are not validated.
---- /dev/null
+--- a/agents/openai.yaml
 +++ b/agents/openai.yaml
 @@ -0,0 +1,4 @@
 +interface:

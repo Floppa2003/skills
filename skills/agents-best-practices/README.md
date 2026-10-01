@@ -80,7 +80,7 @@ git clone https://github.com/DenisSergeevitch/agents-best-practices.git \
   <img src="assets/agents-best-practices-illustrations/01-use-cases.jpg" alt="Xiaohei sorting agent harness use cases into MVP blueprint, audit fixes, and permission map" width="760" />
 </p>
 
-Once installed, the skill activates when a conversation touches agent architecture, harness design, tool permissions, environment-adaptive tools, speculative tool execution, planning mode, workflow orchestration, context and memory, skills, connectors, public-board communication, troubleshooting, observability, evals, prompt caching, or production readiness. Nine common ways to use it:
+Once installed, the skill activates when a conversation touches agent architecture, harness design, tool permissions, environment-adaptive tools, speculative tool execution, planning mode, workflow orchestration, adaptive agent teams, context and memory, skills, connectors, public-board communication, troubleshooting, observability, evals, prompt caching, or production readiness. Ten common ways to use it:
 
 ### Case 1 - Generate an MVP agent blueprint
 
@@ -269,6 +269,30 @@ Agent  > Check cancellation and the late state commit in the same timeline.
 
 Use [troubleshooting](references/security-observability.md#troubleshooting) for symptom-to-evidence tables covering streams, recovery, approvals, deadlocks, context accounting, cache cost, and telemetry overhead. The guidance links to existing mechanism owners and turns a confirmed fix into a [regression case](references/evals.md#regression-loop). The [source notes](references/source-links.md#harness-bug-report-and-troubleshooting) distinguish the motivating bug report from verified implementation evidence.
 
+### Case 10 - Coordinate adaptive research teams
+
+You need different groups to retain distinct approaches to a difficult question while sharing evidence and changing assignments as experiments progress.
+
+```text
+You    > Design research teams that investigate different explanations,
+         exchange useful findings, and redirect work within a fixed goal
+         and total compute budget.
+
+Agent  > Start with measured single-agent and ordinary worker baselines.
+         For the advanced team profile, give each team an approach charter
+         and record bounded work intentions so overlap can be resolved
+         before expensive execution. Declare intentional replication.
+
+         Record evidence for every portfolio change. The host checks
+         authority, versions, and aggregate capacity before applying it.
+         Track which findings teams consumed so agreement is not mistaken
+         for independent corroboration. Accept results only against the
+         goal's validation criteria, and attribute late results to the
+         approach that produced them.
+```
+
+Use [adaptive agent teams](references/adaptive-agent-teams.md) for the post-MVP portfolio contracts and [team evals](references/evals.md#adaptive-agent-team-evals) for matched baselines, ablations, and failure probes. Packet execution, child lifecycle, and independent verification remain with their existing owners, linked from the profile.
+
 ### Other things the skill is good for
 
 - **"Which compaction, planning, and action-interface profile fits my model, task mix, and context budget?"** -> use [component diagnostics](references/evals.md#component-diagnostics), which links to the existing mechanism owners and separates efficiency from premature failure.
@@ -301,6 +325,7 @@ A reference for people building agentic systems where the model is only one part
 - runtime permission checks outside the model,
 - planning mode and approval-gated execution,
 - workflow orchestration for large decomposable tasks,
+- post-MVP adaptive teams for distinct research approaches and evidence-driven reallocation,
 - goal-like loops with budgets, checkpoints, validation, and stop rules,
 - context, memory, retrieval, and auto-compaction,
 - skills, MCP, and external connector governance,
@@ -338,6 +363,7 @@ agents-best-practices/
     ├── speculative-tool-execution.md         # prelaunch, exact claims, waste, cancellation
     ├── planning-and-goals.md                 # planning mode and long-running goals
     ├── workflow-orchestration.md             # decomposed workflows, packets, verification
+    ├── adaptive-agent-teams.md               # approach portfolios, work overlap, reallocation
     ├── self-refining-recursive-harnesses.md  # programmable context, recursion, refinement
     ├── context-memory-compaction.md          # context, memory, retrieval, compaction
     ├── prompt-caching-and-cost.md            # stable prefixes and cost-aware context

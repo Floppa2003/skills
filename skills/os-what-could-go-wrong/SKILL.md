@@ -23,9 +23,8 @@ purchase, reminder, or any other external write.
 ## Language
 
 Write in the language the user speaks in this session, detected from the
-conversation. Names, figures and identifiers stay as they are. The agent you
-dispatch cannot see this conversation and does not inherit the writing style,
-so the language has to travel with the handover - see step 2.
+conversation. Names, figures and identifiers stay as they are. The fresh
+agent cannot see this conversation, so the language travels in the handover.
 
 ## Step 1 - write down what is actually being decided
 
@@ -117,7 +116,7 @@ them only within the user's authorization.
 1. **Independent review requires a fresh agent.** An author self-review is
    not a substitute and must be labelled as described in step 2.
 2. **No quota of risks.** Publish what has a real chain behind it and nothing
-   else. Two well-evidenced risks beat six padded ones, and "only two
+   else. Three well-anchored risks beat seven padded ones, and "only two
    survived" is a finding worth saying out loud.
 3. **The verdict is decided last and printed first.** Never make the reader
    assemble it from the risks.
