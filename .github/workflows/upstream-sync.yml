@@ -41,6 +41,8 @@ jobs:
             --output "$GITHUB_OUTPUT" --report "$GITHUB_STEP_SUMMARY"
       - name: Run updater tests
         run: python3 -m unittest discover -s skill_updater/tests
+      - name: Verify video backend consent and isolation
+        run: python3 -m unittest discover -s skills/video-watch/evals
       - name: Regenerate ChatGPT manifest
         run: |
           python3 -m pip install --disable-pip-version-check --require-hashes -r scripts/requirements-chatgpt.txt

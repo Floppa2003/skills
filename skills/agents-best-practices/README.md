@@ -80,7 +80,7 @@ git clone https://github.com/DenisSergeevitch/agents-best-practices.git \
   <img src="assets/agents-best-practices-illustrations/01-use-cases.jpg" alt="Xiaohei sorting agent harness use cases into MVP blueprint, audit fixes, and permission map" width="760" />
 </p>
 
-Once installed, the skill activates when a conversation touches agent architecture, harness design, tool permissions, environment-adaptive tools, speculative tool execution, planning mode, workflow orchestration, context and memory, skills, connectors, public-board communication, observability, evals, prompt caching, or production readiness. Seven common ways to use it:
+Once installed, the skill activates when a conversation touches agent architecture, harness design, tool permissions, environment-adaptive tools, speculative tool execution, planning mode, workflow orchestration, adaptive agent teams, context and memory, skills, connectors, public-board communication, troubleshooting, observability, evals, prompt caching, or production readiness. Ten common ways to use it:
 
 ### Case 1 - Generate an MVP agent blueprint
 
@@ -239,6 +239,60 @@ Agent  > This would publish information outside your workspace. I will draft
 
 Use the [public-board communication section](references/skills-and-connectors.md#agent-communication-via-public-boards) for the agent-visible warning and publication boundaries, and the [source catalog](references/source-links.md#public-board-communication) for a concrete board example. This capability is opt-in; installing the skill does not register an account or grant permission to post.
 
+### Case 8 - Install an agent on a physical board
+
+```text
+You    > Put an agent on this board without losing its identity or other apps.
+
+Agent  > I will identify the board and its installed runtime first. If it has
+         an interpreter app launcher, I can add an app without replacing the
+         base firmware. For a compiled update I will verify the selected slot,
+         image fit, retained state, and rollback route before the approved write.
+         A successful upload is only one check: boot, TLS/model access, memory,
+         sleep/wake, and any approved remote effects need physical evidence.
+```
+
+Use [hardware agents and board deployment](references/hardware-agents.md) for the reconstruction and installation contracts, [hardware evals](references/evals.md#hardware-agent-evals) for failure probes, and the [dated session evidence](references/source-links.md#hardware-agent-session-mining) for observed failures and implementation caveats. Remote inference and laptop independence must be stated separately. Scheduled autonomy is not implied by installing an agent.
+
+### Case 9 - Troubleshoot a failing agent runtime
+
+```text
+You    > Stop works briefly, but the turn starts running again after a tool
+         finishes. Where should we look?
+
+Agent  > Check cancellation and the late state commit in the same timeline.
+         In an isolated fixture, pause the tool before its commit, cancel
+         the turn, then release it. A stale worker must not overwrite the
+         cancellation state. Separately reconcile any external effect that
+         already committed; stopping the turn does not undo it.
+```
+
+Use [troubleshooting](references/security-observability.md#troubleshooting) for symptom-to-evidence tables covering streams, recovery, approvals, deadlocks, context accounting, cache cost, and telemetry overhead. The guidance links to existing mechanism owners and turns a confirmed fix into a [regression case](references/evals.md#regression-loop). The [source notes](references/source-links.md#harness-bug-report-and-troubleshooting) distinguish the motivating bug report from verified implementation evidence.
+
+### Case 10 - Coordinate adaptive research teams
+
+You need different groups to retain distinct approaches to a difficult question while sharing evidence and changing assignments as experiments progress.
+
+```text
+You    > Design research teams that investigate different explanations,
+         exchange useful findings, and redirect work within a fixed goal
+         and total compute budget.
+
+Agent  > Start with measured single-agent and ordinary worker baselines.
+         For the advanced team profile, give each team an approach charter
+         and record bounded work intentions so overlap can be resolved
+         before expensive execution. Declare intentional replication.
+
+         Record evidence for every portfolio change. The host checks
+         authority, versions, and aggregate capacity before applying it.
+         Track which findings teams consumed so agreement is not mistaken
+         for independent corroboration. Accept results only against the
+         goal's validation criteria, and attribute late results to the
+         approach that produced them.
+```
+
+Use [adaptive agent teams](references/adaptive-agent-teams.md) for the post-MVP portfolio contracts and [team evals](references/evals.md#adaptive-agent-team-evals) for matched baselines, ablations, and failure probes. Packet execution, child lifecycle, and independent verification remain with their existing owners, linked from the profile.
+
 ### Other things the skill is good for
 
 - **"Which compaction, planning, and action-interface profile fits my model, task mix, and context budget?"** -> use [component diagnostics](references/evals.md#component-diagnostics), which links to the existing mechanism owners and separates efficiency from premature failure.
@@ -271,12 +325,13 @@ A reference for people building agentic systems where the model is only one part
 - runtime permission checks outside the model,
 - planning mode and approval-gated execution,
 - workflow orchestration for large decomposable tasks,
+- post-MVP adaptive teams for distinct research approaches and evidence-driven reallocation,
 - goal-like loops with budgets, checkpoints, validation, and stop rules,
 - context, memory, retrieval, and auto-compaction,
 - skills, MCP, and external connector governance,
 - opt-in public-board communication with explicit audience disclosure and publishing approval,
 - prompt-cache-aware context layout and cost telemetry,
-- observability, evals, launch gates, and incident response.
+- observability, symptom-based troubleshooting, evals, launch gates, and incident response.
 
 This is the control plane around an agent: **instructions -> context builder -> model call -> tool proposal -> validation -> permission decision -> execution or approval pause -> observation -> next step or final answer**.
 
@@ -303,17 +358,19 @@ agents-best-practices/
     ├── architecture.md                       # component model and harness boundaries
     ├── agentic-loop.md                       # loop invariants, retries, budgets, stopping
     ├── tools-and-permissions.md              # typed tools, risk classes, approvals
+    ├── hardware-agents.md                    # board installation, resources, reset recovery, commissioning
     ├── environment-adaptive-tools.md         # late-bound discovery, probes, bindings, drift
     ├── speculative-tool-execution.md         # prelaunch, exact claims, waste, cancellation
     ├── planning-and-goals.md                 # planning mode and long-running goals
     ├── workflow-orchestration.md             # decomposed workflows, packets, verification
+    ├── adaptive-agent-teams.md               # approach portfolios, work overlap, reallocation
     ├── self-refining-recursive-harnesses.md  # programmable context, recursion, refinement
     ├── context-memory-compaction.md          # context, memory, retrieval, compaction
     ├── prompt-caching-and-cost.md            # stable prefixes and cost-aware context
     ├── skills-and-connectors.md              # skills, MCP, public-board disclosure, tool search
     ├── system-prompts-instructions.md        # instruction hierarchy and templates
     ├── provider-api-patterns.md              # OpenAI, Anthropic, compatible APIs
-    ├── security-observability.md             # guardrails, tracing, launch gates
+    ├── security-observability.md             # guardrails, tracing, troubleshooting, launch gates
     ├── evals.md                              # eval strategy, test cases, trace grading
     ├── agent-legibility-feedback-loops.md    # source-of-truth artifacts and cleanup
     ├── checklists.md                         # implementation and audit checklists

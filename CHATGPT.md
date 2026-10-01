@@ -43,7 +43,7 @@ Entrypoint: `skills/agent-transcript/SKILL.md`
 
 ## agents-best-practices
 
-Use this skill when designing, generating an MVP blueprint for, auditing, refactoring, or explaining an agentic harness for any domain. Covers provider-neutral agent architecture for OpenAI, Anthropic, and OpenAI-compatible APIs: agent loops, tool design, record provenance, interactive presentation, user-memory lifecycles, environment-adaptive tools, speculative tool execution, late-bound capabilities, permissions, system prompts, planning, goals, context compaction, memory, skills, MCP/external connectors, public-board communications, self-refining recursive harnesses, programmable context, continual refinement, observability, evals, prompt caching, agent-legible environments, feedback loops, and safety.
+Use this skill when designing, generating an MVP blueprint for, auditing, troubleshooting, refactoring, or explaining an agentic harness for any domain. Covers provider-neutral agent architecture for OpenAI, Anthropic, and OpenAI-compatible APIs: agent loops, tool design, record provenance, interactive presentation, user-memory lifecycles, environment-adaptive tools, speculative tool execution, late-bound capabilities, permissions, system prompts, planning, goals, adaptive agent teams, context compaction, memory, skills, MCP/external connectors, public-board communications, hardware agents and board deployment, self-refining recursive harnesses, programmable context, continual refinement, observability, evals, prompt caching, agent-legible environments, feedback loops, and safety.
 
 Entrypoint: `skills/agents-best-practices/SKILL.md`
 
@@ -85,7 +85,7 @@ Entrypoint: `skills/brainstorming/SKILL.md`
 
 ## browser-skill
 
-Use when the user asks to automate their logged-in Chromium browser: visit and read pages, fill forms, scrape data, click through flows, regression-test a PR's UI, validate a deployed page, or operate a tab they identify. Requires the bsk CLI and browser extension.
+Automate the user's logged-in Chromium browser: read pages, fill forms, scrape data, operate tabs, test a UI, or debug a website. Requires the bsk CLI and browser extension.
 
 Entrypoint: `skills/browser-skill/SKILL.md`
 
@@ -127,13 +127,13 @@ Entrypoint: `skills/data-scraper-agent/SKILL.md`
 
 ## data-throughput-accelerator
 
-Use when large data ingestion, backfill, export, ETL, warehouse loading, manifest catch-up, or table synchronization needs to become much faster while preserving data correctness.
+Diagnose and accelerate large data movement — ingestion, backfill, export, ETL, warehouse loading, manifest catch-up, and table synchronization — by isolating the true bottleneck, benchmarking variants, and codifying the fastest path with a hard accounting block proving rows and timestamps cohere. Use when a pipeline or backfill is too slow and must get faster without losing data correctness.
 
 Entrypoint: `skills/data-throughput-accelerator/SKILL.md`
 
 ## deep-research
 
-Multi-source deep research using firecrawl and exa MCPs. Searches the web, synthesizes findings, and delivers cited reports with source attribution. Use when the user wants thorough research on any topic with evidence and citations.
+Produce cited research reports from multiple web sources using firecrawl and exa MCP tools — plan sub-questions, search and deep-read sources, then synthesize findings with inline citations and confidence levels. Use when the user asks to research a topic in depth, run a deep dive or investigation, or do competitive analysis, technology evaluation, market sizing, or due diligence on a company.
 
 Entrypoint: `skills/deep-research/SKILL.md`
 
@@ -163,7 +163,7 @@ Entrypoint: `skills/documentation-lookup/SKILL.md`
 
 ## domain-modeling
 
-Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, or recording or editing an ADR.
+Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.
 
 Entrypoint: `skills/domain-modeling/SKILL.md`
 
@@ -181,7 +181,7 @@ Entrypoint: `skills/eval-harness/SKILL.md`
 
 ## executing-plans
 
-Use when you have a written implementation plan to execute in a separate session with review checkpoints
+Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available
 
 Entrypoint: `skills/executing-plans/SKILL.md`
 
@@ -355,7 +355,7 @@ Entrypoint: `skills/receiving-code-review/SKILL.md`
 
 ## regex-vs-llm-structured-text
 
-Decision framework for choosing between regex and LLM when parsing structured text — start with regex, add LLM only for low-confidence edge cases.
+Decision framework for parsing structured text (quizzes, forms, invoices, receipts, tables) with a hybrid regex-first pipeline — regex extraction handles 95%+ cheaply, a confidence scorer flags low-confidence items, and an LLM validator fixes only the edge cases. Use when choosing between regex and LLM for text extraction, building a cheap document parser, or optimizing extraction cost and accuracy.
 
 Entrypoint: `skills/regex-vs-llm-structured-text/SKILL.md`
 

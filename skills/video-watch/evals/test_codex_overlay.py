@@ -15,6 +15,10 @@ sys.path.insert(0, str(SCRIPTS))
 
 import setup  # noqa: E402
 import whisper  # noqa: E402
+import config  # noqa: E402
+import download  # noqa: E402
+import watch  # noqa: E402
+import gemini  # noqa: E402
 
 
 class CodexOverlayTests(unittest.TestCase):
@@ -38,14 +42,12 @@ class CodexOverlayTests(unittest.TestCase):
             previous_cwd = Path.cwd()
             try:
                 os.chdir(root)
-                with mock.patch.dict(
-                    os.environ,
-                    {"HOME": str(home)},
-                    clear=False,
+                with (
+                    mock.patch.dict(os.environ, {}, clear=True),
+                    mock.patch.object(config, "CONFIG_FILE", home / ".env"),
                 ):
-                    os.environ.pop("GROQ_API_KEY", None)
-                    os.environ.pop("OPENAI_API_KEY", None)
                     self.assertEqual(whisper.load_api_key(), (None, None))
+                    self.assertIsNone(config.load_gemini_key())
             finally:
                 os.chdir(previous_cwd)
 
@@ -81,6 +83,77 @@ class CodexOverlayTests(unittest.TestCase):
         for path in (ROOT / "SKILL.md", SCRIPTS / "setup.py", SCRIPTS / "whisper.py"):
             self.assertNotIn("claude", path.read_text(encoding="utf-8").lower())
         self.assertFalse((SCRIPTS / "build-skill.sh").exists())
+
+    def test_cookies_rejected_and_inherited_ytdlp_config_disabled(self) -> None:
+        for values in (("cookies.txt", None), (None, "chrome")):
+            with self.assertRaisesRegex(SystemExit, "public sources only"):
+                download.auth_args(*values)
+        command = download._common(Path("."), download.auth_args())
+        self.assertIn("--ignore-config", command)
+        self.assertIn("--no-cookies-from-browser", command)
+
+    def run_local_watch(self, *options):
+        import contextlib
+        import io
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            mock.patch.dict(os.environ, {"WATCH_ENGINE": "gemini", "GEMINI_API_KEY": "test", "OPENAI_API_KEY": "test"}, clear=True),
+            mock.patch.object(config, "CONFIG_FILE", Path(temporary) / "config"),
+            mock.patch.object(sys, "argv", ["watch.py", "local.mp4", "--detail", "transcript", "--out-dir", temporary, *options]),
+            mock.patch.object(watch, "download", return_value={"video_path": "local.mp4", "info": {}}),
+            mock.patch.object(watch, "get_metadata", return_value={"duration_seconds": 1, "has_audio": True, "has_video": True}),
+            mock.patch.object(watch, "run_gemini") as cloud,
+            mock.patch.object(watch, "transcribe_video", return_value=([], "openai")) as asr,
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            watch.main()
+            return cloud.call_count, asr.call_count
+
+    def test_saved_cloud_settings_do_not_authorize_uploads(self) -> None:
+        self.assertEqual(self.run_local_watch(), (0, 0))
+        self.assertEqual(self.run_local_watch("--engine", "auto"), (0, 0))
+
+    def test_explicit_transcription_consent_allows_selected_backend(self) -> None:
+        self.assertEqual(self.run_local_watch("--allow-whisper", "--whisper", "openai"), (0, 1))
+
+    def test_explicit_video_analysis_selects_gemini(self) -> None:
+        self.assertEqual(self.run_local_watch("--engine", "gemini", "--question", "Describe this video"), (1, 0))
+
+    def test_provider_selection_without_consent_fails_before_network(self) -> None:
+        with self.assertRaises(SystemExit) as error:
+            self.run_local_watch("--whisper", "openai")
+        self.assertEqual(error.exception.code, 2)
+
+    def test_accepted_upload_is_deleted_on_processing_failure(self) -> None:
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'control.mp4'
+            source.write_bytes(b'control')
+            accepted = json.dumps({'file': {'name': 'files/control', 'state': 'PROCESSING'}}).encode()
+            for failure in (SystemExit('poll failed'), (200, {}, b'bad json'),
+                            (200, {}, b'{"state":"FAILED"}')):
+                with (
+                    self.subTest(failure=str(failure)),
+                    mock.patch.object(gemini, '_call', side_effect=[(200, {'x-goog-upload-url': 'https://upload.test'}, b''), (200, {}, accepted), failure]),
+                    mock.patch.object(gemini, 'delete_file', return_value=None) as cleanup,
+                ):
+                    with self.assertRaises(SystemExit):
+                        gemini.upload_file(source, 'test-key', sleep=lambda _: None)
+                    cleanup.assert_called_once_with('files/control', 'test-key')
+
+    def test_failed_upload_cleanup_is_reported(self) -> None:
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'control.mp4'
+            source.write_bytes(b'control')
+            accepted = json.dumps({'file': {'name': 'files/control', 'state': 'PROCESSING'}}).encode()
+            with (
+                mock.patch.object(gemini, '_call', side_effect=[(200, {'x-goog-upload-url': 'https://upload.test'}, b''), (200, {}, accepted), SystemExit('poll failed')]),
+                mock.patch.object(gemini, 'delete_file', return_value='cleanup unavailable'),
+            ):
+                with self.assertRaisesRegex(SystemExit, 'cleanup unavailable'):
+                    gemini.upload_file(source, 'test-key', sleep=lambda _: None)
 
 
 if __name__ == "__main__":

@@ -21,3 +21,5 @@ jobs:
         run: python3 scripts/validate_repository.py
       - name: Run updater tests
         run: python3 -m unittest discover -s skill_updater/tests
+      - name: Verify video backend consent and isolation
+        run: python3 -m unittest discover -s skills/video-watch/evals
