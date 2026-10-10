@@ -2,6 +2,13 @@
   "version": 1,
   "retired_skills": [
     {
+      "name": "diagnose",
+      "installed_hashes": [
+        "8bcaa3a4bd3ab66c2cce2537fdb195bec3b4f61e578f61fb9ff38415508e3dc0"
+      ],
+      "reason": "Replaced by the tracked mattpocock/skills diagnosing-bugs skill"
+    },
+    {
       "name": "github",
       "installed_hashes": [
         "5f76b87234f9c0bf5c7856ee946e79cb6c6d03323f7846c088c5af6b2b8a4e5c"
@@ -255,21 +262,6 @@
       "installed_commit": "2eb7ed4613cfc8f098dfe464a23680ea44d84c5e",
       "installed_hash": "bb79c0dc8c5080748e06a86664d3ec04bf0e69473fe464e2a1f927c56143bf06",
       "skip_reason": null,
-      "required_paths": [],
-      "runtime_setup": [],
-      "accepted_compatibility_fingerprints": []
-    },
-    {
-      "name": "diagnose",
-      "repo": null,
-      "path": null,
-      "ref": "main",
-      "adapter": "directory",
-      "overlay": null,
-      "enabled": false,
-      "installed_commit": null,
-      "installed_hash": "8bcaa3a4bd3ab66c2cce2537fdb195bec3b4f61e578f61fb9ff38415508e3dc0",
-      "skip_reason": "upstream renamed diagnose to diagnosing-bugs; preserve the installed skill until migration is approved",
       "required_paths": [],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
@@ -1230,6 +1222,21 @@
       "enabled": true,
       "installed_commit": "000650b156983f5159695b441477f4e63b25dc85",
       "installed_hash": "1e1c0700528be2da5a108fa3fffcd961bc3bb6317529e51fb5cb757d58a24adf",
+      "skip_reason": null,
+      "required_paths": [],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "diagnosing-bugs",
+      "repo": "mattpocock/skills",
+      "path": "skills/engineering/diagnosing-bugs",
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": null,
+      "enabled": true,
+      "installed_commit": "49dd158d1076134a641b33efb035946536778336",
+      "installed_hash": "78eb60a57e166f282b0efa9034114918f3ef14d5641bcd0cd62e281bbd99e568",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [],

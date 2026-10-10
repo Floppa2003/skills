@@ -210,10 +210,26 @@ class RegistryTests(TempDirTest):
     def test_project_registry_preserves_removed_upstream_skills_as_expected_skips(self) -> None:
         specs = {spec.name: spec for spec in load_registry(Path(__file__).parents[1] / "registry.json")}
 
-        for name in ("diagnose", "zoom-out"):
+        for name in ("zoom-out",):
             self.assertFalse(specs[name].enabled)
             self.assertIsNone(specs[name].repo)
             self.assertTrue(specs[name].skip_reason)
+
+    def test_project_registry_migrates_diagnose_to_tracked_upstream(self) -> None:
+        registry = Path(__file__).parents[1] / "registry.json"
+        active, retired = update_skills.load_registry_state(registry)
+        specs = {spec.name: spec for spec in active}
+        tombstones = {spec.name: spec for spec in retired}
+
+        self.assertNotIn("diagnose", specs)
+        self.assertIn(
+            "8bcaa3a4bd3ab66c2cce2537fdb195bec3b4f61e578f61fb9ff38415508e3dc0",
+            tombstones["diagnose"].installed_hashes,
+        )
+        self.assertTrue(specs["diagnosing-bugs"].enabled)
+        self.assertEqual("mattpocock/skills", specs["diagnosing-bugs"].repo)
+        self.assertEqual("skills/engineering/diagnosing-bugs", specs["diagnosing-bugs"].path)
+        self.assertEqual("main", specs["diagnosing-bugs"].ref)
 
 
 class AuditTests(TempDirTest):
