@@ -65,6 +65,12 @@ Apify integration. Manage Actors, Datasets, KeyValueStores, RequestQueues, Tasks
 
 Entrypoint: `skills/apify/SKILL.md`
 
+## audit-instruction-system
+
+Use this skill when auditing or optimizing a repository-level instruction system across AGENTS.md, documentation routers, prompt templates, skills, configuration, and prompt-rendering code. Check current model guidance, SSOT ownership, duplication, contradictions, terminology, Markdown structure, and example quality or anchoring; propose exact preservation-safe additions, replacements, moves, and deletions. Do not use it for an isolated prompt rewrite without a surrounding instruction system.
+
+Entrypoint: `skills/audit-instruction-system/SKILL.md`
+
 ## auto-improve
 
 GAN-style iterative improvement loop for any text artifact. Mutates a file, grades each change against a rubric with a SEPARATE model, keeps only verified wins (pairwise-judged), reverts the rest. The git history is the improvement log. Use when the user wants to autonomously improve the quality of a document, email, prompt, landing page, README, contract, or any text file.

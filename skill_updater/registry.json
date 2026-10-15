@@ -25,6 +25,24 @@
   ],
   "skills": [
     {
+      "name": "audit-instruction-system",
+      "repo": null,
+      "path": null,
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": null,
+      "enabled": false,
+      "installed_commit": null,
+      "installed_hash": "712bb8297e964c771226ae2546e60a8d0af894100bce28ba609cfea98ce40adc",
+      "skip_reason": "User-provided audit-instruction-system.zip (SHA-256 d7193e452e0b9e72aaa77e9d2d7d904b17f6ef952efda6bd5c99e3e708bf00c7); no verified upstream; intentionally unmanaged",
+      "required_paths": [
+        "SKILL.md",
+        "agents/openai.yaml"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
+    },
+    {
       "name": "agent-transcript",
       "repo": "steipete/agent-scripts",
       "path": "skills/agent-transcript",
