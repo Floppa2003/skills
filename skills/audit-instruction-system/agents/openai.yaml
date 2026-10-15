@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Instruction System"
+  short_description: "Audit repository instruction systems safely"
+  default_prompt: "Use $audit-instruction-system to audit this repository's instruction system and propose preservation-safe edits."
