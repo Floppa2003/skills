@@ -40,7 +40,12 @@ def main():
     # Example: run the documented command on a hidden fixture.
     # r = run([sys.executable, "/app/tool.py", "/tests/fixtures/case1.jsonl"])
     # check("case1 exit code", r.returncode == 0, r.stderr[-500:])
-    # check("case1 result", same(json.loads(r.stdout), EXPECTED), r.stdout[-500:])
+    # try:
+    #     actual = json.loads(r.stdout)
+    # except json.JSONDecodeError:
+    #     check("case1 JSON", False, "invalid JSON output")
+    # else:
+    #     check("case1 result", same(actual, EXPECTED), r.stdout[-500:])
     check("replace this placeholder", False, "verifier not written")
     return 10 if FAILURES else 0
 

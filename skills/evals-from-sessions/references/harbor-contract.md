@@ -67,9 +67,12 @@ timeout_sec = 120.0
 
 [agent]
 timeout_sec = 1200.0
+network_mode = "allowlist"
+allowed_hosts = []       # configure approved model/task hosts before execution
 
 [environment]
-network_mode = "public"
+network_mode = "allowlist"
+allowed_hosts = []       # configure necessary approved setup hosts before execution
 build_timeout_sec = 600.0
 cpus = 2
 memory_mb = 2048
@@ -81,9 +84,9 @@ storage_mb = 4096
 `network_mode` is `public` (default), `allowlist` or `no-network`. The agent needs the
 network to reach its model API and to install itself.
 
-- **Private and synthetic tasks:** default to an allowlist of approved provider and
-  necessary setup hosts. `public` in the template is illustrative, not approval for
-  unrestricted egress. Hosted-model calls disclose task content; private visibility
+- **Private and synthetic tasks:** fill the template's empty allowlists with approved
+  provider and necessary setup hosts before execution; do not fall back to public
+  networking on failure. Hosted-model calls disclose task content; private visibility
   does not make them local-only. Confirm data/provider authorization and a run budget.
 - **Anything derived from public code** (an open-source repository, a public issue or
   PR): use `network_mode = "allowlist"`, with the agent phase limited to the model

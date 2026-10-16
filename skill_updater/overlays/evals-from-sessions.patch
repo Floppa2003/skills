@@ -57,6 +57,24 @@ index 0420c15..652237c 100644
  7. **harbor check**: run it, copy every finding into `report.md`, and fix or justify
     each `fail`.
  
+diff --git a/assets/task-template/task.toml b/assets/task-template/task.toml
+index c5450b0..559cc1d 100644
+--- a/assets/task-template/task.toml
++++ b/assets/task-template/task.toml
+@@ -17,9 +17,12 @@ timeout_sec = 120.0
+ 
+ [agent]
+ timeout_sec = 1200.0
++network_mode = "allowlist"
++allowed_hosts = []  # fill only with approved model/task hosts before execution
+ 
+ [environment]
+-network_mode = "public"   # "allowlist" + allowed_hosts if derived from public code
++network_mode = "allowlist"
++allowed_hosts = []  # fill with necessary approved agent-installation hosts
+ build_timeout_sec = 600.0
+ cpus = 2
+ memory_mb = 2048
 diff --git a/assets/task-template/tests/test.sh b/assets/task-template/tests/test.sh
 index 6a95142..d6ac94c 100755
 --- a/assets/task-template/tests/test.sh
@@ -81,12 +99,20 @@ index 6a95142..d6ac94c 100755
 +  *) echo "VERIFIER_ERROR: exit $rc" >&2; exit "$rc" ;;
 +esac
 diff --git a/assets/task-template/tests/verify.py b/assets/task-template/tests/verify.py
-index 6854c06..09be937 100644
+index 6854c06..58f61b7 100644
 --- a/assets/task-template/tests/verify.py
 +++ b/assets/task-template/tests/verify.py
-@@ -42,7 +42,7 @@ def main():
+@@ -40,9 +40,14 @@ def main():
+     # Example: run the documented command on a hidden fixture.
+     # r = run([sys.executable, "/app/tool.py", "/tests/fixtures/case1.jsonl"])
      # check("case1 exit code", r.returncode == 0, r.stderr[-500:])
-     # check("case1 result", same(json.loads(r.stdout), EXPECTED), r.stdout[-500:])
+-    # check("case1 result", same(json.loads(r.stdout), EXPECTED), r.stdout[-500:])
++    # try:
++    #     actual = json.loads(r.stdout)
++    # except json.JSONDecodeError:
++    #     check("case1 JSON", False, "invalid JSON output")
++    # else:
++    #     check("case1 result", same(actual, EXPECTED), r.stdout[-500:])
      check("replace this placeholder", False, "verifier not written")
 -    return 1 if FAILURES else 0
 +    return 10 if FAILURES else 0
@@ -94,10 +120,24 @@ index 6854c06..09be937 100644
  
  if __name__ == "__main__":
 diff --git a/references/harbor-contract.md b/references/harbor-contract.md
-index 5911cc5..932b536 100644
+index 5911cc5..72685f6 100644
 --- a/references/harbor-contract.md
 +++ b/references/harbor-contract.md
-@@ -81,10 +81,10 @@ storage_mb = 4096
+@@ -67,9 +67,12 @@ timeout_sec = 120.0
+ 
+ [agent]
+ timeout_sec = 1200.0
++network_mode = "allowlist"
++allowed_hosts = []       # configure approved model/task hosts before execution
+ 
+ [environment]
+-network_mode = "public"
++network_mode = "allowlist"
++allowed_hosts = []       # configure necessary approved setup hosts before execution
+ build_timeout_sec = 600.0
+ cpus = 2
+ memory_mb = 2048
+@@ -81,10 +84,10 @@ storage_mb = 4096
  `network_mode` is `public` (default), `allowlist` or `no-network`. The agent needs the
  network to reach its model API and to install itself.
  
@@ -105,14 +145,14 @@ index 5911cc5..932b536 100644
 -  machine, so the agent cannot find the solution online.
 -- **Synthetic shareable tasks: `public` is fine** too. An allowlist ties the task to
 -  one agent's install hosts, and other scaffolds need other hosts.
-+- **Private and synthetic tasks:** default to an allowlist of approved provider and
-+  necessary setup hosts. `public` in the template is illustrative, not approval for
-+  unrestricted egress. Hosted-model calls disclose task content; private visibility
++- **Private and synthetic tasks:** fill the template's empty allowlists with approved
++  provider and necessary setup hosts before execution; do not fall back to public
++  networking on failure. Hosted-model calls disclose task content; private visibility
 +  does not make them local-only. Confirm data/provider authorization and a run budget.
  - **Anything derived from public code** (an open-source repository, a public issue or
    PR): use `network_mode = "allowlist"`, with the agent phase limited to the model
    endpoint (and package registries if the task needs them), or reject the episode.
-@@ -172,5 +172,8 @@ cat $J/<job-name>/*/verifier/reward.txt
+@@ -172,5 +175,8 @@ cat $J/<job-name>/*/verifier/reward.txt
  python3 -c "import json,glob; [print(f, json.load(open(f)).get('exception_info')) for f in glob.glob('$J/<job-name>/*/result.json')]"
  ```
  
