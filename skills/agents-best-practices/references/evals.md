@@ -150,6 +150,24 @@ Compare candidate models and effort settings against the same quality floor and 
 
 Measure cost per successful task with failed attempts included in total cost, time to first useful rendered output, full-task latency, and tail percentiles as well as medians. Weight results by observed traffic where available and report difficult-task failures separately. Faster tokens or a cheaper call do not imply faster or cheaper completion. Use [prompt caching and cost](prompt-caching-and-cost.md) for cache measurements and stable-prefix design.
 
+## Routing, configuration, and warming evals
+
+Use the contracts in [per-request routing](agentic-loop.md#per-request-model-routing), [configuration events](architecture.md#runtime-instruction-and-tool-configuration-events), and [economic warming](prompt-caching-and-cost.md#economic-cache-warming). Establish fixed-model and no-warming baselines before enabling these post-MVP optimizations. Keep task outcomes and host controls matched; use [model/configuration sweeps](#model-and-configuration-sweeps) for completion economics rather than judging isolated cheap calls.
+
+| Fixture | Required evidence |
+|---|---|
+| Route to a smaller window or incompatible modality/protocol | Capacity and compatibility are checked against the resolved destination before dispatch; compaction/conversion, a declared fallback, or a visible error follows policy without silent content loss. |
+| Tool continuation, provider failure, classifier failure, and retry | Selected/dispatched identities remain distinct; continuation stickiness follows the declared policy; failed attempts and pending tool results retain correct attribution and pairing. |
+| Fork, restore, concurrent state proposal, failed dispatch, and direct summary request | Branch-state inheritance, expected-version rejection, pre/post-dispatch commit timing, and direct-call state behavior match the contract; recovery cannot invent a successful transition. |
+| Cross-provider route with opaque replay data and caller credentials | The adapter handles or rejects replay incompatibility explicitly; credentials resolve for the authorized destination without forwarding source-provider secrets or changing tool authority. |
+| Instruction section/tool add, change, remove, and supported full checkpoint | Native projection and collapsed-checkpoint projection reconstruct the intended effective state; unsupported operations are rejected or use an explicit fallback. |
+| Revoked tool, stale branch, reordered delta, and compaction during a change | Current host policy denies revoked execution; version/order checks prevent stale configuration; rehydration preserves effective state and authority labels. Inspect payloads separately when old text must be excluded. |
+| Known/unknown TTL, low reuse, changed reasoning/output limit, and expired cache | Eligibility and the economic gate distinguish safe refreshes from unproven replay; expired or incompatible requests do not masquerade as cheap hits. |
+| Delayed timer, new real turn, model/configuration change, cancellation, and late completion | Obsolete refreshes are not dispatched or adopted; real work has priority; abort requests, confirmations, completed work, and ambiguous billing remain distinguishable. |
+| Long idle session, repeated refreshes, failures, and abandoned task | Total costs include routing/classification, warming, retries, compaction, and failed/unknown work. Report realized cache reads, refresh waste, completed-task latency, and quality; scheduled warming and estimated savings are not measured savings. |
+
+Payload-shape tests establish adapter construction, not provider cache reuse or model compliance. Combine them with host-policy probes and measured provider usage when making behavioral or economic claims.
+
 ## Speculative tool execution evals
 
 Compare three execution modes with the same model, instructions, tool implementations, permissions, and task set:
@@ -263,6 +281,30 @@ discovery turns, catalogue tokens, latency, cost, and human intervention
 
 Ablate discovery retrieval, descriptor examples, safe probes, binding validation, drift checks, and programmatic composition separately. Retrieval can improve access to unfamiliar or changing APIs while also introducing irrelevant or misleading context; report both lift and new failure modes. Use [environment-adaptive tools](environment-adaptive-tools.md) for the contracts these cases exercise.
 
+## Realtime voice agent evals
+
+Use [realtime voice agents](realtime-voice-agents.md) for media and interaction contracts. Voice can be an MVP: compare a narrow useful scenario with its simplest viable voice baseline, including push-to-talk when appropriate. Treat native speech versus chained speech stages, duplex versus turn-based interaction, and in-session versus delegated execution as separate choices. Test the selected combination; a delegated backend or durable service is not a prerequisite for every voice agent.
+
+Reuse [model/configuration comparisons](#model-and-configuration-sweeps), [timing methodology](#performance-optimization-and-regression-ratchets), [tool authority](tools-and-permissions.md), and the applicable [task lifecycle](always-on-agents.md#durable-tasks-and-owned-work). The matrix below owns voice-specific cases; it does not replace those contracts. Record model, prompt, adapter, tool/policy and media-configuration revisions, acoustic conditions, and playback-cursor provenance. A callback or generated transcript alone cannot establish audible delivery or completed work.
+
+| Fixture | Required observed result |
+|---|---|
+| Long pause, hesitation, backchannel, cough, background speech, and user speech during output | Endpoint and yield decisions match the declared policy without spurious work or repeated speech; target noise and overlap do not silently transfer turn ownership. |
+| Partial recognition, revised transcript, ambiguous name/ID/date/number, accent, and language switch | Accepted intent follows the declared audio/transcript evidence contract; provisional text alone cannot authorize an effect. Critical ambiguity is clarified; recognition accuracy and output pronunciation are scored separately. |
+| Automatic detection and explicit/manual response triggers overlap | The effective response-admission owner deduplicates competing triggers; one intent does not produce duplicate speech or duplicate work admission. Test provider-side and framework-level policies together when both are configured. |
+| User interrupts after generation finishes but before all output plays | Local and queued obsolete audio stop under the declared fence; later conversation state does not presume unheard output was delivered. Generation, queue drain, and playback receipts remain distinct; estimated cursors are labeled. |
+| Interruption while speech generation and tool work are both active | Playback stopping, generation cancellation/yield, history repair, and work disposition each follow policy. A speech stop cannot be scored as tool cancellation, rollback, or settled completion. |
+| User corrects a task or revokes a confirmation while work runs; old result arrives later | Current intent/task revision governs result adoption, spoken confirmation, and apply-time eligibility; obsolete results cannot restore old authority. Already committed effects retain their reconciliation outcome. |
+| Slow, denied, failed, empty, or partial tool result | Appropriate silence or truthful bounded progress preserves responsiveness; acceptance and filler speech do not count as useful completion, and spoken success agrees with verified task state. |
+| Queue saturation, stale queued audio, media deadline, device change, sample-rate mismatch, and dropped output | Duration and age bounds and declared overflow/deadline policy hold; loss and conversion failures are observable rather than reported as successful playback. Control remains responsive. |
+| Disconnect, reconnect, retirement, or close with pending audio/work; old-session events arrive | Session/media epochs fence obsolete output and successor mutation. Backend work follows its explicit lifetime; reconnect neither proves cancellation nor permits blind effect retry. A retained transcript tail does not admit duplicate work. |
+| Output requires a check before playback; check finishes after interruption or session replacement | Only a check bound to the current eligible segment can release buffered audio. Canceled or obsolete speech stays fenced; a check that finishes after playback cannot claim it prevented audible exposure. |
+| Context pressure or voice-history compaction during a correction or pending task | Active intent, work identity, authority, and heard/unheard boundary survive through their existing owners; missing context or imprecise alignment has an explicit disposition rather than fabricated task success. |
+
+Measure the defined input/intent trigger to first **useful audible answer**, endpoint errors, overlap, detection-to-output-silence, queue age, dropped media, task success, incorrect actions, and total completed-task cost. Report medians and tail percentiles under the recorded acoustic/device conditions. Measure acknowledgment/filler latency separately. For duplex interaction, define a causal intent trigger rather than assuming a completed turn; separate detector delay from the delay between detected interruption and stopped output. Use evaluator-owned timing and the existing clock-domain rules.
+
+Start with repeatable synthetic speech, then representative human recordings and independent multi-turn caller scenarios, with listening review of the rendered output. Keep task-state correctness and audio intelligibility/delivery as independent acceptance gates. Set product thresholds before launch; do not accept a plausible transcript, fast acknowledgment, or good audio as evidence that actions and conversational state are correct. Optional delegation, durable recovery, and speculative work must justify their complexity against the applicable simpler baseline.
+
 ## Hardware agent evals
 
 For [hardware agents](hardware-agents.md), extend the existing case/trace format with board/runtime revision, source/artifact hash, state schema, transport substitutions, clock basis, and physical observation duration. Separate native fixtures, component emulation, production-loop emulation, and physical commissioning; grade only paths each layer actually executes.
@@ -334,6 +376,31 @@ Measure task quality, validated coverage, false-success rate, cost to reach acce
 
 Launch only when the profile improves a declared outcome over the simpler baselines at the required quality floor and within the resource envelope. Authority, ownership, accounting, stale-state, and independent-acceptance probes must have no unresolved control failures; report the trials and observed failures rather than treating a passing suite as universal proof. Keep adaptive allocation disabled when it cannot justify its overhead or when these invariants regress. Acceptance still follows the parent goal and validation policy, not team consensus, scale, or inactivity.
 
+## Always-on and durable runtime evals
+
+Use [always-on agents](always-on-agents.md) for runtime contracts and [concurrent compaction publication](context-memory-compaction.md#concurrent-compaction-publication) for summary placement. Compare a durable single worker with the request-scoped baseline before adding background work or takeover. Keep model, tasks, authority, and resource limits matched; measure accepted-work loss/duplication, recovery time, unresolved effects, false completion, observer lag/gaps, resource growth, and completed-task cost.
+
+| Probe | Required observed result |
+|---|---|
+| Disconnect after admission; retry the same ID, then change its payload | One accepted intent/receipt under the declared conflict and retention policy; admission is not scored as an answer or exactly-once effect. |
+| Busy steering/follow-up/write; withdrawal before and after placement; run failure | Declared ordering and boundary apply; control remains usable; recovery exposes every queued/placed/withdrawn disposition. |
+| Reject storage; lose acknowledgement; fail adoption after commit | Rejection has no partial effect; uncertain state seals mutations and reconciles on reopen; no uncommitted view is published. |
+| Crash before intent, after external acceptance, and before outcome commit | Recorded and current replay policies govern recovery; unknown effects reconcile without blind writes or fabricated success. |
+| Missing/reloaded definition; old/new checkpoint version; migration failure | Compatible work resumes with provenance; incompatible work stays blocked or takes an explicit orphan disposition without invented cleanup. |
+| Owner returns a result with a live foreground child; child fails during fail-fast | Terminal receipt waits for required owned work; held result is not scored as settled completion; parent outcome follows declared policy. |
+| Cancel wait/task/conversation/full background set; noncooperative tool; close/reopen | Each lifetime boundary is observed; abort intent fences later runtime writes; compensation/unknown effects remain distinct from marking; close preserves recoverable work. |
+| Fork inside a multi-entry commit with historical/current/fresh documents | Declared transaction granularity and policies hold; independent incarnations and stored versions survive; task state/current authority are not copied accidentally. |
+| Snapshot attachment races a commit; observer stalls or reconnects after a gap | No acquisition gap; bounded count/bytes; snapshot convergence or retained replay matches the promise; no lossless-audit claim from coalesced views. |
+| Retire/recreate a document; stop with a callback already running | Old incarnation does not follow recreation; active-callback stop/join policy and terminal delivery are explicit. |
+| Concurrent summaries finish out of order; new tail/reset/edit appears; crash around submission/placement | Valid cut wins under the declared equal-cut policy; no tail/configuration loss or duplicate placement; stale/unknown cost remains accounted for. |
+| Process kill and declared host/power failures; takeover with stale writer; duplicate/late wakeup | Recovery matches the storage failure class; fencing holds before takeover; wakeup admission rechecks authority and budgets; acknowledgement does not overstate durability. |
+| Missed schedule; new partition or changed query; timestamp ties, late updates, and multiple source pages | Each partition resumes or initializes under its declared collection policy; complete coverage is established before advancing, with no loss hidden by a newest-seen timestamp. |
+| One source succeeds empty while another is unavailable, truncated, or fails on a later page | Per-source complete/partial/failed coverage is visible; failed/partial partitions retain their last complete checkpoint and cannot be scored as quiet. |
+| Publication fails or its receipt is lost; crash before bookkeeping; overlapping edition attempts | No false delivered-item entry; unknown publication reconciles under existing effect rules; collection advancement without confirmed delivery or permitted suppression retains pending candidates, and concurrent claims cannot bypass edition ownership. |
+| Permitted silence; budget pause; held/unknown publication; missing run | Suppressed editions have a policy reason and no delivery receipt; source gaps remain visible; run health and delivery status are not scored as a complete empty scan. |
+
+Use controlled interleavings and actual reopened storage, recording source/runtime/storage revisions and failure injection boundaries. Process-crash probes do not substitute for host/power-loss tests, and adapter conformance does not establish distributed ownership. Gate unattended rollout on no unresolved admission, authority, publication, ownership, or false-completion failures in the declared trials; suspend background/takeover features when they cannot justify their complexity.
+
 ## Self-refinement evals
 
 Online refinement is an advanced, post-MVP feature. Compare the same tasks and model under at least these conditions:
@@ -361,6 +428,44 @@ task quality, cost, latency, and intervention rate over time
 ```
 
 Report results against the frozen baseline and attribute lift to the specific accepted diff. If repeated updates cannot beat that baseline without unacceptable regressions, keep automated application disabled. See [self-refining recursive harnesses](self-refining-recursive-harnesses.md) for the refinement contract these cases exercise.
+
+## Performance optimization and regression ratchets
+
+Use this contract when performance improvement is an explicit objective. A measured baseline and regression gate can serve an MVP; unattended optimization, recurring monitoring, and parallel workstreams remain post-MVP. Apply the existing [feedback loop](agent-legibility-feedback-loops.md#feedback-loops) within its authorized scope.
+
+### Measurement contract
+
+Name the target boundary: harness-local processing, provider inference, tool/network wait, or client rendering. Define each journey from its triggering interaction to an observable completion event. Use [existing latency and task-economics definitions](#model-and-configuration-sweeps) and [correlated stage evidence](security-observability.md#capture-the-failing-boundary); a local improvement alone does not establish faster user-visible completion. Attribute overlapping work through the critical path rather than summing all stage durations.
+
+The evaluator owns timing boundaries and counters. Record the clock domain; use monotonic elapsed time within one process and explicit clock alignment or causally correlated spans across processes. Pin fixtures, data shape, cache state, dependencies, runtime, and measurement environment. Isolate harness overhead with fixed responses or mock tools where appropriate, then separately validate live end-to-end behavior; that isolation does not measure model quality or provider latency.
+
+Keep a versioned performance record:
+
+```text
+journey and completion boundary
+measurement owner and clock domain
+workload, fixture, and cache-state identity
+implementation, benchmark, and environment versions
+proxy-to-latency validation evidence
+trial aggregation and noise tolerance
+quality, safety, and cost constraints
+active threshold and prior baseline
+rollout cohort and acceptance or revert evidence
+```
+
+### Proxy acceptance
+
+A cheap counter is an optimization target only after two checks: it is repeatable for the declared workload, and improving it produces a meaningful latency improvement on representative cases. Instruction, allocation, or call counts are candidates, not universal guarantees. Reject unstable proxies and counters that improve while work moves outside the measured boundary or user latency fails to improve. Repeat calibration when workloads or measurement environments change.
+
+Wall-clock gates remain valid when repeated trials and declared uncertainty support them. For synthetic clocks or frame stepping, distinguish the simulated budget from observed physical-device performance. Use instrumentation overhead and correctness checks to ensure a lower count was not bought by dropping required work.
+
+### Ratchet and rollout acceptance
+
+A performance ratchet is a versioned upper bound for a lower-is-better metric. Run the benchmark on affected changes and reject regressions beyond its declared tolerance. Tighten the bound only from repeatable, accepted evidence; the best of many noisy samples is not a new baseline. Candidate optimizations must not weaken the benchmark, fixtures, threshold, or quality floor to pass. Evaluation changes require separate review and preserve the previous record; an incompatible environment or workload change needs a newly calibrated baseline rather than a silent reset.
+
+After an authorized rollout, compare the same journey under representative traffic, cache states, and concurrency. Accept the win only when user latency improves without violating the existing quality, safety, or cost constraints. A lab-only gain stays provisional; a failed field check follows the deployment's existing revert or disable procedure. Record the measured outcome before tightening the regression threshold, and retain the check in the [regression suite](#regression-loop).
+
+Stop or redirect experiments when measured benefit no longer justifies complexity or the declared budget. Keep scope, permissions, stopping rules, and any concurrent-worker lifecycle with their existing [goal](planning-and-goals.md), [tool](tools-and-permissions.md), and [workflow](workflow-orchestration.md) owners.
 
 ## Regression loop
 

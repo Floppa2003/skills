@@ -12,7 +12,7 @@ python3 --version || python --version
 
 If Python is not installed, **do not install it yourself**. Stop and ask the user to install Python 3 using their preferred method (e.g. from [python.org](https://www.python.org/downloads/) or their OS package manager), then continue once it is available. Never run package-manager or system-modifying commands (`sudo`, `brew`, `apt`, `winget`, etc.) on the user's machine for this skill.
 
-If the user prefers not to install Python, skip the CLI searches and rely on the Quick Reference sections above.
+If the user prefers not to install Python, skip the CLI searches and {{#QR}}rely on the Quick Reference sections above{{/QR}}{{#NOQR}}use the Search Reference, Common Rules, and Pre-Delivery Checklist in this skill{{/NOQR}}.
 
 > **Note:** On Windows, use `python` instead of `python3` to run scripts (e.g., `python scripts/search.py` instead of `python3 scripts/search.py`).
 
@@ -27,8 +27,8 @@ Use this skill when the user requests any of the following:
 | **New project / page** | "做一个 landing page"、"Build a dashboard" | Step 1 → Step 2 (design system) |
 | **New component** | "Create a pricing card"、"Fix modal focus" | Step 3 (one focused domain search) |
 | **Choose style / color / font** | "What style fits a fintech app?"、"推荐配色" | Step 2 (design system) |
-| **Review existing UI** | "Review this page for UX issues"、"检查无障碍" | Quick Reference checklist above |
-| **Fix a UI bug** | "Button hover is broken"、"Layout shifts on load" | Quick Reference → relevant section |
+| **Review existing UI** | "Review this page for UX issues"、"检查无障碍" | {{#QR}}Quick Reference checklist above{{/QR}}{{#NOQR}}Step 3 (`ux` domain) + Common Rules{{/NOQR}} |
+| **Fix a UI bug** | "Button hover is broken"、"Layout shifts on load" | {{#QR}}Quick Reference → relevant section{{/QR}}{{#NOQR}}Step 3 (relevant domain){{/NOQR}} |
 | **Improve / optimize** | "Reduce React list rerenders"、"Fix mobile touch targets" | Step 3 (explicit `react`, `ux`, or `web` domain) |
 | **Implement dark mode** | "Add dark mode support" | Step 3 (domain: style "dark mode") |
 | **Add charts / data viz** | "Add an analytics dashboard chart" | Step 3 (domain: chart) |
@@ -285,19 +285,19 @@ python3 {{SCRIPT_PATH}} "fintech crypto" --design-system -f markdown
 | Problem | What to Do |
 |---------|------------|
 | Can't decide on style/color | Verify the category, then retry once with one product and one tone |
-| Dark mode contrast issues | Quick Reference §6: `color-dark-mode` + `color-accessible-pairs` |
-| Animations feel unnatural | Quick Reference §7: `spring-physics` + `easing` + `exit-faster-than-enter` |
-| Form UX is poor | Quick Reference §8: `inline-validation` + `error-clarity` + `focus-management` |
-| Navigation feels confusing | Quick Reference §9: `nav-hierarchy` + `bottom-nav-limit` + `back-behavior` |
-| Layout breaks on small screens | Quick Reference §5: `mobile-first` + `breakpoint-consistency` |
-| Performance / jank | Quick Reference §3: `virtualize-lists` + `main-thread-budget` + `debounce-throttle` |
+| Dark mode contrast issues | {{#QR}}Quick Reference §6: `color-dark-mode` + `color-accessible-pairs`{{/QR}}{{#NOQR}}`"color-dark-mode color-accessible-pairs" --domain ux`{{/NOQR}} |
+| Animations feel unnatural | {{#QR}}Quick Reference §7: `spring-physics` + `easing` + `exit-faster-than-enter`{{/QR}}{{#NOQR}}`"spring-physics easing" --domain ux`{{/NOQR}} |
+| Form UX is poor | {{#QR}}Quick Reference §8: `inline-validation` + `error-clarity` + `focus-management`{{/QR}}{{#NOQR}}`"inline-validation error-clarity" --domain ux`{{/NOQR}} |
+| Navigation feels confusing | {{#QR}}Quick Reference §9: `nav-hierarchy` + `bottom-nav-limit` + `back-behavior`{{/QR}}{{#NOQR}}`"nav-hierarchy back-behavior" --domain ux`{{/NOQR}} |
+| Layout breaks on small screens | {{#QR}}Quick Reference §5: `mobile-first` + `breakpoint-consistency`{{/QR}}{{#NOQR}}`"mobile-first breakpoint-consistency" --domain ux`{{/NOQR}} |
+| Performance / jank | {{#QR}}Quick Reference §3: `virtualize-lists` + `main-thread-budget` + `debounce-throttle`{{/QR}}{{#NOQR}}`"virtualize-lists debounce-throttle" --domain ux`{{/NOQR}} |
 
 ### Pre-Delivery Checklist
 
-For web/desktop work, apply the relevant Quick Reference sections and focused searches. The device, Dynamic Type, touch-target, and safe-area checks below apply only to native/mobile app UI.
+{{#QR}}For web/desktop work, apply the relevant Quick Reference sections and focused searches.{{/QR}}{{#NOQR}}For web/desktop work, apply focused domain searches and the Common Rules below.{{/NOQR}} The device, Dynamic Type, touch-target, and safe-area checks below apply only to native/mobile app UI.
 
 - Run focused searches only for concerns present in the interface, for example `"keyboard focus modal" --domain ux`
-- Run through Quick Reference **§1–§3** (CRITICAL + HIGH) as a final review
+- {{#QR}}Run through Quick Reference **§1–§3** (CRITICAL + HIGH) as a final review{{/QR}}{{#NOQR}}Review the Common Rules and Pre-Delivery Checklist below (CRITICAL + HIGH first){{/NOQR}}
 - Test on 375px (small phone) and landscape orientation
 - Verify behavior with **reduced-motion** enabled and **Dynamic Type** at largest size
 - Check dark mode contrast independently (don't assume light mode values work)

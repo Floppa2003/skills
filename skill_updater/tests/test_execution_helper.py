@@ -25,7 +25,8 @@ class TaskCompletionTests(unittest.TestCase):
                     self.assertEqual(result.returncode, 42 if number == 4 else 0, result.stderr)
                     ledger = (workspace / 'progress.md').read_text()
                     self.assertEqual(f'Task {number}: complete' in ledger, number != 4)
-            self.assertIn('exit 0; no output', ledger)
+            self.assertEqual(ledger.count('(no output)'), 2)
+            self.assertIn('→ PASS)', ledger)
 
 
 if __name__ == '__main__':
