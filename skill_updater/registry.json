@@ -1259,6 +1259,27 @@
       "required_paths": [],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "evals-from-sessions",
+      "repo": "ibragim-bad/evals-from-sessions",
+      "path": "skills/evals-from-sessions",
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": "overlays/evals-from-sessions.patch",
+      "enabled": true,
+      "installed_commit": "4e85a197f0b0f822461457af3056a63fb39aad93",
+      "installed_hash": "a27596d6c9a6dea0dca65583965ae33513b52b285c4d14363734421f96c9e1e9",
+      "skip_reason": null,
+      "required_paths": [
+        "SKILL.md",
+        "references/harbor-contract.md",
+        "assets/task-template/tests/test.sh",
+        "assets/task-template/tests/verify.py",
+        "assets/task-template/task.toml"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }

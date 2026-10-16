@@ -1,0 +1,165 @@
+diff --git a/SKILL.md b/SKILL.md
+index 0420c15..652237c 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -40,6 +40,21 @@ the end state, or the task reduces to knowing one flag.
+ 
+ ## Rules
+ 
++- **Data and execution boundary.** Scope session selection before copying. Keep raw
++  copies local and outside Git; gitleaks redacts its report, not the inputs. Resolve
++  findings and remove unnecessary private content before model processing. Private
++  mode forbids publication but does not prevent disclosure to a hosted model: obtain
++  approval for the provider, data, paid runs and budget before execution. Installing
++  this skill does not authorize dependencies, model runs or publication.
++- **Evaluation policy.** Tool-call counts and numeric selection/calibration cutoffs
++  below are author heuristics, not acceptance gates. Choose justified limits for the
++  workload. Keep representative held-out tasks when comparing setups; changing a
++  task requires a new version and rerunning every compared setup. Never compare
++  different task versions or silently weaken a requirement to improve a score.
++- **Authoring revisions.** The one-revision/two-bump limits and rejection instead of
++  editing a frozen instruction below are conservative author defaults. A legitimate
++  clarification may instead create a new reviewed task version; preserve the old
++  evidence and invalidate comparisons until all setups are rerun.
+ - **Unit = one task episode**: one user request plus the work that satisfied it. Use
+   only user-driven sessions.
+ - **Shareable mode: re-author, never copy.** Keep the *behavior* the episode required.
+@@ -84,7 +99,8 @@ Check `harbor --version` and record it in `report.md`. The contract shows Harbor
+ syntax. Before the first use of each command, confirm its flags with `--help` on the
+ installed version, and take `schema_version` from the skeleton that `harbor task init`
+ creates. If a command does not exist in your version (for example `harbor check`),
+-record "not available" in `report.md` and continue.
++record "not available" in `report.md` and continue preparation; required validation
++remains incomplete until an equivalent reviewed check passes.
+ 
+ ### 1. Inventory, select and choose the mode
+ 
+@@ -189,7 +205,10 @@ overwrite the approved provenance (`rsync -a --exclude provenance.md`, or `cp -n
+ 
+ ### 4. Write the verifier
+ 
+-Keep the template `test.sh`: it always writes `/logs/verifier/reward.txt`. In
++Keep the template `test.sh`: it writes `/logs/verifier/reward.txt` only for a
++completed evaluation (exit 0 = pass, 10 = semantic failure). Any other exit is a
++verifier error with no reward; exclude it from model scores. Catch expected invalid
++agent output as a failed check, while unexpected verifier exceptions must propagate. In
+ `tests/verify.py` (keep the canary line):
+ 
+ - **Contract in both directions.** Every check follows from an instruction sentence;
+@@ -234,6 +253,10 @@ task. Commands are in the contract. Required evidence:
+ 6. **Leak probe**: run `assets/leak-probe.sh <task> <solution-strings.txt>` (strings
+    only the reference diff contains, several per answer value). Expect one commit, one
+    reflog entry, no remotes, tags or hooks, and zero string hits inside the built image.
++   The bundled probe is heuristic: it suppresses some scan errors and skips binary
++   content. Its `clean` label alone is insufficient. Independently inspect image
++   contents and Git state against these expectations; record uninspected surfaces
++   and do not mark the leak gate passed while material coverage is unresolved.
+ 7. **harbor check**: run it, copy every finding into `report.md`, and fix or justify
+    each `fail`.
+ 
+diff --git a/assets/task-template/task.toml b/assets/task-template/task.toml
+index c5450b0..559cc1d 100644
+--- a/assets/task-template/task.toml
++++ b/assets/task-template/task.toml
+@@ -17,9 +17,12 @@ timeout_sec = 120.0
+ 
+ [agent]
+ timeout_sec = 1200.0
++network_mode = "allowlist"
++allowed_hosts = []  # fill only with approved model/task hosts before execution
+ 
+ [environment]
+-network_mode = "public"   # "allowlist" + allowed_hosts if derived from public code
++network_mode = "allowlist"
++allowed_hosts = []  # fill with necessary approved agent-installation hosts
+ build_timeout_sec = 600.0
+ cpus = 2
+ memory_mb = 2048
+diff --git a/assets/task-template/tests/test.sh b/assets/task-template/tests/test.sh
+index 6a95142..d6ac94c 100755
+--- a/assets/task-template/tests/test.sh
++++ b/assets/task-template/tests/test.sh
+@@ -1,8 +1,13 @@
+ #!/bin/bash
+ # Runs offline after the agent finishes. Never download anything here.
+-# Always writes a reward: a missing reward file is a Harbor error, not a 0.
++# Exit 10 means a completed semantic rejection; other failures are verifier errors.
++set -eu
+ mkdir -p /logs/verifier
+-reward=0
+-trap 'echo "$reward" > /logs/verifier/reward.txt' EXIT
+-python3 /tests/verify.py && reward=1
+-exit 0
++rm -f /logs/verifier/reward.txt
++rc=0
++python3 /tests/verify.py || rc=$?
++case "$rc" in
++  0) echo 1 > /logs/verifier/reward.txt ;;
++  10) echo 0 > /logs/verifier/reward.txt ;;
++  *) echo "VERIFIER_ERROR: exit $rc" >&2; exit "$rc" ;;
++esac
+diff --git a/assets/task-template/tests/verify.py b/assets/task-template/tests/verify.py
+index 6854c06..58f61b7 100644
+--- a/assets/task-template/tests/verify.py
++++ b/assets/task-template/tests/verify.py
+@@ -40,9 +40,14 @@ def main():
+     # Example: run the documented command on a hidden fixture.
+     # r = run([sys.executable, "/app/tool.py", "/tests/fixtures/case1.jsonl"])
+     # check("case1 exit code", r.returncode == 0, r.stderr[-500:])
+-    # check("case1 result", same(json.loads(r.stdout), EXPECTED), r.stdout[-500:])
++    # try:
++    #     actual = json.loads(r.stdout)
++    # except json.JSONDecodeError:
++    #     check("case1 JSON", False, "invalid JSON output")
++    # else:
++    #     check("case1 result", same(actual, EXPECTED), r.stdout[-500:])
+     check("replace this placeholder", False, "verifier not written")
+-    return 1 if FAILURES else 0
++    return 10 if FAILURES else 0
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/references/harbor-contract.md b/references/harbor-contract.md
+index 5911cc5..72685f6 100644
+--- a/references/harbor-contract.md
++++ b/references/harbor-contract.md
+@@ -67,9 +67,12 @@ timeout_sec = 120.0
+ 
+ [agent]
+ timeout_sec = 1200.0
++network_mode = "allowlist"
++allowed_hosts = []       # configure approved model/task hosts before execution
+ 
+ [environment]
+-network_mode = "public"
++network_mode = "allowlist"
++allowed_hosts = []       # configure necessary approved setup hosts before execution
+ build_timeout_sec = 600.0
+ cpus = 2
+ memory_mb = 2048
+@@ -81,10 +84,10 @@ storage_mb = 4096
+ `network_mode` is `public` (default), `allowlist` or `no-network`. The agent needs the
+ network to reach its model API and to install itself.
+ 
+-- **Private tasks: `public` is fine.** The repository and its fix exist only on your
+-  machine, so the agent cannot find the solution online.
+-- **Synthetic shareable tasks: `public` is fine** too. An allowlist ties the task to
+-  one agent's install hosts, and other scaffolds need other hosts.
++- **Private and synthetic tasks:** fill the template's empty allowlists with approved
++  provider and necessary setup hosts before execution; do not fall back to public
++  networking on failure. Hosted-model calls disclose task content; private visibility
++  does not make them local-only. Confirm data/provider authorization and a run budget.
+ - **Anything derived from public code** (an open-source repository, a public issue or
+   PR): use `network_mode = "allowlist"`, with the agent phase limited to the model
+   endpoint (and package registries if the task needs them), or reject the episode.
+@@ -172,5 +175,8 @@ cat $J/<job-name>/*/verifier/reward.txt
+ python3 -c "import json,glob; [print(f, json.load(open(f)).get('exception_info')) for f in glob.glob('$J/<job-name>/*/result.json')]"
+ ```
+ 
+-A non-null `exception_info` means an infrastructure or timeout failure, not a model
+-failure. The smoke run must have none.
++A non-null `exception_info`, missing reward, or `VERIFIER_ERROR` means an invalid
++trial, not a semantic rejection; inspect the logs and classify infrastructure,
++timeout and verifier failures separately. The smoke run must have none. Verifier
++exit 10 is reserved for completed semantic checks; unhandled exceptions must not
++be converted to a zero score.
