@@ -185,6 +185,12 @@ Formal evaluation framework for agentic coding sessions implementing eval-driven
 
 Entrypoint: `skills/eval-harness/SKILL.md`
 
+## evals-from-sessions
+
+Turn your own coding-agent sessions (Claude Code, Codex, Pi, Gemini CLI, or other JSONL session exports) into verified Harbor eval tasks. Covers securing and selecting task episodes, building private tasks from a snapshot of your own repository or shareable re-authored tasks, writing a semantic verifier and reference solution, validating with oracle, nop, broken and alternative solutions, a leak probe, harbor check and one smoke run, with two human review checkpoints. Use when the user wants to build or extend a personal coding-agent benchmark or eval from their own agent sessions.
+
+Entrypoint: `skills/evals-from-sessions/SKILL.md`
+
 ## executing-plans
 
 Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available

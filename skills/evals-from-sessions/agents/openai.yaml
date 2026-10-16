@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evals From Sessions"
+  short_description: "Help with Evals From Sessions tasks and workflows"
+  default_prompt: "Use $evals-from-sessions to help with a relevant task."
