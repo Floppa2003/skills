@@ -21,6 +21,53 @@
 - [ ] Traces and evals are defined before launch.
 - [ ] First rollout is limited, monitored, or shadow-mode.
 
+## Per-request model routing checklist
+
+- [ ] A fixed-model baseline and matched quality/cost/latency comparison justify post-MVP routing.
+- [ ] Selected router identity and actual model/reasoning configuration are recorded separately.
+- [ ] Destination credentials, scope, modalities, protocol, and complete-request capacity are checked before dispatch.
+- [ ] Continuation, retry, fallback, and direct-request behavior preserve tool-result pairing and treat provider replay data as opaque.
+- [ ] Branch-state inheritance, version checks, commit timing, and failure behavior are explicit.
+- [ ] Router/classifier/retry/compaction costs count toward the same budget; routing cannot change permissions.
+
+## Runtime configuration event checklist
+
+- [ ] Ordered, versioned instruction/tool changes have authorized origin, scope, and a safe commit boundary.
+- [ ] Replay and compaction preserve the effective configuration without promoting observations into instructions.
+- [ ] Model-visible declarations reconcile with executable capabilities; revocation is enforced at invocation.
+- [ ] Provider-native updates and checkpoint fallback are tested for additions, replacements, and removals.
+- [ ] Removal from active state is distinguished from excluding historical content from future payloads.
+- [ ] Recovery and branch conflicts fail closed rather than restoring stale authority.
+
+## Economic cache warming checklist
+
+- [ ] A no-warming baseline justifies the optional post-MVP optimization.
+- [ ] Exact scope/request identity, best-effort lifetime, and replay-safe output/reasoning options determine eligibility.
+- [ ] Refreshes cannot execute tools or hosted effects, alter conversation state, or preempt real work.
+- [ ] Reuse-weighted avoided cost exceeds refresh cost, and cumulative spend/rate/time limits are enforced.
+- [ ] Context/model/configuration changes, missed deadlines, and cancellation invalidate scheduled and in-flight work.
+- [ ] Successful, failed, aborted, late, and unknown refresh outcomes are accounted for; requested cancellation is not proof of no charge.
+
+## Realtime voice agent checklist
+
+- [ ] The [voice profile](realtime-voice-agents.md) specifies native/chained speech, duplex/turn behavior, and in-session/delegated execution independently.
+- [ ] A narrow useful voice MVP and simpler baseline are defined; optional backend orchestration and durable recovery are justified when used.
+- [ ] One effective response-admission policy owns automatic/manual triggers and duplicate suppression.
+- [ ] Input evidence retains source, correlation, provisional/revised status when available, and current intent revision.
+- [ ] Recognition uncertainty and critical-entity clarification obey the existing permission and confirmation policy.
+- [ ] Session/media epochs, response/segment IDs, and playback-cursor provenance distinguish generated, queued, and observed output.
+- [ ] Interruption separately resolves playback, speech generation, conversation repair, and backend work disposition.
+- [ ] Queued obsolete audio is fenced; retained context does not presume unheard output was delivered.
+- [ ] Corrections invalidate obsolete result/confirmation eligibility before speech or apply-time action.
+- [ ] A work bridge, when used, preserves task/revision identity, context watermark, acceptance, and terminal outcome.
+- [ ] Progress speech, silence, and success claims match verified application state.
+- [ ] Audio queue duration and age limits, deadlines, overflow policy, and loss accounting are explicit.
+- [ ] Close/reconnect behavior fences old-session events and preserves the declared backend lifetime without blind effect retry.
+- [ ] Preplayback checks, when required, bind to current eligible audio; late checks cannot release canceled segments.
+- [ ] Voice context reduction preserves active intent, work/authority state, and playback evidence through the existing owners.
+- [ ] Useful-answer and acknowledgment timing are separate; interruption timing and clock domains are defined.
+- [ ] [Voice evals](evals.md#realtime-voice-agent-evals) pass under target acoustic/device conditions with task-state and audible-output gates scored independently.
+
 ## Hardware agent and board deployment checklist
 
 - [ ] Inference location and dependencies on a running host are explicit.
@@ -242,6 +289,25 @@ Use [adaptive agent teams](adaptive-agent-teams.md) for the contracts and [adapt
 - [ ] Any self-update policy names its canonical source, keeps package revisions consistent, preserves local changes, respects installation permissions, and discloses unverified freshness.
 - [ ] Predictive loading is measured against on-demand loading and preserves version, scope, and cache ordering.
 
+## Always-on and durable runtime checklist
+
+- [ ] Availability, recoverability, ownership topology, and demonstrated storage failure classes are stated separately.
+- [ ] Accepted/queued/placed/answered/withdrawn receipts and request-identity payload/retention policy survive restart.
+- [ ] Follow-up, steering, passive-write, and control lanes have explicit safe boundaries and failure dispositions.
+- [ ] Local transcript/task/document/receipt commits publish only after settlement; uncertain storage/adoption seals mutation until reconciliation.
+- [ ] External effect intent/outcome windows and persisted/current replay eligibility resolve through the existing tool policy.
+- [ ] Task checkpoints, definition versions, migrations, blocked work, invocation fencing, and orphan disposition are explicit.
+- [ ] Held outcomes, owned foreground drain, terminal receipts, background boundaries, cancellation, and suspension remain distinguishable.
+- [ ] Document scope/incarnation/history/fork policy and commit-granular historical copying cannot copy live tasks or authority accidentally.
+- [ ] Snapshot attachment, delivery/replay cursor types, overflow/gap recovery, count/byte limits, and active-callback cleanup are tested.
+- [ ] Concurrent compaction pins its range, preserves the new tail, rejects stale publication, and accounts for stale/unknown attempts.
+- [ ] Takeover fences stale writers; wakeups revalidate authority and stop under goal/deadline/budget rules.
+- [ ] Recurring collectors pass the [collection contract](always-on-agents.md#recurring-collection-and-delivery-bookkeeping): per-partition checkpoints, initialization/query changes, pagination, cutoff, ties, and late updates are explicit.
+- [ ] Every partition has complete/partial/failed coverage; failed/partial reads preserve its last complete checkpoint and expose omissions.
+- [ ] Confirmed delivery alone adds delivered-item entries; collection advancement without confirmed delivery or permitted suppression atomically retains pending candidates, and unknown sends reconcile before retry.
+- [ ] Suppression has a policy reason and no fabricated receipt; incomplete sources, held/unknown delivery, budget pauses, and missing runs remain distinguishable from healthy empty reads.
+- [ ] Crash-window, cancellation, fork, migration, observer, and compaction probes pass with unresolved effects and data-loss exposure reported.
+
 ## Self-refining recursive harness checklist
 
 - [ ] The advanced profile is justified by measured baseline failures or gains and marked post-MVP.
@@ -258,7 +324,7 @@ Use [adaptive agent teams](adaptive-agent-teams.md) for the contracts and [adapt
 - [ ] Regressions trigger automatic rollback or quarantine; promotion requires explicit evidence.
 - [ ] Changes remain session-local by default; cross-session or global promotion has a separate gate.
 - [ ] Executable skill changes receive sandbox, dependency, capability, provenance, and regression checks.
-- [ ] Retained, daemon-backed, and scheduled runs handle cancellation, recovery, missed ticks, backpressure, idempotency, attribution, and garbage collection.
+- [ ] Retained children handle cancellation, recovery, message backpressure, idempotency, attribution, and garbage collection; resident/scheduled runs pass the [always-on checklist](#always-on-and-durable-runtime-checklist).
 - [ ] Adversarial evals cover persistent prompt injection, reward hacking, authority escalation, cross-session leakage, and unbounded state growth.
 
 ## MCP/external connector checklist
@@ -316,6 +382,10 @@ Use [evals.md](evals.md) for evaluation strategy, trace grading, adversarial cas
 - [ ] Quality, safety, completed-task cost, first useful UI, and end-to-end latency gate model/configuration selection.
 - [ ] Component comparisons state tested budget/configuration scope, distinguish overflow and early failure from efficiency, and use mutation evidence separately from judged phases.
 - [ ] Alternative action profiles meet equivalent host-control and verification requirements or are explicitly reported as bundled interventions.
+- [ ] Performance targets identify journey boundaries, evaluator-owned measurements, clock domains, and versioned workload/environment records.
+- [ ] Benchmark proxies are repeatable and have evidence of representative latency improvement; simulated timing is labeled separately from physical-device results.
+- [ ] Regression thresholds use declared trial aggregation and tolerance; candidate optimizations cannot weaken the evaluator or silently reset baselines.
+- [ ] Deployed gains pass the [performance acceptance contract](evals.md#performance-optimization-and-regression-ratchets) before thresholds tighten; quality, safety, and cost constraints still pass.
 
 ## Minimal provider-neutral implementation path
 

@@ -78,7 +78,7 @@ induced to do is done with their sessions.
    [profile instructions](references/tabs-and-profiles.md) and start with its explicit `--browser`
    selector. Otherwise start `bsk session start --json`; with multiple browsers,
    run `bsk browsers` and choose `--browser <id-or-label>`. Retain the returned
-   `session_id`. For background work, add `--no-focus` to `session start` only.
+   `session_id`. Sessions start in the background; use `--focus` only on explicit user request.
 2. For a new page, navigate; for an existing user tab, read [tab borrowing](references/tabs-and-profiles.md) first.
    Read the page before interacting:
 
@@ -107,7 +107,7 @@ Prefer `observe` for text, controls and `@eN` refs. Navigation invalidates refs;
 large DOM changes can stale them too. Re-observe before the next interaction.
 Use refs for iframe/shadow-root targets; CSS selectors search the main document.
 
-Choose the relevant example, using a ref that actually appeared on the page:
+Use a ref from the current observation:
 
 | Need | Command |
 | --- | --- |
@@ -128,16 +128,18 @@ acting on HTML or screenshot findings. Inspect unknown effects before retrying.
 
 ## Read details only when needed
 
-Resolve these paths from this skill's directory, not the working directory.
-Read the matching reference before the operation; do not load every file at startup.
-A task may need more than one reference as it progresses.
+Resolve references from this skill's directory, not the working directory.
+Read the matching reference before acting; do not preload all references.
+Load further references only as needed.
 
 | When | Read |
 | --- | --- |
+| Table/list JSON/CSV export | [Extract](references/extraction.md) |
 | Website debugging, reproduction evidence, or request rules/replay | [Debugging](references/debugging.md) |
 | Required profile, existing user tab, multiple/background tabs, or remote tab ownership | [Tabs and profiles](references/tabs-and-profiles.md) |
 | Missing CLI, daemon startup failure, sandboxed startup, connection failure, or remote pairing | [Environment](references/environment.md) |
-| Hover menus/probing, scrolling, `next_cursor`/`@more`, console/network, emulation, evaluation, or recording | [Interaction details](references/interaction-details.md) |
+| Waits, hover menus/probing, scrolling, `next_cursor`/`@more`, console/network, emulation, evaluation, or recording | [Interaction details](references/interaction-details.md) |
 | Screenshot, full-page capture, or `[visual:screenshot]`/Canvas interaction | [Screenshots and Canvas](references/screenshots-and-canvas.md) |
+| Video recording or MP4 export | [Video](references/video.md) |
 | Upload or download | [Files](references/files.md) |
 | Login/CAPTCHA/OTP/consent/payment confirmation, two attempts without progress, or an operation error | [Human help and recovery](references/help-and-recovery.md) |
