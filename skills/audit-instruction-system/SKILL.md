@@ -50,7 +50,7 @@ Derive a compact task-local checklist from the current official guidance and the
 - skill content respects progressive-disclosure ownership: the frontmatter description states what the skill does and when it should activate; the `SKILL.md` body contains the post-activation operating contract; references contain detailed knowledge; scripts contain repeatable implementation; assets contain reusable output materials; and `agents/openai.yaml` contains UI metadata and supported invocation/dependency configuration, not procedural instructions;
 - terminology names the same object consistently across all layers;
 - Markdown headings, lists, and prose reflect semantic hierarchy and improve navigation;
-- authoring-history or meta-prompt commentary is absent while operational rationale that changes decisions is preserved;
+- authoring-history and meta-prompt commentary are absent unless they are themselves part of the document's subject. Inspect the current text, including corrected passages and dependent examples and conclusions, as a standalone document rather than only as a diff. Flag edit-only remnants; preserve substantive constraints, source evidence, necessary comparisons, and operational rationale that changes decisions;
 - response and style instructions specify what must be retained, not only broad adjectives or brevity requests.
 
 Do not repeat the full official guide in the report unless the user asks. Include only the checks relevant to the system under audit.
