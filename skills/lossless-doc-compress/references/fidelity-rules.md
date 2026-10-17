@@ -23,6 +23,8 @@ Every span of text you consider gets exactly one fate:
 - **FLAG** — removing or changing it is a judgment call. Left in the document, marked for
   the author with a recommendation. Never auto-removed.
 
+Do not add revision history, rebuttals of superseded wording, or explanations of edits to the compressed document; put editing commentary in the removal log. For existing editorial residue, REMOVE only provable redundancy and FLAG uncertain cuts. Removing an informative obsolete claim requires separate editing authorization and is not lossless compression.
+
 ## The Lossless Guarantee
 
 The compressed document must preserve, in meaning, every one of these — they are sacred
