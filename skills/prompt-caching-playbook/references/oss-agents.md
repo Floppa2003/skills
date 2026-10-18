@@ -35,7 +35,7 @@ Today's date: {date}
 </project>
 ```
 
-This is **dynamic content**, and OpenCode places it in a **separate system message AFTER the static prompt** — i.e., after the cache breakpoint. So a date or cwd change doesn't break the cache.
+This reported layout places dynamic content after the static system breakpoint. A date or cwd change can preserve that earlier eligible prefix, but invalidates following system/history prefixes; it does not preserve all cache reuse.
 
 ### Known issue — Anthropic via OpenRouter (Issue #1245)
 

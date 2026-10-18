@@ -26,7 +26,6 @@ tools = [
 system = [
     {"type": "text", "text": STATIC_SYSTEM_PROMPT,
      "cache_control": {"type": "ephemeral"}},  # ← BP2
-    {"type": "text", "text": f"Current date: {today}, cwd: {cwd}"},  # NOT cached
 ]
 
 # Breakpoint 3: end of stable RAG/context block
@@ -40,11 +39,14 @@ messages = [
 
     # Breakpoint 4: on last message (slides forward each turn)
     {"role": "user", "content": [
+        {"type": "text", "text": f"Current date: {today}, cwd: {cwd}"},
         {"type": "text", "text": new_message,
          "cache_control": {"type": "ephemeral"}}  # ← BP4 sliding
     ]},
 ]
 ```
+
+Environment values here are non-instructional data appended after reusable history. Keep authoritative instructions in system; an unmarked block is still part of every later cache prefix. Preserve historical text and environment values, but remove obsolete sliding cache markers from outgoing copies rather than accumulating them. Count all retained and new breakpoints against the four-marker limit.
 
 ## Automatic vs explicit mode
 
@@ -55,12 +57,11 @@ Anthropic added **automatic caching** in 2025: instead of placing `cache_control
 ## TTL: 5 minutes vs 1 hour
 
 - **5 minutes (default):** cache write × **1.25** base price. TTL **resets on every cache hit**. An active session with >1 request per 5 minutes keeps the cache effectively "forever."
-- **1 hour (extended):** cache write × **2.0** base price. TTL does not reset until the hour elapses. Available only on newer models (Opus 4.5+, Sonnet 4.5+, Haiku 4.5+). Not supported on Bedrock.
+- **1 hour (extended):** cache write × **2.0** base price; hits refresh the cache lifetime. Check duration support for the selected model and hosting API.
 
 ### Break-even math (Sonnet-class, $3/M input, cache write 5min $3.75/M, cache read $0.30/M)
 
-- **5min TTL:** 1.25× write, 0.1× read. **2 reads** already cheaper than no-cache. 10 reads → ~85% savings.
-- **1h TTL:** 2.0× write, 0.1× read. **3 reads** to recoup. Use **only** if confident the inter-request gap exceeds 5 minutes (review agents, batch inspections, nightly jobs).
+At these illustrative rates, one 5min write plus one read costs 1.35× versus 2× uncached; one 1h write plus two reads costs 2.2× versus 3×. Compare actual reuse intervals and current rates before choosing a TTL; 1h does not cover a nightly gap.
 
 You can mix: **1h TTL must come BEFORE 5min TTL** in the request. This lets you cache tools+system for an hour and history for 5 minutes.
 
@@ -89,10 +90,7 @@ A healthy active session in a well-structured agent (Claude Code-style) holds **
 
 ## Cache isolation (multi-tenant)
 
-Cache entries are **isolated between organizations** and between **workspaces on Claude Platform on AWS** and **Microsoft Foundry**. On direct Anthropic API — only at the org level. Implications:
-
-- One org with many end-users: cross-user data leakage via cache is not possible because cache hashes exact content; another user's prefix won't match. **Do not** add per-user salt to the prefix — it would kill the global cache.
-- Routing-level isolation: use workspaces (Bedrock/Foundry) if compliance requires physical separation of KV cache.
+The [current provider contract](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#cache-storage-and-sharing) isolates Claude API, Claude Platform on AWS and Microsoft Foundry caches by workspace; Bedrock and Google Cloud use organization-level isolation. Verify the selected service's boundary and retention policy. Exact matching alone is not a proof against cache-hit probing within a shared boundary. Choose application-tenant separation according to security requirements; never disable it solely to improve reuse. Do not equate a logical workspace boundary with a physical-separation guarantee.
 
 ## Bedrock and Vertex AI caveats
 

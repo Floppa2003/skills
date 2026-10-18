@@ -457,7 +457,7 @@ Entrypoint: `skills/using-git-worktrees/SKILL.md`
 
 ## using-superpowers
 
-Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
+Use at conversation start to select and apply relevant skills before task work.
 
 Entrypoint: `skills/using-superpowers/SKILL.md`
 

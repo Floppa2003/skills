@@ -1,0 +1,27 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -3 +3 @@
+-description: Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
++description: Use at conversation start to select and apply relevant skills before task work.
+@@ -10,8 +9,0 @@
+-<EXTREMELY-IMPORTANT>
+-If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+-
+-IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+-
+-This is not negotiable. You cannot rationalize your way out of this.
+-</EXTREMELY-IMPORTANT>
+-
+@@ -20 +12,5 @@
+-**Invoke relevant or requested skills BEFORE any response or action** — including clarifying questions, exploring the codebase, or checking files. If it turns out wrong for the situation, you don't have to use it.
++At task start and material task shifts, inspect available skill descriptions.
++Before substantive task work, read and follow explicitly requested skills and
++the smallest set clearly matching the task. Load supporting references only
++when needed; do not load skills for speculative relevance. If none matches,
++proceed without loading one.
+@@ -44 +40 @@
+-| "This doesn't need a formal skill" | If a skill exists, use it. |
++| "This doesn't need a formal skill" | If a skill clearly matches the task, use it. |
+@@ -47 +43 @@
+-| "The skill is overkill" | Simple things become complex. Use it. |
++| "The skill is overkill" | Use clearly matching skills; broad topic overlap alone is insufficient. |

@@ -18,7 +18,7 @@ Declared cache hit discount: **90% off base input** on Gemini 2.5/3 families, **
 ### Pitfalls of implicit caching
 
 1. **Cost savings not guaranteed.** Official Google notebooks state: *"implicit caching is enabled by default for all Gemini 3 and 2.5 models but cost savings only apply to Gemini 2.5 models"* — that phrasing has tightened over time and Gemini 3 does get savings as of early 2026, but they remain **best-effort**, not contractual.
-2. **Known bug with tools.** Vercel AI SDK Issue #11513 (Dec 2025): "Implicit caching does not appear to work when using `@ai-sdk/google` with Gemini 3 Flash Preview and tools defined, even when token counts exceed the documented minimum." This aligns with a public Google error message: `CachedContent cannot be used with GenerateContent request setting system_instruction, tools or tool_config`. In a production agent with active tool-use on Gemini 3, implicit cache may silently fail to activate.
+2. **Distinguish SDK failures from API constraints.** A tool-related cache miss in one SDK/model combination does not establish general incompatibility. Inspect the actual request and usage; the restriction on overriding an explicit cache's settings is separate from implicit caching.
 3. **Stickiness.** To improve hit probability: keep an identical prefix, send requests in close temporal proximity (TTL ≈ 3–5 minutes), and prefer a single region or global endpoint.
 
 ## Explicit caching (Context Caching API)
@@ -54,17 +54,13 @@ response = client.models.generate_content(
 - **Cache read:** ~90% discount.
 - **Cache storage:** per-hour fee for cached token volume (unique to Google — Anthropic and OpenAI don't bill storage separately). See Vertex AI pricing for the exact rate per model.
 
-### Hard limitation of explicit cache
+### Tool configuration with explicit caches
 
-**`CachedContent` cannot be used with a `GenerateContent` request setting `system_instruction`, `tools`, or `tool_config`.**
-
-This is a serious architectural limit for agents. Workarounds:
-- Use only implicit caching (accept some miss rate).
-- Split the chain: tool-less calls use explicit cache; tool-using calls don't get explicit cache.
+The [CachedContent API](https://ai.google.dev/api/caching#CachedContent) accepts `tools`, `toolConfig` and `systemInstruction` at cache creation. In the Python SDK these are `tools`, `tool_config` and `system_instruction` in `CreateCachedContentConfig`. Generation requests reference `cached_content`; do not override those cached settings there. Tool use and explicit caching are compatible. Recreate the cache when its immutable configuration must change, and verify support for the selected API/model.
 
 ## Min prefix to activate caching
 
-For implicit caching, the system + history + current user content must exceed the model's min threshold (1024 / 2048 / 4096 depending on the model). Below threshold = silent no-cache. Strategy: don't skimp on system prompt tokens; add stable context/style/conventions to push above threshold.
+Check the selected model's minimum cacheable input length. A shorter prompt may remain uncached; compare its total cost and quality against any expanded alternative rather than padding it with irrelevant instructions.
 
 ## Reading cache stats
 
@@ -74,19 +70,17 @@ cached_count = usage.cached_content_token_count
 # Works for both implicit and explicit
 ```
 
-If `cached_content_token_count` is 0 with a sufficient prefix size, implicit cache did not activate. Most common causes: tools in the request, changes at the start of prompt, or simply "the provider didn't get to it" (best-effort).
+For an API reporting this field, an explicit zero means no cached input was reported for that request; a missing field remains unknown. Investigate prefix changes, eligibility, expiry and observed SDK/model behavior before assigning a cause.
 
 ## Production recommendations
 
-1. **Aim for 4096+ token system prompt** to activate implicit caching on newer models. Don't economize tokens below threshold; add stable context and style.
-2. **Implicit caching is the default** for tool-using agents. Use explicit only when you have a huge (50K+ tokens) reusable context **without tools** in the same request.
-3. **Monitor `cached_content_token_count` in production**, especially on long sessions with tools. Alert if it stays 0 for >10 consecutive requests.
+1. **Keep only useful context.** Compare total task cost and quality against the shorter baseline before expanding prompts to meet a caching threshold.
+2. **Choose implicit or explicit caching from the workload.** Explicit caches can include tools; account for reuse, immutable configuration and storage costs rather than an arbitrary size cutoff.
+3. **Monitor `cached_content_token_count` in production.** Calibrate alerts against expected reuse and observed variability.
 4. **Static-first structure:** tools → system_instruction → history → new user.
 5. **Sticky routing on Vertex AI:** use the global endpoint or one region consistently; implicit cache is local to a serving instance.
 6. **Provisioned Throughput on Vertex AI** supports implicit caching — relevant for stable high-QPS workloads.
 
 ## Multi-tenant on Google
 
-Implicit caching is content-hashed and per-project. Cross-project leakage isn't possible by design. For workloads where users share an org, implicit cache reuse across users is a feature, not a leak (the cache stores attention KV tensors, not output; the hash match guarantees identical input).
-
-For explicit caches, each `CachedContent` resource is scoped to the project and can be deleted via API. Lifecycle management is the developer's responsibility.
+For explicit caches, each `CachedContent` resource is project-scoped. Enforce application-tenant authorization before reusing a cache name; project scope is not per-user isolation. Verify the chosen Gemini API or Vertex AI service's sharing, retention and access policies for implicit caches too. Exact prefix matching alone is not a proof against cache-hit probing. Do not weaken tenant separation for a higher hit rate; manage cache expiry and deletion explicitly.
