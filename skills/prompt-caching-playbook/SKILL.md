@@ -5,27 +5,27 @@ description: Practical playbook for maximizing prompt cache hit rate and minimiz
 
 # Prompt Caching Playbook for Production LLM/Agentic Systems
 
-A practical lens + ordered playbook for structuring prompts and message arrays so the provider can reuse the KV-cache across requests. Get token cost down 5–50× on input and TTFT down 13–85% without touching the model.
+A practical playbook for structuring prompts and messages to reuse the KV-cache. Measure complete-task cost and latency against a baseline; savings depend on the model, workload, cache writes and reads.
 
-This skill covers **Anthropic Claude, OpenAI GPT/o-series, Google Gemini, and self-hosted vLLM**. The structural rules are the same across all four; only syntax differs.
+This skill covers **Anthropic Claude, OpenAI GPT/o-series, Google Gemini, and self-hosted vLLM**. Stable prefixes help across providers, but activation, retention, accounting and isolation differ by model generation.
 
 ## How to apply
 
 1. **Diagnose first.** Look at the user's existing prompt structure or system architecture before suggesting changes. Static-vs-dynamic content placement and tool definition stability are the two highest-leverage variables — check those before discussing TTL or breakpoint count.
-2. **Apply the universal rule.** Static prefix → dynamic suffix. Order across all providers: tools → system → conversation history → new user message. Anything that changes per request must live **after** the last cache breakpoint.
-3. **Name what NOT to do.** The anti-patterns list in §6 below catches ~80% of real production cache misses. Surface them proactively whenever the user describes their prompt structure.
-4. **Quantify the win.** Every recommendation should come with an estimated cost/latency saving anchored in real numbers from §8 (worked examples) or §7 (provider mechanics), so the user can prioritize.
+2. **Preserve reusable prefixes.** Keep stable content before changing content where the API permits, without changing instruction authority or required request structure. Place explicit endpoints at reusable boundaries.
+3. **Name what NOT to do.** Use the anti-patterns in §6 as diagnostic hypotheses, then check them against the user's traces.
+4. **Quantify the win.** Estimate savings only with stated workload assumptions and applicable rates; otherwise report savings as unknown.
 5. **Recommend a monitoring loop.** Cache hit rate must be logged per-request and dashboarded per-session, per-tenant. Without observability, regressions are invisible until the next billing cycle.
 
 ## TL;DR — the rules that matter
 
-1. **Static prefix → dynamic suffix.** Order: tools → system static → system dynamic → long context / RAG → conversation history → new user message. Cache breakpoint goes after the last *stable* block.
+1. **Static prefix → dynamic suffix.** Keep tools, stable instructions, reused documents and unchanged history before per-request updates where the API permits. Separate session-stable settings from changing environment data; mark reusable endpoints.
 2. **Multi-turn:** previous user and assistant messages stay in place (append-only). New user message appended at the end. Cache breakpoint slides forward each turn.
-3. **Tool definitions are part of the cached prefix.** Reorder tools = full cache invalidation. Add/remove an MCP tool mid-session = full invalidation (system + all history).
-4. **Min thresholds:** 1024 tokens (Anthropic Sonnet/Opus, OpenAI, some Gemini models), 2048 tokens (Anthropic Haiku, Gemini 2.5), 4096 tokens (newer Gemini models). Below threshold = silent no-cache.
-5. **Cache hit pricing:** ~10% of base input (Anthropic, Google) or ~50% (OpenAI). Cache write costs: 1.25× base on Anthropic for 5min TTL, 2× for 1h TTL; OpenAI and Google charge nothing extra for writes.
-6. **TTL choice:** 5 min default refreshes on every hit — fine for active sessions. 1 hour (Anthropic) or 24h (OpenAI) for spaced-out workloads (review agents, batch jobs).
-7. **Anti-patterns that kill the cache:** timestamps/UUIDs at start of system prompt, live `git status` in every prompt, middleware injecting trace IDs, reordering tools, switching models mid-session, aggressive history reformatting, putting tool *results* inside the cached prefix.
+3. **Keep tool definitions stable.** Replacing or reordering an earlier tool list can invalidate following content. Where supported, append-only tool discovery/updates can preserve the earlier prefix; changing callability need not require rewriting definitions.
+4. **Min thresholds:** check the model's current documentation. OpenAI GPT-5.6+ requires at least 1024 visible input tokens; earlier models vary with model and request settings. Other providers also have model-specific minima.
+5. **Cache pricing:** use the selected model's current read/write rates; see provider references. Anthropic 5min/1h writes cost 1.25×/2×; read discounts and Google explicit storage fees are model-specific.
+6. **TTL choice:** OpenAI GPT-5.6+ supports only `30m` via `prompt_cache_options.ttl`; older models use different retention options. Anthropic offers 5min or 1h. Verify the model before choosing.
+7. **Anti-patterns that kill the cache:** timestamps/UUIDs at start of system prompt, live `git status` in every prompt, middleware injecting trace IDs, reordering tools, switching models mid-session, aggressive history reformatting, inserting new or rewritten tool results before stable content. Unchanged historical tool results can be reused.
 
 ## Decision tree — what to do for the user's stack
 
@@ -54,22 +54,25 @@ For deep mechanics on any specific provider, read `references/anthropic.md`, `re
 
 ## 1. The canonical structure
 
-All major providers use **prefix matching by exact byte equality**. The KV-cache stores attention Key/Value tensors for the prefix; on hit, the model skips re-processing those tokens and resumes forward pass only from the first un-cached byte. Any byte change in the prefix invalidates everything after it.
+Prefix reuse requires an exact match of the provider's cacheable representation, including relevant tokens, tools, media and settings. Keep stable content unchanged; an earlier change can invalidate the following prefix. Matching bytes alone does not prove a hit.
 
-The mandatory ordering across **Anthropic, OpenAI, Google, and vLLM**:
+Conceptual reuse order; respect the API's role and serialization rules:
 
 ```
 [1] Tool definitions          ← most stable, cached first (part of prefix)
 [2] System prompt — static    ← role, style, conventions, AGENTS.md/rules
-[3] System prompt — dynamic   ← timestamp, cwd, user_location (END of system!)
+[3] Session-stable settings   ← only values unchanged during intended reuse
 [4] Long context / RAG        ← documents, codebase chunks (if reused)
 [5] Conversation history      ← user/assistant turns, append-only
-[6] New user message          ← always last
+[6] Per-request updates       ← changing environment/context, preserving authority
+[7] New user message          ← latest request
 ```
 
-**Cache breakpoint** (where the provider should stop hashing the prefix and start treating content as variable) goes after the **last stable block**. In Anthropic terms — that's where `cache_control` is placed. In OpenAI/Google — the system decides automatically based on the prefix matcher.
+An explicit **cache breakpoint** requests a reusable prefix ending at that block; put it after stable content. Anthropic uses `cache_control`; OpenAI GPT-5.6+ supports explicit `prompt_cache_breakpoint` as well as implicit caching. Google supports implicit and explicit caching with different APIs.
 
 ### Canonical system prompt template
+
+Blocks A-D form the static prefix. Send changing Block E after reusable history as a separate context/developer input where supported. If the API requires it earlier, expect reuse to stop there rather than claiming later history remains cacheable.
 
 ```text
 # === BLOCK A: ROLE (stable forever) ===
@@ -110,21 +113,22 @@ Turn 2: [tools] [system] [user_1] [assistant_1] [user_2]
 Turn 3: [tools] [system] [user_1] [assistant_1] [user_2] [assistant_2] [user_3]
 ```
 
-The cache breakpoint **slides forward** each turn:
-- Turn 2: prefix `[tools][system][user_1][assistant_1]` is cached (3 of 4 blocks reused from turn 1).
-- Turn 3: prefix `[tools][system][user_1][assistant_1][user_2][assistant_2]` is cached.
+With eligible sliding breakpoints and matching, unexpired writes:
+- Turn 2 can reuse the prefix through `user_1` written by turn 1, then write the extended input through `user_2`.
+- Turn 3 can reuse the prefix through `user_2`, then write through `user_3`.
+Do not count a generated assistant response as already present in the preceding request's prompt-cache write.
 
 **Provider mechanics:**
 - **Anthropic** — top-level `cache_control: {"type":"ephemeral"}` automatically applies the breakpoint to the last cacheable block and advances it. Or place explicit `cache_control` on the last user message manually (up to 4 breakpoints).
-- **OpenAI** — fully automatic, no markers. The provider hashes the prefix on every request and routes to a machine that has it cached.
-- **Google Gemini** — implicit caching is automatic. Explicit Context Caching API is incompatible with tool use in the same request (limitation as of early 2026).
+- **OpenAI** — GPT-5.6+ supports implicit and explicit caching; earlier models are automatic-only. Preserve unchanged history and tool results. See `references/openai.md` for generation-specific request fields.
+- **Google Gemini** — implicit caching is automatic. Explicit caches can include tools and tool configuration at creation; do not override cached settings in a generation request. See `references/gemini.md`.
 
 ### Compaction / history truncation
 
-When context grows past the limit, agents must compact. **Compaction is the #1 cache-killer in long sessions** because the summarized prefix breaks byte equality.
+Compaction can reduce prefix reuse because it rewrites history. Compare complete-task cost and quality: fewer input tokens may outweigh a lower hit rate.
 
 Two strategies:
-1. **Make the summary itself stable.** Compact once, then the summarized prefix becomes the new stable prefix. Subsequent turns build on top of it. Hit rate recovers after one cold turn.
+1. **Make the summary itself stable.** Subsequent turns build on it. Reuse can resume after an eligible write when later requests match an available endpoint; verify recovery in usage telemetry.
 2. **Pruning, not summarizing.** Drop oldest tool outputs while keeping the message structure intact. Some agents (OpenHands, OpenCode) protect the most recent N tokens and mark older tool outputs as "compacted" without rewriting them.
 
 ---
@@ -135,21 +139,21 @@ Compressed cheat sheet. For full mechanics, read the relevant reference file.
 
 | | **Anthropic** | **OpenAI** | **Google Gemini** | **Self-hosted (vLLM)** |
 |---|---|---|---|---|
-| Activation | Explicit `cache_control` or top-level auto | Automatic | Implicit auto + explicit Context Caching API | `--enable-prefix-caching` (on by default v0.5+) |
-| Min prefix | 1024 (Sonnet/Opus); 2048+ (Haiku, newer Opus/Haiku) | 1024, then +128 increments | 1024–4096 depending on model | None (any prefix) |
-| Cache hit cost | 0.1× base | ~0.5× (some models ~0.25×) | ~0.1× on newer Flash/Pro families | Free (your GPU) |
-| Cache write cost | 1.25× (5min) / 2× (1h) | Free | Free for implicit; storage fee for explicit | Free |
-| TTL | 5min (default) or 1h (Opus 4.5+, Sonnet 4.5+, Haiku 4.5+) | ~5–10 min or 24h via `prompt_cache_retention` | 5min implicit / configurable explicit (default 60min) | LRU eviction by GPU memory |
-| Multi-tenant key | Workspace (Bedrock/Foundry) or org-level | `prompt_cache_key` parameter | Auto by content hash | `cache_salt` parameter |
-| Response field | `cache_read_input_tokens`, `cache_creation_input_tokens` | `prompt_tokens_details.cached_tokens` | `usage_metadata.cached_content_token_count` | varies |
-| Max breakpoints | 4 explicit | N/A (auto) | N/A (auto) | N/A |
-| Hierarchy | Tools → System → Messages (changing higher invalidates lower) | Same effective behavior | Same | Same |
+| Activation | Explicit `cache_control` or top-level auto | GPT-5.6+: implicit/explicit via `prompt_cache_options.mode`; older: automatic | Implicit auto + explicit Context Caching API | `--enable-prefix-caching` (on by default v0.5+) |
+| Min prefix | 1024 (Sonnet/Opus); 2048+ (Haiku, newer Opus/Haiku) | GPT-5.6+: 1024 visible input; older: model/settings-specific | 1024–4096 depending on model | None (any prefix) |
+| Cache hit cost | Model-specific; see current pricing | Model-specific; see `references/openai.md` | Model-specific; see current pricing | Free (your GPU) |
+| Cache write cost | 1.25× (5min) / 2× (1h) | GPT-5.6+: 1.25×; older: no separate write charge | Free for implicit; storage fee for explicit | Free |
+| TTL | 5min (default) or 1h (Opus 4.5+, Sonnet 4.5+, Haiku 4.5+) | GPT-5.6+: `prompt_cache_options.ttl="30m"`; older: model-specific `prompt_cache_retention` | 5min implicit / configurable explicit (default 60min) | LRU eviction by GPU memory |
+| Multi-tenant key | Hosting-specific boundary; see `references/anthropic.md` | Optional `prompt_cache_key`; verify isolation policy | Verify project and application-tenant boundaries | `cache_salt` parameter |
+| Response field | `cache_read_input_tokens`, `cache_creation_input_tokens` | Responses: `input_tokens_details.cached_tokens`, `.cache_write_tokens` | `usage_metadata.cached_content_token_count` | varies |
+| Max breakpoints | 4 explicit | GPT-5.6+: 4 writes total; implicit uses one; older: auto only | N/A (auto) | N/A |
+| Hierarchy | Tools → System → Messages (changing higher invalidates lower) | Prefix identity and eligible endpoints; supported append-only tool updates preserve earlier content | Provider serialization dependent | Engine dependent |
 
 ### TTL decision guide
 
-- **Active conversational agent (>1 req per 5min):** default 5min on Anthropic, default in-memory on OpenAI. The TTL refreshes on every hit.
-- **Code review agent / sporadic queries (every 5–60min):** Anthropic 1h, OpenAI 24h.
-- **Batch eval / nightly jobs:** Anthropic 1h, OpenAI 24h. The 2× write multiplier on Anthropic is recouped after ~3 reads.
+- **OpenAI:** GPT-5.6+ has only `30m`; do not request older `24h` retention on these models. For earlier generations, inspect supported retention before tuning.
+- **Active conversational agent (>1 req per 5min):** default 5min on Anthropic, refreshed on hits.
+- **Code review / sporadic / batch workloads:** consider Anthropic 1h when reuse occurs within it. Neither 1h nor 30m covers a nightly gap. Compare write costs against measured reads.
 - **RAG over stable docs:** Anthropic 1h for the document context, 5min for conversation history (mix is allowed — 1h must come *before* 5min in the request).
 
 For deep provider-specific details (4-breakpoint placement on Anthropic, `prompt_cache_key` granularity on OpenAI, Context Caching API on Google, vLLM prefix caching tuning), see the reference files.
@@ -168,9 +172,9 @@ log_entry = {
     "model": model_name,
     "provider": provider_name,
     # Token accounting (parse from provider's usage object)
-    "input_tokens_new": ...,         # cache miss portion
+    "input_tokens_new": ...,         # ordinary input, excluding cache writes and reads
     "cache_read_tokens": ...,
-    "cache_write_tokens": ...,       # 0 on OpenAI/Google implicit
+    "cache_write_tokens": ...,       # provider-reported; unknown is not zero
     "output_tokens": ...,
     # Derived
     "hit_rate": cache_read / max(1, cache_read + cache_write + new_input),
@@ -186,37 +190,36 @@ log_entry = {
 ```
 
 Dashboard panels that matter:
-1. **Hit rate over time per session.** Should rise to 80%+ after turn 2–3. If it falls within a session, something is mutating the prefix mid-conversation.
+1. **Hit rate over time per session.** Compare with a workload-specific baseline. Falls can reflect prefix mutation, new content, expiration or routing; inspect traces before assigning a cause.
 2. **Hit rate per tenant/segment.** Outliers reveal poorly-structured per-tenant prefixes.
 3. **Unique `system_prompt_hash` count per day.** If you logically have "v1" but see 50 distinct hashes, an invisible mutator (analytics injector, trace ID middleware, plugin) is corrupting the prefix.
 4. **Cost split: new input / cache read / cache write / output.** Ratio of write to read should drop fast in active sessions.
 
-Alert thresholds:
-- Hit rate < 70% sustained for >5min on an agentic workload → investigate.
-- `cached_tokens` field is 0 for >10 consecutive requests on a long-prefix workload → check for prefix mutation or known provider bugs (Gemini-with-tools edge cases, OpenRouter sticky-routing issues).
+Calibrate alert thresholds against the workload's expected reusable fraction and observed variability. Investigate sustained unexpected misses on eligible matching prefixes; check mutations, expiry, endpoint alignment and routing before attributing a provider bug.
 
 ---
 
 ## 5. Cost math — worked examples
 
+Use disjoint ordinary-input, cache-write, cache-read and output token counts:
+`cost = (ordinary * input_rate + writes * write_rate + reads * read_rate + output * output_rate) / 1_000_000`.
+Normalize provider usage semantics first; never count a cache write again as ordinary input. Include retries, failures, child agents, verification and compaction across the complete task. Missing accounting stays unknown; subscription token usage is not dollar billing. Storage and other provider charges are separate.
+
+All rates below are illustrative, not current price quotations. Hit fractions are workload assumptions, not measured effects of a prompt layout.
+
 ### Example A: 10K-token system prompt, 1M requests/month, Claude Sonnet-class model
 Base input $3/M, cache write 5min $3.75/M, cache read $0.30/M.
+
+1M requests × 10K tokens = 10B tokens. Every miss writes the whole prefix; every hit reads it. With hit fraction `h`, cost is `10_000 * ((1-h) * 3.75 + h * 0.30)`. The no-cache control uses the $3 rate instead.
 
 | Scenario | Hit rate | Monthly input cost |
 |---|---|---|
 | No caching | 0% | **$30,000** |
-| Naive caching (bad structure) | 30% | ~$8,775 |
-| Good structure | 80% | ~$990 |
-| Best-practice multi-breakpoint | 92% | ~$576 |
+| Assumed caching workload | 30% | $27,150 |
+| Assumed caching workload | 80% | $9,900 |
+| Assumed caching workload | 92% | $5,760 |
 
-**52× difference between "no cache" and "92% hit rate."** Output cost unchanged.
-
-### Example B: 50-turn agent session, 20K system prompt
-- No caching: ~$3.50–4.50/session
-- Caching system only: ~$0.50–0.70/session
-- Multi-breakpoint sliding: ~$0.19/session
-
-10K sessions/day → $35K/mo vs $5K/mo vs $1.9K/mo input.
+**About 5.21× lower input cost at 92% hits than without caching**, under these assumptions. Output cost unchanged. Multi-turn session estimates additionally require per-turn token counts and session frequency.
 
 ### Example C: Cheap-tier model (e.g., Flash-class), 10K system, 1M req/mo
 Base $0.50/M, cache hit $0.05/M (90% off).
@@ -236,38 +239,33 @@ Walk through this list when debugging low hit rate.
 
 | # | Anti-pattern | Effect |
 |---|---|---|
-| 1 | Timestamp / current date in **start** of system prompt | 0% hit rate; every request is full reprocess |
-| 2 | Session ID / request UUID anywhere in system | Same |
-| 3 | Live `git status` / file listing in every prompt | Cache invalidates on every file edit |
+| 1 | Changing timestamp near the start of system prompt | Invalidates following content; any eligible earlier endpoint can still be reused |
+| 2 | Changing session ID / request UUID before reusable content | Invalidates from the changed position onward, not every earlier prefix |
+| 3 | Live `git status` / file listing before reusable content | Edits invalidate the following portion |
 | 4 | Middleware injecting trace ID / analytics token into system | Invisible mutator — hardest to find |
-| 5 | Reorder of tool definitions between requests | Full invalidation of tools+system+messages |
-| 6 | Adding/removing a tool mid-session (MCP, plugin) | Same |
+| 5 | Reorder an earlier tool-definition list | Invalidates content from the changed position onward |
+| 6 | Replace an earlier tool list mid-session | Same; prefer supported append-only updates when appropriate |
 | 7 | Switching model mid-session | Cache is per-model — cold start on new |
 | 8 | Aggressive summarization/compaction every N turns | Each rewrite breaks byte equality |
 | 9 | Reformatting history (case, whitespace, JSON re-serialization) | Two-letter change = thousands of tokens missed (empirically) |
 | 10 | Streaming response with no usage telemetry | You lose visibility into cache stats |
 | 11 | Anthropic routed through OpenRouter without sticky routing | Hit rate stays flat regardless of session length |
-| 12 | Tool *results* placed inside the cached prefix | Dynamic content invalidates the prefix |
-| 13 | Mixing explicit Context Cache with tool use on Google models | Documented API incompatibility |
-| 14 | OpenAI: too-narrow `prompt_cache_key` (RPM per key < ~15) | Overflow routes to cold machines |
+| 12 | New or rewritten tool results inserted before stable content | Changes invalidate following content; unchanged historical results can be cached |
+| 13 | Overriding cached Gemini tools/system settings in a generation request | Configure them at cache creation instead |
+| 14 | Older OpenAI models: high traffic on one prefix/key (around 15 RPM) | Overflow may reduce reuse; this is not a minimum rate. GPT-5.6+ keys serve separate accounting |
 | 15 | `cache_control` breakpoint placed on a block that *changes* | Pay for write every time, never read |
 
-The most expensive failure mode in practice is **#4 (middleware)**. Observability layers (Sentry, LangSmith, Helicone, custom analytics) often inject trace IDs into the system prompt. They work "correctly" and silently cost 10× more on input — discovered only when looking at the next bill.
+Inspect **#4 (middleware)** for trace IDs or other changing prefix content. Quantify any impact using actual misses, write/read rates and task totals; middleware presence alone does not establish a cost multiplier.
 
 ---
 
 ## 7. Multi-tenant cache isolation
 
-**Cross-tenant data leakage via cache is not a real risk** on any of the three major providers. Cache hashes exact content; a different tenant's prefix won't match. You do **not** need to add per-tenant salt to the prefix — that would kill the global cross-tenant cache and lose all the savings.
+Verify the provider, model, organization and tenancy policy before asserting isolation or ZDR compatibility. Exact prefix matching alone does not rule out cache-hit probing. Do not weaken tenant isolation to improve hit rates.
 
-What you *might* need depending on compliance:
-
-- **Anthropic** — cache entries isolated between organizations and between workspaces (on Bedrock and Microsoft Foundry). Direct Anthropic API: org-level only.
-- **OpenAI** — granulate `prompt_cache_key` per tenant segment, not per user. Aim for >10 RPM per key. Per-user keys with low traffic suffer from overflow.
-- **Google** — implicit caching is content-hashed and per-project. No per-tenant config needed.
-- **Self-hosted vLLM** — use `cache_salt` parameter to isolate per-tenant on shared GPU.
-
-ZDR (zero data retention) compatibility: all three major providers state cache lives in RAM/VRAM only, not written to disk, with short TTL. Anthropic's docs explicitly note "raw text of prompts is not stored — only KV representations and cryptographic hashes in memory."
+- **OpenAI GPT-5.6+:** optional tenant-scoped `prompt_cache_key` separates cache accounting and can help prevent probing of another tenant's hits. It is not a low-traffic routing requirement. Cached tensors may use encrypted GPU-local storage; do not describe all caches as RAM-only or automatically ZDR-compatible.
+- **Anthropic / Google:** confirm current organization, workspace/project, hosting and retention boundaries for the selected API.
+- **Self-hosted:** verify the engine's tenant separation mechanism (such as vLLM `cache_salt`) and storage lifecycle.
 
 ---
 
@@ -285,24 +283,32 @@ TOOLS = load_tool_definitions()  # stable order, frozen per release
 def call_agent(history, new_user_msg, dynamic_env):
     # Mark last tool to cache the whole tools array
     tools = TOOLS.copy()
-    tools[-1] = {**tools[-1], "cache_control": {"type": "ephemeral"}}
+    tools[-1] = {**tools[-1], "cache_control": {"type": "ephemeral", "ttl": "1h"}}
 
-    # System: static cached, dynamic appended without cache_control
+    # Keep authoritative instructions stable; environment values below are data.
     system = [
         {"type": "text", "text": STATIC_SYSTEM,
          "cache_control": {"type": "ephemeral", "ttl": "1h"}},
-        {"type": "text",
-         "text": f"<env>\ndate: {dynamic_env['date']}\ncwd: {dynamic_env['cwd']}\n</env>"},
     ]
 
-    # Messages: history + new user with sliding breakpoint
-    messages = history + [{
+    # Remove old sliding markers from outgoing copies, preserving historical data.
+    messages = []
+    for message in history:
+        content = message["content"]
+        if isinstance(content, list):  # API content is a string or a block list.
+            content = [{k: v for k, v in block.items() if k != "cache_control"}
+                       for block in content]
+        messages.append({**message, "content": content})
+    messages.append({
         "role": "user",
         "content": [{
+            "type": "text",
+            "text": f"<env>\ndate: {dynamic_env['date']}\ncwd: {dynamic_env['cwd']}\n</env>",
+        }, {
             "type": "text", "text": new_user_msg,
             "cache_control": {"type": "ephemeral"},  # sliding BP
         }],
-    }]
+    })
 
     response = client.messages.create(
         model="claude-sonnet-4-6",
@@ -317,7 +323,11 @@ def call_agent(history, new_user_msg, dynamic_env):
     return response, hit_rate
 ```
 
-### OpenAI-style (automatic + cache key)
+Preserve historical text and environment values; only the outgoing cache markers move. Do not regenerate earlier environment blocks or mutate the stored history.
+
+### Older OpenAI model (automatic + cache key)
+
+Legacy illustration only. For GPT-5.6+ Responses syntax, modes and usage accounting, use `references/openai.md`.
 
 ```python
 from openai import OpenAI
@@ -327,10 +337,10 @@ def call_agent(segment: str, messages: list):
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=messages,
-        # Granulate per segment, not per user — keep RPM/key above ~15
+        # Stable key within the permitted isolation boundary; no minimum RPM.
         prompt_cache_key=f"agent-prod-v1-{segment}",
     )
-    cached = response.usage.prompt_tokens_details.cached_tokens or 0
+    cached = response.usage.prompt_tokens_details.cached_tokens
     total = response.usage.prompt_tokens
     return response, cached / total
 ```
@@ -340,9 +350,8 @@ def call_agent(segment: str, messages: list):
 ```python
 # Pseudocode — actual SDK varies; the structural rule is what matters.
 def call_with_implicit(system: str, history: list, new_msg: str, tools=None):
-    """For agents with tools: implicit caching only. Some provider+model
-    combinations have known issues activating implicit cache when tools
-    are present — monitor cached_content_token_count in production."""
+    """Implicit caching example; explicit caches can also contain tools.
+    Monitor observed cache usage for the selected model and SDK."""
     response = generate_content(
         model=MODEL,
         system_instruction=system,            # stable, at start
@@ -350,7 +359,7 @@ def call_with_implicit(system: str, history: list, new_msg: str, tools=None):
         tools=tools or [],
         # Ensure system + history >= model's min threshold (1024–4096 tokens)
     )
-    cached = response.usage_metadata.cached_content_token_count or 0
+    cached = response.usage_metadata.cached_content_token_count  # missing stays unknown
     return response, cached
 ```
 
@@ -365,13 +374,13 @@ Walk through this when reviewing a user's existing agent/LLM stack:
 3. [ ] Tool definitions: one shared list, fixed order, versioned with the release.
 4. [ ] Timestamp / date / cwd / random_id are **out of the start** of system prompt.
 5. [ ] Conversation history is append-only — never reformatted between turns.
-6. [ ] Compaction triggers only on overflow, and the summarized prefix is itself stable across subsequent turns.
+6. [ ] Compaction policy is justified by measured complete-task cost and quality; keep the resulting prefix stable when practical.
 7. [ ] Model is **not switched** mid-session.
 8. [ ] Anthropic: `cache_control` present on at least one block (or top-level auto).
-9. [ ] OpenAI: `prompt_cache_key` set, granular enough but >10 RPM/key.
+9. [ ] OpenAI: generation-specific mode, TTL, usage fields and rates verified; optional key follows isolation/accounting needs, not a minimum RPM rule.
 10. [ ] Google: `cached_content_token_count > 0` verified in production traces (especially with tools).
 11. [ ] Dashboard shows hit rate per session, p50/p95 TTFT, cost split.
-12. [ ] Alert configured for hit_rate < threshold (e.g., 70% for agents).
+12. [ ] Alert thresholds calibrated against the workload's baseline, reusable fraction and variability.
 13. [ ] Middleware/plugins audited for injection into system prompt.
 14. [ ] If using LiteLLM/OpenRouter/proxy — sticky routing verified, otherwise prefer direct provider for cache-heavy workloads.
 
@@ -382,8 +391,8 @@ Walk through this when reviewing a user's existing agent/LLM stack:
 For deeper mechanics on specific topics, load the corresponding file from `references/`:
 
 - `references/anthropic.md` — full Anthropic mechanics: 4-breakpoint placement, automatic vs explicit modes, 1h vs 5min TTL break-even math, hierarchy of invalidation, response usage parsing, Bedrock/Vertex caveats.
-- `references/openai.md` — `prompt_cache_key` routing, 15 RPM rule, `prompt_cache_retention`, what's cached (messages, images, tools, structured output schema).
-- `references/gemini.md` — implicit vs explicit Context Caching API, known incompatibility with tools, min thresholds per model family, storage billing.
+- `references/openai.md` — GPT-5.6+ modes, breakpoints, TTL, usage and pricing; older-model routing/retention differences; isolation limits.
+- `references/gemini.md` — implicit vs explicit Context Caching API, cache-time tool configuration, min thresholds per model family, storage billing.
 - `references/self-hosted.md` — vLLM prefix caching tuning, `cache_salt`, SGLang, TGI.
 - `references/oss-agents.md` — reverse-engineered cache strategies of OpenCode (the reference implementation), Aider, Cline/Roo Code, Continue, OpenHands, OpenAI Codex CLI, and what's known about Claude Code and Cursor.
 - `references/benchmarks.md` — production hit-rate numbers from various agents, the *Don't Break the Cache* arxiv paper findings (41–80% cost savings, 13–31% TTFT improvement), and the methodology behind them.
