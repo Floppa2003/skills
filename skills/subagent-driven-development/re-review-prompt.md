@@ -65,13 +65,17 @@ Subagent (general-purpose):
 
     ## Tests
 
-    The implementer re-ran the tests covering the amended code and appended
+    In REPAIR CHECK, the implementer re-ran the tests covering the amended code and appended
     the results to the report file. Treat the report as unverified claims:
     confirm the fix report names the covering tests and shows their output,
     and verify the claims against the diff. Do not re-run the suite to
     confirm their report. Run a test only when reading the code raises a
     specific doubt that no existing run answers — and then a focused test,
     never a package-wide suite.
+
+    In TASK ACCEPTANCE, reuse valid evidence for the inspected revision and
+    run any missing checks needed for original requirements, including a
+    broader suite when that requirement cannot otherwise be verified.
 
     ## Output Format
 

@@ -757,7 +757,7 @@
       "overlay": "overlays/subagent-driven-development.patch",
       "enabled": true,
       "installed_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
-      "installed_hash": "d87ecd6405e2ee4cbecef14341ddc8f74baac87ed07254306f506698627b41f5",
+      "installed_hash": "1707ff24269d9705a79172c07fb4ecf302c16369ddba116fbfccf6cee7f71d85",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [],
