@@ -88,4 +88,12 @@ Present the result in this order:
 
 Before completing the audit, account for every instruction proposed for removal or replacement: show where it remains, what supersedes it, or why removing it is intentional. Recheck that no useful hard constraint, approval boundary, success criterion, evidence rule, interface contract, or example correcting a measured gap has disappeared.
 
+For a suspected instruction-caused failure, propose an optional paired replay
+of the original task: current instructions versus changing or removing only
+that instruction. Use [component diagnostics](../agents-best-practices/references/evals.md#component-diagnostics).
+Match repository state, model settings, tools, permissions, and relevant fixtures; compare
+correctness, calls, tokens, elapsed time, and cost. Respect the approved evaluation
+budget and side-effect permissions; report when replay is inappropriate or
+unavailable. Repeat or check representative cases before generalizing.
+
 Re-read affected source and runtime paths, including effective prompt assembly where present. Confirm that proposed edits do not contradict one another, create a second owner, or remove information needed outside the edited section. If the user later approves implementation, apply only the approved edits, repeat this preservation pass, and rerun existing representative evals for changed skills, prompts, tools, or runtime behavior; if no such evals exist, report that validation gap.

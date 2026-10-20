@@ -7,22 +7,22 @@ description: 'Ordered playbook for cutting CI/CD time on Python + Docker + GitHu
 
 Concrete, ordered moves for cutting wall-clock time on Python + Docker + GitHub Actions pipelines. Distilled from a real run that went from ~6-7min to ~40-50s (~8-9×) with no infra spend, no rewrites, no special tools.
 
-This is a **lens + ordered checklist**, not a theoretical treatise. Apply in order — early steps are free and big, later steps are riskier and project-specific.
+Use the checklist as an exploration heuristic; select changes by this repository's measured benefit and risk.
 
 ## How to apply
 
-1. **Measure first.** Don't propose changes before pulling actual step-level timings. The single biggest step is the first target; everything else is noise.
-2. **Apply the ordered playbook.** Cache wins → parallelize → tighten health checks → lazy-load imports. Order matters — caching is free, parallelization is hardware-dependent, code changes need profiling.
+1. **Measure and rank.** Use representative run history and step timings to estimate runner-minutes saved per day separately from elapsed critical-path savings. Account for run frequency, retries, confidence, implementation cost, and correctness risk.
+2. **Choose applicable techniques.** Caching, parallelization, health-check tuning, and lazy imports are candidates; investigate them in the order justified by those measurements.
 3. **Name what NOT to do.** Anti-patterns burn weeks. Surface them proactively when the user proposes them (esp. `prune -af`, instance bumping, blind lazy-loading, `--keep-storage` with `until` filter).
-4. **Quantify the win.** Every recommendation should come with an estimated saving in seconds, anchored in the playbook's measured numbers, so the user can prioritize.
+4. **Quantify the win.** Estimate from this repository's evidence; label missing measurements rather than borrowing reference results. Remeasure the same workload without weakening required test or health-check coverage.
 
-## TL;DR — apply in this order
+## TL;DR — candidate optimizations
 
-1. **Order Dockerfile layers** so heavy `pip install` is cached separately from source code. (One-time, free, biggest single win on rebuilds.)
+1. **Order Dockerfile layers** so heavy `pip install` is cached separately from source code.
 2. **Switch pip → uv** in CI installs. ~5–10× faster, drop-in replacement.
 3. **Mount BuildKit cache for `~/.cache/uv`** in your Dockerfile so the wheel cache survives rebuilds on a self-hosted runner.
 4. **Parallelize independent deploy steps.** Most "deploy A, then B, then C" sequences have zero runtime dependency — fan them out.
-5. **Right-size health-check loops.** `sleep 5` is almost always overshoot; tail logs for the ready signal instead of polling HTTP.
+5. **Right-size health-check loops.** Measure polling overhead; a ready log can trigger the required service-level readiness probe, not replace it.
 6. **Cap the BuildKit cache** with `--keep-storage` so it doesn't fill the disk over months.
 7. **Lazy-load heavy imports** that aren't needed at boot. Profile first; the candidates are usually obvious.
 
@@ -50,7 +50,7 @@ for j in d['jobs']:
             if dur >= 1: print(f'  {dur:6.1f}s  {s.get(\"name\")}')"
 ```
 
-Run for the last 5–10 successful runs. Biggest step is your first target.
+Sample a representative period, including failed and retried runs. Record frequency, cache state, runner time, and elapsed time; prioritize using the criteria above.
 
 ### 0.2 Read the actual logs of the slowest step
 
@@ -80,7 +80,7 @@ If prod sits at 0.2% CPU, you don't need multiple workers. CI verifiers often ru
 
 ---
 
-## 1. Cache wins — biggest gains, lowest risk
+## 1. Dependency and build caches
 
 ### 1.1 Order Dockerfile layers from least- to most-frequently-changed
 
@@ -96,7 +96,7 @@ COPY . .                                 # frequent changes, but cheap
 
 If `pyproject.toml`, `poetry.lock`, `setup.py` also pin deps, include them in the same early COPY block.
 
-### 1.2 GitHub Actions: cache pip *before* migrating to uv
+### 1.2 GitHub Actions: cache pip installs
 
 Built into `actions/setup-python`:
 
@@ -108,7 +108,7 @@ Built into `actions/setup-python`:
     cache-dependency-path: requirements.txt
 ```
 
-Saves a few seconds. The real install (resolver + extraction) is unchanged — that's why §1.4 matters more.
+Measure cache savings and remaining resolver/extraction work to compare this option with §1.4.
 
 ### 1.3 BuildKit cache mount (Docker, self-hosted runners)
 
@@ -274,7 +274,7 @@ If service boots in 5s, polling every 5s finds it ready between 5–10s — aver
 
 Drop to `sleep 2` (avg overhead: 1s) and raise iteration count *N* proportionally so the timeout window stays the same. For early seconds when service is definitely not ready, `sleep 0.5` works.
 
-### 3.2 Tail logs for a "ready" string instead of polling HTTP
+### 3.2 Use a log signal to trigger the readiness probe
 
 uvicorn prints `"Application startup complete."`. gunicorn: `"Booting worker"`. nginx: `"start worker process"`.
 
@@ -287,7 +287,7 @@ timeout 60 bash -c '
 
 Reacts within ~50ms of ready, vs up to 2s of polling overshoot.
 
-Caveat: structured (JSON) loggers may transform the ready string — verify by tailing a real boot. Frameworks sometimes print ready *before* lifespan handlers complete; HTTP probing is the safest final confirmation.
+Caveat: structured (JSON) loggers may transform the ready string — verify by tailing a real boot. Frameworks sometimes print ready *before* lifespan handlers complete. After the log signal, run the required service-level readiness probe against the actual configuration and dependencies.
 
 **Robust hybrid:**
 ```bash
@@ -297,7 +297,7 @@ timeout 60 bash -c 'docker logs --follow X 2>&1 | grep -m1 "ready"'
 curl -fsS http://localhost:8001/health
 ```
 
-### 3.3 Don't double-health-check the same image
+### 3.3 Remove only proven redundant checks
 
 Common pattern:
 1. `docker run` new image on a side port → health check
@@ -306,9 +306,9 @@ Common pattern:
 4. `docker-compose up` (recreates from same image)
 5. Health-check prod container
 
-Step 5 health-checks the *same image* you already validated in step 1. Only the compose config could be wrong.
+The same image can behave differently under the deployed configuration, secrets, networking, and dependencies. Preserve readiness validation of the actual deployed service; an open port is insufficient.
 
-Either drop step 5's full health check (trust the image, just verify port is bound via `docker exec` or `nc`), or drop step 1 and just compose-up + health-check once. Real run: dropping the second loop saved ~15-20s.
+Remove a preflight or repeated check only when the remaining checks cover its failure modes. A historical run saved ~15-20s by removing a loop; that saving does not establish that the loop is redundant here.
 
 ---
 
@@ -412,6 +412,8 @@ Already covered in §1.5 — repeating because it's the most subtle and the most
 
 Real run on a Python service (FastAPI + worker + sidecar) deployed via GitHub Actions to self-hosted EC2:
 
+These historical results illustrate techniques, not expected savings for another repository.
+
 | Stage | Time |
 |---|---:|
 | Original baseline | **~6-7:00** |
@@ -445,11 +447,11 @@ Most of the remaining time lives in parallel deploy (bounded by service boot —
 
 ## 7. Adapt-to-your-project checklist
 
-When applying to a new project, propose these in order, with measured time savings:
+Select applicable candidates and order them by measured benefit and risk:
 
 1. **Measure baseline** (§0.1). No baseline = no prioritization.
 2. **Order Dockerfile layers** by churn frequency (§1.1).
-3. **Add `actions/setup-python` cache** for pip (§1.2) — free safety net.
+3. **Add `actions/setup-python` cache** for pip (§1.2) when measured reuse justifies it.
 4. **Switch to uv** in CI (§1.4) and Docker BuildKit cache mount (§1.3).
 5. **Cap cache** with `--keep-storage`, no `until` filter (§1.5). Add disk-aware fallback.
 6. **Map deploy dependencies** (§2.1). What can run in parallel?
@@ -459,7 +461,7 @@ When applying to a new project, propose these in order, with measured time savin
 
 Themes:
 
-1. **Caching wins are free and big** — do them all.
+1. **Cache where reuse pays** — measure hit rate and retained storage.
 2. **Parallelism wins depend on your hardware** — measure CPU contention.
 3. **Health-check overhead is invisible on dashboards but huge in wall-clock.** Audit every `sleep`.
 4. **Boot-time imports compound** — every worker × every retry × every CI run. Profile once, lazy-load forever.
