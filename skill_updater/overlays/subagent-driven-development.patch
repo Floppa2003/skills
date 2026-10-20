@@ -1,0 +1,287 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -14,21 +14,23 @@
+ **Narration:** between tool calls, narrate at most one short line — the
+ ledger and the tool results carry the record.
+ 
+-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
++**Continuous execution:** Do not pause for routine check-ins between tasks. Continue until completion, a stop condition below, or an exhausted review limit with unresolved acceptance blockers.
+ 
+ **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
+-ambiguities, plan defects, a cap you would have asked to exceed — decide
++ambiguities and plan defects within authorized scope — decide
+ them. The spec is the binding authority, the plan is its argument, and your
+ judgment settles what neither answers. Record every decision in the ledger as
+ `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
+ going. A wrong ruling costs rework your human partner can see and undo; a
+ session parked on a question costs their whole day and buys nothing.
+ 
+-Four things stop you, and only these: an irreversible or destructive
++Stop for an irreversible or destructive
+ operation; a security-sensitive action; a side effect outside this worktree
+ that norms say you ask about first (a merge, a push to a shared branch, a
+ publish); and a plan so broken that every path forward is a guess. For those,
+-stop and ask.
++stop and ask. Also stop at an exhausted review limit with unresolved
++Critical/Important findings or unproven requirements; report incomplete work
++and the evidence needed to choose a recovery path.
+ 
+ ## When to Use
+ 
+@@ -75,11 +77,12 @@
+         "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [shape=box];
+         "Dispatch scoped re-review (./re-review-prompt.md)" [shape=box];
+         "All findings addressed?" [shape=diamond];
++        "Original task acceptance verified?" [shape=diamond];
+         "R = 5?" [shape=diamond];
+         "Adjudicate each open finding" [shape=box];
+-        "Any load-bearing finding?" [shape=diamond];
+-        "Rule and continue; stop only if every path forward is a guess" [shape=box];
+-        "Park findings in ledger with rulings" [shape=box];
++        "Unresolved Critical/Important finding or requirement?" [shape=diamond];
++        "Record blocked/incomplete; preserve evidence; request recovery decision" [shape=box];
++        "Record disproven findings and deferred minors" [shape=box];
+         "Append completion to ledger, mark todo complete" [shape=box];
+     }
+ 
+@@ -87,6 +90,7 @@
+     "More tasks remain?" [shape=diamond];
+     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
+     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
++    "Final acceptance verified?" [shape=diamond];
+     "Final review clean: delete this plan's workspace" [shape=box];
+     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+ 
+@@ -97,26 +101,30 @@
+     "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
+     "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
+     "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
+-    "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
++    "Spec ✅ and quality approved?" -> "Original task acceptance verified?" [label="yes"];
+     "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
+     "Finding conflicts with plan text?" -> "Rule on the conflict, ledger the ruling" [label="yes"];
+     "Rule on the conflict, ledger the ruling" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model";
+     "Finding conflicts with plan text?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no"];
+     "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" -> "Dispatch scoped re-review (./re-review-prompt.md)";
+     "Dispatch scoped re-review (./re-review-prompt.md)" -> "All findings addressed?";
+-    "All findings addressed?" -> "Append completion to ledger, mark todo complete" [label="yes"];
++    "All findings addressed?" -> "Original task acceptance verified?" [label="yes"];
++    "Original task acceptance verified?" -> "Append completion to ledger, mark todo complete" [label="yes"];
++    "Original task acceptance verified?" -> "R = 5?" [label="no - record gaps; retain round count"];
+     "All findings addressed?" -> "R = 5?" [label="no"];
+     "R = 5?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no - next round"];
+     "R = 5?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
+-    "Adjudicate each open finding" -> "Any load-bearing finding?";
+-    "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
+-    "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
+-    "Park findings in ledger with rulings" -> "Append completion to ledger, mark todo complete";
++    "Adjudicate each open finding" -> "Unresolved Critical/Important finding or requirement?";
++    "Unresolved Critical/Important finding or requirement?" -> "Record blocked/incomplete; preserve evidence; request recovery decision" [label="yes"];
++    "Unresolved Critical/Important finding or requirement?" -> "Record disproven findings and deferred minors" [label="no"];
++    "Record disproven findings and deferred minors" -> "Original task acceptance verified?";
+     "Append completion to ledger, mark todo complete" -> "More tasks remain?";
+     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
+     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
+-    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
++    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final acceptance verified?";
++    "Final acceptance verified?" -> "Final review clean: delete this plan's workspace" [label="yes"];
++    "Final acceptance verified?" -> "Record blocked/incomplete; preserve evidence; request recovery decision" [label="no"];
+     "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+ }
+ ```
+@@ -399,8 +407,15 @@
+ brief, the report file, and the printed diff path. The re-reviewer verdicts
+ each finding ADDRESSED or NOT ADDRESSED and flags new breakage in the fix
+ diff only. New Critical/Important breakage in the fix diff joins the open
+-findings list. Out-of-scope observations go to the ledger as deferred
+-minors — they never extend the loop.
++findings list. Record observations outside the fix diff at their actual
++severity; fix scope is not a reason to downgrade a task-relevant blocker.
++Before accepting the task, check original requirements and previously
++unreported in-scope defects, not only whether known repairs succeeded.
++Once repairs are addressed, ask the same reviewer for `TASK ACCEPTANCE`
++using [re-review-prompt.md](re-review-prompt.md). This permits the unchanged
++code and evidence needed to judge original requirements. It is a separate
++verdict, not another reviewer or a reset of the retry counter. New gaps remain
++open under the same cap.
+ 
+ **After each round,** append to the ledger:
+ `Task <N>: fix round <R>/5 (<X> addressed, <Y> open — <finding one-liners>; commits <a7>..<b7>)`
+@@ -409,20 +424,17 @@
+ clean for coordination, and controller fixes skip review.
+ 
+ **The breaker.** When round 5's re-review still leaves findings open, stop
+-dispatching. Adjudicate each open finding yourself — you hold the plan and
+-the cross-task context the reviewer lacks:
+-
+-- **The reviewer is wrong, or the point is contestable:** park it —
+-  `Task <N>: parked — <finding> — Ruling: <why the code stands>`. The final
+-  review sees both sides.
+-- **Real, but nothing downstream builds on it:** park it the same way, with
+-  a ruling that says it's real and deferred.
+-- **Real and load-bearing** — a later task builds on it, or it reveals a
+-  plan defect: rule on the smallest change that unblocks the dependent work,
+-  ledger it as `Task <N>: Ruling: <finding> — <what you decided and why>`,
+-  and carry it into the next task's dispatch. Parking a structural failure
+-  silently lets every dependent task build on it. Stop only when the defect
+-  leaves every path forward a guess.
++dispatching. A retry limit is not an acceptance waiver:
++
++- Close a disproven finding only with concrete counterevidence checked by
++  the same reviewer. Disagreement alone does not close it.
++- Defer only genuine Minor findings, with their consequences recorded.
++- An unresolved Critical/Important finding or unproven requirement keeps
++  the task incomplete, even if no later task depends on it. Record
++  `Task <N>: blocked — <gap, evidence, affected dependencies>`, preserve the
++  workspace, and request a recovery decision. Do not mark it complete or
++  continue dependent work. A changed acceptance criterion requires explicit
++  user approval and fresh verification against that revised criterion.
+ 
+ Adjudicate only at the cap. Adjudicating earlier to end a loop is
+ pre-judging with a different name. Every adjudication is a ledger entry —
+@@ -430,17 +442,13 @@
+ 
+ ### 5. Complete the task
+ 
+-When the review comes back clean — or every open finding is parked with a
+-ruling at the cap — append the completion line to the ledger in the same
+-message as your other bookkeeping:
++When requirements are verified and no Critical/Important findings remain,
++append the completion line to the ledger:
+ 
+ - `Task <N>: complete (commits <base7>..<head7>, review clean)`
+-- `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
+-  tripped breaker
+-
+-Then mark the todo complete and move on. Never move to the next task while
+-the review has open Critical/Important issues that are neither fixed nor
+-parked-with-ruling at the cap.
++
++Then mark the todo complete and move on. Deferred Minor findings remain
++visible for final review; reaching a cap never counts as completion.
+ 
+ ## Final Review
+ 
+@@ -452,7 +460,7 @@
+ on the most capable available model (see Model Selection), using
+ superpowers:requesting-code-review's
+ [code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
+-the ledger's deferred-minor and parked lines so it can triage which must be
++the ledger's deferred-minor and adjudication lines so it can triage which must be
+ fixed before merge.
+ 
+ If the final whole-branch review returns findings, dispatch ONE fix subagent
+@@ -462,11 +470,12 @@
+ Then run exactly one scoped re-review of the fix wave
+ (`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
+ [re-review-prompt.md](re-review-prompt.md)).
+-Adjudicate any residual findings as in the task loop's breaker: park with
+-rulings, or rule on the load-bearing ones and ledger what you decided. Only
+-the four classes above stop you here. There is no second fix wave —
+-residual load-bearing findings surface to your human partner when
+-finishing-a-development-branch presents the options.
++Apply the breaker's evidence and severity rules to residual findings. Before
++acceptance, the same reviewer checks the original whole-branch requirements
++and previously unreported in-scope defects as well as the fixes. There is no
++automatic second fix wave: unresolved Critical/Important findings or unmet
++requirements leave the branch incomplete pending a recovery decision, not
++ready to merge.
+ 
+ ## Finish
+ 
+@@ -493,7 +502,7 @@
+ | "Close enough on spec compliance" | Reviewer found spec gaps = not done. Fix or hit the cap and adjudicate — those are the only exits. |
+ | "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Resume the implementer. |
+ | "One more round will converge" | Past the cap, rounds don't converge — the failure is structural. Adjudicate and route. |
+-| "The reviewer will just find something new anyway" | Scoped re-reviews verify fixes; they cannot wander. New findings on untouched code go to the ledger, not the loop. |
++| "The reviewer will just find something new anyway" | Keep fix checks focused, but preserve the severity of new findings and verify original requirements before acceptance. |
+ | "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
+ | "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
+ | "Reviews slow the loop down" | The loop without reviews is just unverified churn. Reviews are the loop's brakes and steering. |
+--- a/re-review-prompt.md
++++ b/re-review-prompt.md
+@@ -1,8 +1,8 @@
+ # Scoped Re-Review Prompt Template
+ 
+-Use this template when dispatching a re-review after a fix round. The
+-re-reviewer verifies the findings were addressed and checks the fix diff for
+-new breakage. It is not a fresh review — the full review already happened.
++Use the same reviewer after a fix round. `REPAIR CHECK` verifies known fixes
++and new breakage; `TASK ACCEPTANCE` separately verifies original requirements
++before completion. Closing repairs alone does not accept the task.
+ 
+ **Purpose:** Verify each finding from the previous review was addressed, and
+ that the fix itself broke nothing.
+@@ -14,8 +14,8 @@
+          model silently inherits the session's most expensive one]
+   prompt: |
+     You are re-reviewing one task's fix round. A previous review produced
+-    findings; an implementer has attempted to fix them. Your job is to
+-    verdict each finding and inspect the fix diff — nothing else.
++    findings; an implementer has attempted to fix them.
++    Review mode: [REVIEW_MODE: REPAIR CHECK or TASK ACCEPTANCE].
+ 
+     ## The Task
+ 
+@@ -54,22 +54,28 @@
+ 
+     ## Scope
+ 
+-    Your scope is the findings list and the fix diff. Verdict every finding.
+-    Inspect the fix diff for new problems the fix itself introduced. Do NOT
+-    re-review code the fix did not touch: if you notice an issue entirely
+-    outside the fix diff, report it under Out-of-Scope Observations — it
+-    does not block this task and does not extend the loop. A broad
+-    whole-branch review happens after all tasks are complete.
++    In REPAIR CHECK, verdict each finding and inspect the fix diff for new
++    breakage. Record observations outside that diff at their actual severity;
++    fix scope does not downgrade a task-relevant blocker.
++
++    In TASK ACCEPTANCE, also check every original task-critical requirement
++    and previously unreported in-scope defects. Read unchanged code and
++    inspect or rerun evidence where needed. Unknown or failed material
++    requirements prevent acceptance even when all known repairs succeeded.
+ 
+     ## Tests
+ 
+-    The implementer re-ran the tests covering the amended code and appended
++    In REPAIR CHECK, the implementer re-ran the tests covering the amended code and appended
+     the results to the report file. Treat the report as unverified claims:
+     confirm the fix report names the covering tests and shows their output,
+     and verify the claims against the diff. Do not re-run the suite to
+     confirm their report. Run a test only when reading the code raises a
+     specific doubt that no existing run answers — and then a focused test,
+     never a package-wide suite.
++
++    In TASK ACCEPTANCE, reuse valid evidence for the inspected revision and
++    run any missing checks needed for original requirements, including a
++    broader suite when that requirement cannot otherwise be verified.
+ 
+     ## Output Format
+ 
+@@ -91,16 +97,22 @@
+ 
+     ### Out-of-Scope Observations
+ 
+-    Issues you noticed entirely outside the fix diff. Non-blocking; the
+-    controller ledgers these for the final review. "None" if none.
++    Issues you noticed entirely outside the fix diff, with severity,
++    evidence, and affected requirement. "None" if none.
+ 
+     ### Verdict
+ 
+     **Fix round:** [All findings addressed, no new Critical/Important
+     breakage | Findings remain open] — list the open ones.
++
++    In TASK ACCEPTANCE also return requirement IDs with PASS/FAIL/UNKNOWN,
++    evidence, tested revision and remaining gaps, followed by a separate
++    **Task acceptance:** [Accepted | Incomplete]. All material requirements
++    must be proven and no Critical/Important finding may remain unresolved.
+ ```
+ 
+ **Placeholders:**
++- `[REVIEW_MODE]` — REPAIR CHECK during fixes; TASK ACCEPTANCE before completion
+ - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection; scoped
+   re-reviews of small fix diffs take a cheap-to-mid tier
+ - `[BRIEF_FILE]` — the task brief file (same file the implementer worked from)

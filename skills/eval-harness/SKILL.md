@@ -161,6 +161,21 @@ Metrics:
 Status: READY FOR REVIEW
 ```
 
+## Evaluating a Code Reviewer
+
+For reviewer or review-loop changes, freeze a revision-pinned case set with
+independently confirmed bugs and known-clean or intentional behavior. Keep
+fixture truth and held-out cases out of the reviewer's prompt.
+
+Compare baseline and candidate on the same cases and budget. Report detected
+and missed real defects, incorrect findings that would trigger unnecessary or
+harmful changes, review/fix rounds to verified acceptance, and total cost.
+Count unresolved or budget-exhausted runs separately; stopping is not passing.
+Record finding dispositions (confirmed, disproven, intentional, deferred,
+unresolved) with evidence: an unfixed finding is not necessarily a false
+positive. Preserve severity and inspect regressions on clean cases rather than
+optimizing finding count or a single aggregate score.
+
 ## Integration Patterns
 
 ### Pre-Implementation

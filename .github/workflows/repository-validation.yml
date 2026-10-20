@@ -23,3 +23,5 @@ jobs:
         run: python3 -m unittest discover -s skill_updater/tests
       - name: Verify video backend consent and isolation
         run: python3 -m unittest discover -s skills/video-watch/evals
+      - name: Verify proof-loop initialization boundaries
+        run: python3 skills/repo-task-proof-loop/scripts/verify_package.py
