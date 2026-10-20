@@ -130,6 +130,17 @@ Subagent (general-purpose):
 
     ### Assessment
 
+    Reuse the canonical requirement IDs; do not create a competing spec.
+
+    | Requirement | PASS / FAIL / UNKNOWN | Evidence | Tested revision | Gap |
+    | --- | --- | --- | --- | --- |
+    | [ID / short requirement] | [status] | [observation, command/result, artifact] | [commit; dirty diff fingerprint if applicable] | [unresolved gap or none] |
+
+    Cover every task-critical requirement. PASS requires relevant evidence
+    for the inspected revision; contradicted requirements FAIL, unverified
+    ones remain UNKNOWN. Passing tests or closed findings do not establish
+    untested requirements. A material FAIL/UNKNOWN prevents acceptance.
+
     **Ready to merge?** [Yes | No | With fixes]
 
     **Reasoning:** [1-2 sentence technical assessment]
@@ -157,7 +168,7 @@ Subagent (general-purpose):
 - `[BASE_SHA]` — starting commit
 - `[HEAD_SHA]` — ending commit
 
-**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
+**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment with requirement evidence
 
 ## Example Output
 
@@ -191,6 +202,11 @@ Subagent (general-purpose):
 - Consider config file for excluded projects (portability)
 
 ### Assessment
+
+| Requirement | PASS / FAIL / UNKNOWN | Evidence | Tested revision | Gap |
+| --- | --- | --- | --- | --- |
+| CLI discoverability | FAIL | `--help` handling missing at index-conversations:1-31 | reviewed HEAD | Help output |
+| Invalid dates rejected | FAIL | search.ts:25-27 accepts invalid dates | reviewed HEAD | Date validation |
 
 **Ready to merge: With fixes**
 

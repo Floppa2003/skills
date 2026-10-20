@@ -1,0 +1,1883 @@
+--- a/.gitignore
++++ b/.gitignore
+@@ -4,5 +4,4 @@
+ .pytest_cache/
+ .agent/
+ .codex/
+-.claude/
+ .idea/
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,14 +1,15 @@
+ <!-- repo-task-proof-loop:start -->
+ ## Repo task proof loop
+ 
+-For substantial features, refactors, and bug fixes, use the repo-task-proof-loop workflow.
++Use the repo-task-proof-loop workflow only when explicitly invoked. This package
++guide does not authorize modifying other projects' instructions or agent configuration.
+ 
+ Required artifact path:
+ - Keep all task artifacts in `.agent/tasks/<TASK_ID>/` inside this repository.
+ 
+ Required sequence:
+-1. Freeze `.agent/tasks/<TASK_ID>/spec.md` before implementation.
+-2. Implement against explicit acceptance criteria (`AC1`, `AC2`, ...).
++1. Link an existing canonical spec/plan from `.agent/tasks/<TASK_ID>/spec.md`; freeze a new spec there only if none exists.
++2. Implement against canonical acceptance criteria, preserving their IDs.
+ 3. Create `evidence.md`, `evidence.json`, and raw artifacts.
+ 4. Run a fresh verification pass against the current codebase and rerun checks.
+ 5. If verification is not `PASS`, write `problems.md`, apply the smallest safe fix, and reverify.
+@@ -16,12 +17,13 @@
+ Hard rules:
+ - Do not claim completion unless every acceptance criterion is `PASS`.
+ - Verifiers judge current code and current command results, not prior chat claims.
++- Start one read-only verifier with `fork_context=false` and reuse it for corrections. The lead persists its report; retry limits do not waive unresolved acceptance criteria.
+ - Fixers should make the smallest defensible diff.
+ - For broad Codex tasks, bounded fan-out is allowed only after `init`, only when the user has explicitly asked for delegation or parallel agent work, and only when task shape warrants it: use bounded `explorer` children before or after spec freeze, use bounded `worker` children only after the spec is frozen, keep the task tree shallow, keep evidence ownership with one builder, and keep verdict ownership with one fresh verifier.
+ - This root `AGENTS.md` block is the repo-wide Codex baseline. More-specific nested `AGENTS.override.md` or `AGENTS.md` files still take precedence for their directory trees.
+ - Keep this block lean. If the workflow needs more Codex guidance, prefer nested `AGENTS.md` / `AGENTS.override.md` files or configured fallback guide docs instead of expanding this root block indefinitely.
+ 
+-Installed workflow agents:
++Optional workflow agent templates:
+ - `.codex/agents/task-spec-freezer.toml`
+ - `.codex/agents/task-builder.toml`
+ - `.codex/agents/task-verifier.toml`
+--- a/README.md
++++ b/README.md
+@@ -8,9 +8,9 @@
+ 
+ Repo Task Proof Loop is a repo-local workflow skill for non-trivial coding tasks.
+ 
+-It creates a durable task folder under `.agent/tasks/<TASK_ID>/`, installs project-scoped Codex and Claude subagents, updates repo guidance, and drives a strict loop:
++On explicit invocation, it creates a durable task folder under `.agent/tasks/<TASK_ID>/` and drives a proof loop. Codex project role templates and guidance are optional, separately approved integrations:
+ 
+-`spec freeze -> build -> evidence -> fresh verify -> minimal fix -> fresh verify`
++`spec freeze -> build -> evidence -> independent verify -> minimal fix -> same-verifier recheck`
+ 
+ For Codex, that loop also supports an adaptive bounded fan-out path for `explorer` or `worker` children when the task splits cleanly.
+ 
+@@ -42,35 +42,23 @@
+   task-verifier.toml
+   task-fixer.toml
+ 
+-.claude/agents/
+-  task-spec-freezer.md
+-  task-builder.md
+-  task-verifier.md
+-  task-fixer.md
+ ```
+ 
+-It also inserts managed workflow blocks into:
++The `.codex/agents/` files require `--install-subagents codex`; default initialization creates only `.agent/tasks/<TASK_ID>/`. `--guides agents` separately opts in to a managed block in:
+ 
+ - the repo-root `AGENTS.md` Codex baseline
+-- the repo's Claude guide file: `CLAUDE.md` or `.claude/CLAUDE.md`
++
++Both configuration changes require explicit approval. Differing existing agent files are preserved with an error. Claude-specific assets are retained as upstream reference material, not an active integration.
+ 
+ ## Install
+ 
+-Install the skill as a project skill.
++Use the host's managed skill installer and deployment policy when present.
+ 
+ ### Codex
+ 
+ ```text
+ .agents/skills/repo-task-proof-loop/
+ ```
+-
+-### Claude Code
+-
+-```text
+-.claude/skills/repo-task-proof-loop/
+-```
+-
+-If you use both tools on the same repository, install it in both locations or keep one canonical copy and sync it.
+ 
+ ## Quick Prompts
+ 
+@@ -79,7 +67,7 @@
+ ### Do Task
+ 
+ ```text
+-Use $repo-task-proof-loop to do the task described below in this repository. Reuse the matching repo-local task if it already exists; if not, initialize it first and then continue automatically after init completes. You are explicitly authorized to use subagents and bounded parallel helper work when it materially helps. Choose the best internal orchestration automatically from the current task shape and tool surface. Keep the proof-loop phase explicit as you work so matching project agents can be picked automatically when the product supports that, otherwise continue on the main thread. Keep the task tree shallow, keep one integration builder responsible for evidence, and keep every verifier pass fresh.
++Use $repo-task-proof-loop for the task below. Reuse the canonical spec and plan. Initialize task artifacts if needed, without changing project instructions or agent configuration. Collect evidence, then use one read-only verifier started with fork_context=false and reused for corrections. Keep unresolved requirements explicit if blocked or a resource limit is reached.
+ ...
+ ```
+ 
+@@ -99,7 +87,7 @@
+ 
+ The bundled helper script currently ships three CLI commands:
+ 
+-- `init` - create the repo-local task folder, artifacts, guides, and subagents
++- `init` - create task artifacts; project guides and Codex role templates are opt-in
+ - `validate`
+ - `status` - inspect an existing initialized task
+ 
+@@ -111,12 +99,6 @@
+ 
+ ```bash
+ SKILL_PATH=.agents/skills/repo-task-proof-loop
+-```
+-
+-### Claude Code example
+-
+-```bash
+-SKILL_PATH=.claude/skills/repo-task-proof-loop
+ ```
+ 
+ Initialize a task:
+@@ -155,11 +137,11 @@
+ 
+ Useful options:
+ 
+-- `--guides auto|agents|claude|both|none`
+-- `--install-subagents both|codex|claude|none`
+-- `--force`
++- `--guides auto|agents|none` (default `none`)
++- `--install-subagents codex|none` (default `none`)
++- `--force` (overwrite task templates only; requires approval)
+ 
+-With `--guides auto`, the initializer preserves existing guide files, but it also ensures `CLAUDE.md` exists whenever Claude agents are being installed and `AGENTS.md` exists whenever Codex agents are being installed.
++`--guides auto` is an explicit alias for `--guides agents`. Neither is needed to run the workflow.
+ 
+ ## Validation
+ 
+@@ -169,7 +151,7 @@
+ python3 "$SKILL_PATH/scripts/verify_package.py"
+ ```
+ 
+-It checks the skill structure, initializes temporary repositories, installs the task artifacts and subagents, and verifies the generated task bundles and guide behavior.
++It checks default initialization, opt-in integrations, preservation, structural validation and read-only status in temporary repositories. `validate` checks structure, not whether the implementation satisfies the task; placeholder evidence is still UNKNOWN.
+ 
+ ## More Detail
+ 
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -1,18 +1,18 @@
+ ---
+ name: repo-task-proof-loop
+-description: Repo-local workflow skill for large coding tasks. Initializes .agent/tasks/TASK_ID artifacts, installs project-scoped Codex and Claude subagents, updates AGENTS.md plus the repo's Claude guide file with the workflow, and runs a spec-freeze → build → evidence → verify → fix loop with fresh-session verification.
++description: Use when explicitly asked to run Repo Task Proof Loop for a substantial coding task with repo-local acceptance criteria, evidence, independent verification, and corrective work.
+ license: Apache-2.0
+-compatibility: Skills-compatible coding agents. Integrates with Codex and Claude Code project-scoped subagents. Bundled scripts require Python 3.10+.
++compatibility: Codex-compatible workflow. Bundled scripts require Python 3.10+; repository tools and execution access are needed to run checks.
+ metadata:
+-  author: OpenAI
++  author: DenisSergeevitch
+   version: "1.0.0"
+ ---
+ 
+ # Repo Task Proof Loop
+ 
+-Use this skill when the user wants a repeatable, auditable implementation workflow for a non-trivial coding task, especially a feature, refactor, migration, or bug fix that should leave repo-local proof in `.agent/tasks/<TASK_ID>/`.
+-
+-All task artifacts created by this workflow must stay inside the repository.
++Use this skill only on explicit request for Repo Task Proof Loop, especially for a feature, refactor, migration, or bug fix that should leave repo-local proof in `.agent/tasks/<TASK_ID>/`. Ordinary coding or review requests do not activate this workflow.
++
++All task artifacts created by this workflow must stay inside the repository. Reuse an existing canonical specification and plan by linking them from `spec.md`; do not maintain a second requirement list or checklist. `evidence.json` is the structured evidence record and `evidence.md` its readable summary; update them together.
+ 
+ When the examples below mention `scripts/task_loop.py`, that path is relative to this skill root. Run it while your shell working directory is inside the target repository.
+ 
+@@ -20,15 +20,15 @@
+ 
+ 1. Initializes a strict repo-local task folder under `.agent/tasks/<TASK_ID>/`
+ 2. Seeds or updates the required artifact files
+-3. Installs project-scoped Codex and Claude subagent templates into `.codex/agents/` and `.claude/agents/`
+-4. Updates the repo-root `AGENTS.md` Codex baseline plus the repo's Claude guide file (`CLAUDE.md` or `.claude/CLAUDE.md`) with a managed block that explains the workflow
++3. Optionally installs Codex role templates into `.codex/agents/`, only with explicit project-configuration approval
++4. Optionally adds an `AGENTS.md` managed block under the same approval; neither action is a default or a prerequisite
+ 5. Guides the agent through a strict loop:
+    - spec freeze
+    - builder implementation
+    - evidence packing
+    - fresh verification
+    - minimal fix
+-   - fresh verification again until `PASS`
++   - recheck by the same independent verifier until `PASS`, a concrete blocker, or the agreed resource limit
+ 
+ See:
+ - `references/REFERENCE.md`
+@@ -40,11 +40,11 @@
+ 
+ Treat the following words as commands when the user invokes this skill:
+ 
+-- `init <TASK_ID>`: create `.agent/tasks/<TASK_ID>/`, install or refresh subagent templates, and update `AGENTS.md` plus the repo's Claude guide file
++- `init <TASK_ID>`: create `.agent/tasks/<TASK_ID>/` without changing project instructions or agent configuration
+ - `freeze <TASK_ID>`: create or refine `spec.md` from the user task, task file, and repo guidance
+ - `build <TASK_ID>`: implement the task against the frozen spec
+ - `evidence <TASK_ID>`: create or refresh `evidence.md`, `evidence.json`, and raw artifacts without changing production code
+-- `verify <TASK_ID>`: run a fresh verifier pass and write `verdict.json`, plus `problems.md` when needed
++- `verify <TASK_ID>`: independently verify current work and record `verdict.json`, plus `problems.md` when needed
+ - `fix <TASK_ID>`: apply the smallest safe fix set from `problems.md`, then refresh the evidence bundle
+ - `run <TASK_ID>`: execute the full loop from spec freeze through verification
+ - `status <TASK_ID>`: summarize current artifact status
+@@ -55,7 +55,7 @@
+ - If implementation is not yet complete, do `build`
+ - If evidence is stale or missing, do `evidence`
+ - If no fresh verdict exists, do `verify`
+-- If verdict is not `PASS`, do `fix`
++- If verdict is not `PASS`, fix reproducible defects; report blocked/unverified requirements when access, a decision, or a resource limit prevents progress. Do not retry unchanged failures indefinitely.
+ 
+ ## Initialization step
+ 
+@@ -77,32 +77,28 @@
+ - resolve the repo root
+ - create `.agent/tasks/<TASK_ID>/`
+ - create all required artifacts, including placeholders under `raw/`
+-- install project-scoped subagent files
+-- insert or refresh managed workflow blocks in `AGENTS.md` and the repo's Claude guide file
+-
+-For Codex, the initializer keeps its managed workflow block in the repo-root `AGENTS.md`. Codex also supports `AGENTS.override.md` and configured fallback guide filenames; nested files closer to the code still take precedence, and this skill intentionally does not overwrite them.
++- leave project instructions and agent configuration unchanged by default
++
++Only after explicit project-configuration approval, `--install-subagents codex` installs missing Codex templates and `--guides agents` adds or refreshes the managed block in repo-root `AGENTS.md`. Differing existing agent files cause an error, not replacement; `--force` applies only to task artifacts and requires overwrite approval.
++Nested guidance and higher-priority instructions still apply. Do not install role files merely to obtain a verifier; use the tools already available.
+ If `init` creates or rewrites `AGENTS.md` during a running Codex session, start a new Codex session before relying on the updated instructions. Codex snapshots project-doc guidance at session start.
+ 
+-For Claude Code, the initializer keeps its managed workflow block in the repo-root `CLAUDE.md`. Claude Code also supports `.claude/CLAUDE.md`, `.claude/rules/*.md`, and `CLAUDE.local.md`, but this skill treats root `CLAUDE.md` as the primary project guide because Claude surfaces it directly.
+-
+-In Claude Code, if `init` just wrote or refreshed `.claude/agents/*` during the current session, do not assume those updated agents are already available mid-session.
++Claude templates are retained as upstream reference assets, not Codex instructions or an installed runtime.
+ 
+ Treat `init` as a serial prerequisite. Never overlap it with `freeze`, `build`, `evidence`, `verify`, `fix`, `validate`, `status`, or child-agent spawning.
+ 
+ ## Heavy-task default workflow
+ 
+-For large tasks, keep the user-facing request simple. In Codex, continue serially unless the user explicitly asks for delegation or parallel agent work; after that authorization, the skill can choose the internal child setup automatically when the current product surface supports delegation and the task shape warrants it.
++Keep one lead agent by default. Delegate implementation only when authorized and useful for independent scopes. Follow the active review policy: create one read-only verifier with `fork_context=false`, then reuse it for corrections. Role prompts describe responsibilities, not a requirement to create one agent per phase.
+ 
+ ### Preferred delegated sequence
+ 
+ 1. Run `init <TASK_ID>` if needed. Wait for it to finish, then confirm `.agent/tasks/<TASK_ID>/spec.md` and the repo-local task structure exist before continuing.
+-2. Only after `init` completes, spawn exactly one spec-freezer subagent and wait for it
+-3. Spawn exactly one builder subagent and let it implement
+-4. Continue with the same builder session for evidence packing
+-5. Spawn exactly one fresh verifier subagent and wait for it
+-6. If verdict is not `PASS`, spawn exactly one fixer subagent
+-7. Spawn one fresh verifier subagent again
+-8. Repeat steps 6-7 until the verifier returns `PASS` or the user stops the loop
++2. Freeze or link the canonical spec; implement and pack evidence in the owning agent
++3. Spawn one read-only verifier with `fork_context=false`; supply original requirements, relevant paths, the diff, and test evidence without the lead's reasoning
++4. Have the lead record the verifier's report verbatim in `verdict.json` and `problems.md`; the verifier does not edit the shared checkout
++5. Fix confirmed defects, refresh evidence, and ask that same verifier to recheck
++6. Stop at verified acceptance, a concrete blocker, user cancellation, or the agreed resource limit. An exhausted limit leaves unresolved requirements incomplete.
+ 
+ ### Codex adaptive fan-out
+ 
+@@ -123,33 +119,33 @@
+ 5. If implementation splits cleanly, the parent may also spawn bounded built-in `worker` children in parallel. Each worker must have explicit file or module ownership and must not write `evidence.md`, `evidence.json`, `verdict.json`, or `problems.md`.
+ 6. Use `send_input` or the equivalent follow-up surface to keep the integration builder alive for evidence packing. The builder remains the single owner of the evidence bundle.
+ 7. If extra proof is needed, the parent may fan out a small bounded set of read-only `explorer` children to rerun disjoint checks or inspect separate proof gaps in parallel. Those children may report commands, outputs, and findings, but they do not write `verdict.json`.
+-8. Run exactly one fresh verifier child for each verify pass.
++8. Reuse the single independent verifier for corrections; helper probes do not replace it.
+ 
+ ### Platform behavior
+ 
+ - In Codex, keep the normal path serial and auto-mode-first after `init`. Avoid surfacing delegation internals unless they materially affect the work.
+-- In Codex, spawn bounded subagents only when the user explicitly asks for sub-agents, delegation, or parallel agent work.
++- In Codex, follow the active delegation and review policy; installing this skill does not grant new tool or external-action permissions.
+ - In Codex, once delegation is authorized, the skill may choose the matching child roles and whether to stay one-child-at-a-time or use bounded fan-out. The user should not need to name specific child roles or slash commands.
+ - In Codex, child spawning is still an explicit parent-orchestrator action. If the current Codex surface blocks delegation, say so briefly only when it materially affects the work, then continue serially.
+ - In Codex, keep the task tree shallow. The parent session should spawn research, builder, fixer, and verifier children directly instead of asking one custom task child to orchestrate more children.
+ - In Codex, once delegation is authorized, choose between one-child-at-a-time delegation and bounded fan-out from the frozen spec, repo shape, and current delegation surface. Keep `init`, evidence ownership, and every verifier pass serialized either way.
+ - In Codex, keep helper fan-out modest and wave-based. Prefer up to 3 parallel helper children at once, wait for that wave to finish, then decide the next phase.
+-- In Codex, built-in `explorer` is the first choice for read-only repo discovery and proof probes. Built-in `worker` is appropriate for bounded disjoint implementation or check reruns when you can assign explicit ownership.
+-- In Codex, reuse the live builder child for evidence packing by sending it a follow-up instruction. Verifier passes must use a fresh child or fresh session; do not satisfy verifier freshness by resuming an earlier verifier. Builder and fixer children can be reused or resumed when you intentionally want that context back.
++- Use only roles and tool arguments supported by the current surface; where named roles are unavailable, pass the bounded role prompt to the available subagent tool.
++- In Codex, reuse the live builder child for evidence packing by sending it a follow-up instruction. Reuse the independent verifier for corrections, with current evidence and unchanged acceptance criteria.
+ - In Codex, inspect the current child-thread list before reusing or resuming a child. Use `/agent` in Codex CLI or any equivalent child-thread inventory surface available in the current Codex product surface.
+ - In Codex, the plan/todo checklist UI from `update_plan` is optional session guidance only. It is useful for live progress display, but it is not the source of truth for this workflow.
+-- In Claude Code, the skill should decide whether to stay on the main thread or let the main Claude session auto-delegate the current phase to a matching built-in or project subagent after `init`. The user should not need to request a specific Claude subagent or delegation mode separately.
+-- In Claude Code, TodoWrite or the visible task/todo UI is optional session-scoped progress display only. It can help with live tracking in the current session, but it is not the source of truth for this workflow.
+-- In Claude Code, prefer the installed project subagents from `.claude/agents/`, with descriptions written as proactive trigger conditions for the matching proof-loop phase. Claude's main session routes by the task request, subagent descriptions, and current context, so keep each phase prompt clear in natural language. Reuse the same builder child for the evidence step by default. Only run a fresh builder in evidence-only mode if the original builder session is unavailable or you intentionally discarded it. If `init` just refreshed `.claude/agents/*` during the current Claude session, fall back to the main thread or already-visible agents instead of assuming the refreshed ones are available immediately.
+-- In Claude Code, keep the orchestration flat: main-session auto-delegation is fine, but the proof-loop workflow agents themselves are leaf roles. The parent session should own the proof-loop phase transitions instead of asking one custom task agent to spawn another.
+-- In Claude Code, the canonical durable state is always the repo-local artifact set under `.agent/tasks/<TASK_ID>/`, especially `spec.md`, `evidence.md`, `evidence.json`, `verdict.json`, and `problems.md`.
+-- If subagents are unavailable, preserve the same role separation across separate sessions or clear mode changes in the current session.
++- If subagents are unavailable, perform a separate local review and explicitly state that independence was not verified.
+ 
+ Use the exact role prompts from `references/COMMANDS.md`.
+ 
+ ## Spec freeze requirements
+ 
+-`spec.md` must contain at least:
++If an approved canonical spec or plan exists, `spec.md` contains links to those
++documents, not copied requirements or a second checklist. Remove the seeded
++placeholder requirement sections. Every role follows those links and preserves
++the original requirement IDs in evidence and verdicts.
++
++Only when no canonical spec exists, freeze one in `spec.md` containing at least:
+ 
+ - original task statement
+ - explicit acceptance criteria labeled `AC1`, `AC2`, ...
+@@ -182,16 +178,16 @@
+ - output summaries
+ - artifact paths under `raw/`
+ 
++Use the canonical requirement IDs; `AC1`, `AC2` are examples for a new spec.
+ Do not claim overall `PASS` in the evidence bundle unless every acceptance criterion is `PASS`.
+ 
+-## Fresh verification requirements
+-
+-The verifier must be a fresh session or fresh subagent.
+-In Codex, do not satisfy this requirement by resuming a prior verifier child.
++## Independent verification requirements
++
++Start the verifier with `fork_context=false`; reuse it on rechecks. At task acceptance, check the original requirements and previously unreported in-scope defects, not only known fixes.
+ 
+ The verifier must judge the current repository state and current rerun results, not the builder narrative.
+ 
+-The verifier writes:
++The verifier returns the following reports for the lead to persist:
+ 
+ - `.agent/tasks/<TASK_ID>/verdict.json`
+ - `.agent/tasks/<TASK_ID>/problems.md` only when overall verdict is not `PASS`
+@@ -211,7 +207,7 @@
+ 
+ ## Fixer requirements
+ 
+-The fixer reads only:
++The fixer starts from these artifacts, then reads the relevant code and evidence:
+ 
+ - `spec.md`
+ - `verdict.json`
+@@ -234,6 +230,8 @@
+ ```
+ 
+ Run `validate` only after `init` has fully finished. If it reports initialization in progress, wait and rerun it instead of treating that result as stable task failure.
++`validate` checks artifact presence and JSON structure, not behavioral correctness. Placeholder files and the seeded PNG are not proof. Record the tested revision (including a dirty-tree fingerprint when applicable) with evidence; stale evidence cannot establish PASS.
++The helper rejects symlink and hard-link destinations and preserves an existing initialization marker. Inspect and resolve their ownership before retrying; do not remove user state to bypass the check.
+ 
+ For a quick summary:
+ 
+@@ -249,7 +247,7 @@
+ - Treat the Codex todo/checklist UI as ephemeral progress only; the durable workflow state lives in `.agent/tasks/<TASK_ID>/`
+ - Never claim task completion unless every acceptance criterion is `PASS`
+ - Separate evaluator and fixer roles
+-- Keep Codex fan-out shallow and bounded. Parallel helpers may inform the proof loop, but one builder still owns evidence and one fresh verifier still owns verdict.
+-- Keep the verifier fresh
++- Keep Codex fan-out shallow and bounded. One builder owns evidence; one independent verifier judges it and the lead records its report.
++- Reuse the independent verifier; preserve original acceptance criteria on rechecks
+ - Prefer the smallest defensible diffs during fixes
+-- Preserve existing user guidance outside the managed blocks in `AGENTS.md` and the repo's chosen Claude guide file
++- Preserve existing project guidance; change managed blocks only with explicit approval
+--- a/VERIFICATION.md
++++ b/VERIFICATION.md
+@@ -1,11 +1,13 @@
+ # Verification
+ 
+-This package was smoke-tested before packaging.
++The package checks exercise the helper in temporary Git repositories without
++model calls. They do not certify a user's implementation or the quality of an
++agent's review.
+ 
+-## Command run
++## Command
+ 
+ ```bash
+-python scripts/verify_package.py
++python3 scripts/verify_package.py
+ ```
+ 
+ ## What the smoke test checks
+@@ -17,19 +19,18 @@
+ - a task-local init sentinel makes `validate` report initialization-in-progress instead of only a misleading missing-files failure when `init` is still active
+ - `scripts/task_loop.py status --task-id demo-task` reports `init_in_progress: true` when the init sentinel is present
+ - the expected repo-local artifacts are created under `.agent/tasks/demo-task/`
+-- project-scoped subagent files are created under `.codex/agents/` and `.claude/agents/`
+-- `AGENTS.md` and `CLAUDE.md` are created with managed workflow blocks
+-- generated Codex agent files stay Codex-specific and do not tell Codex to read `CLAUDE.md`
+-- generated Codex AGENTS guidance mentions the bounded `explorer` / `worker` fan-out path
+-- generated Codex AGENTS guidance allows `explorer` fan-out before or after spec freeze and keeps `worker` fan-out post-freeze only
+-- generated Codex task-builder template still defines a single integration owner for evidence
+-- the Codex-facing skill metadata prompt mentions the `explorer` / `worker` adaptive fan-out path
+-- `references/COMMANDS.md` documents the Codex adaptive fan-out orchestration path, includes first-class built-in `explorer` / `worker` helper prompts, and mentions public child-thread inspection surfaces
+-- seeded guidance discovery includes `AGENTS.override.md` before `AGENTS.md`
+-- seeded guidance discovery includes nested `.claude/rules/**/*.md` files
+-- `--guides auto --install-subagents claude` creates `CLAUDE.md` even if the repo previously only had `AGENTS.md`
+-- `--guides auto --install-subagents codex` creates `AGENTS.md` even if the repo previously only had `CLAUDE.md`
++- default initialization leaves project instructions and agent configuration unchanged
++- Codex agent installation and `AGENTS.md` managed blocks are independent opt-ins
++- reruns preserve existing task files and user guidance outside managed blocks
++- differing user-maintained agents are not overwritten, including with `--force`
++- seeded guidance includes Codex guides but not another product's guide
++- placeholders remain UNKNOWN even when structural validation succeeds
++- malformed evidence fails structural validation
++- invalid task IDs do not create task artifacts
++- status inspection does not initialize an absent task
++- metadata preserves explicit-only activation
++- symlink paths, dangling links and hard-linked outputs fail before writes
++- an existing initialization marker is preserved
++- read commands refuse redirected task directories
+ 
+-## Last local result
+-
+-PASS
++The script's exit status and output are the current check result.
+--- a/agents/openai.yaml
++++ b/agents/openai.yaml
+@@ -1,6 +1,6 @@
+ interface:
+   display_name: "Repo Task Proof Loop"
+-  short_description: "Init repo-local task artifacts, install role-specific subagents, and drive spec → build → evidence → verify → fix loops."
+-  default_prompt: "Use $repo-task-proof-loop to initialize or inspect the matching repo-local task first. Treat init as a serial prerequisite. Do not run validate or status until init has fully finished. After init succeeds and .agent/tasks/<TASK_ID>/spec.md exists, freeze the spec before coding. In Codex, keep the normal path serial and auto-mode-first. Spawn child agents only if the user explicitly asks for sub-agents, delegation, or parallel agent work; once that authorization exists, choose the appropriate role, explorer, or worker children from the frozen spec, repo shape, and current delegation surface, keep one integration builder responsible for evidence, inspect existing child threads before reuse or resume, and keep every verifier pass fresh."
++  short_description: "Track task requirements, evidence, and independent acceptance."
++  default_prompt: "Use $repo-task-proof-loop for this task. Reuse its canonical spec and plan, initialize only task artifacts when needed, collect current evidence, and use one read-only verifier started with fork_context=false and reused for corrections. Do not change project instructions or agent configuration without approval. Report unresolved requirements rather than treating a retry limit or structural validation as success."
+ policy:
+   allow_implicit_invocation: false
+--- a/assets/templates/codex/task-builder.toml.tmpl
++++ b/assets/templates/codex/task-builder.toml.tmpl
+@@ -4,6 +4,7 @@
+ developer_instructions = """
+ You are the task-builder.
+ The parent message provides the active TASK_ID and mode. Treat `<TASK_ID>` as that value.
++Follow links from spec.md to the canonical spec and plan; preserve their requirement IDs in evidence.
+ 
+ Follow the in-scope Codex project instructions already loaded for this child session.
+ If you move into a deeper directory or outside the parent's current scope, check for more-specific `AGENTS.override.md`, `AGENTS.md`, or configured fallback guide files that apply to the files you read or edit.
+--- a/assets/templates/codex/task-fixer.toml.tmpl
++++ b/assets/templates/codex/task-fixer.toml.tmpl
+@@ -5,12 +5,13 @@
+ You are the task-fixer.
+ The parent message provides the active TASK_ID. Treat `<TASK_ID>` as that value.
+ 
+-Read only:
++Start with:
+ - .agent/tasks/<TASK_ID>/spec.md
+ - .agent/tasks/<TASK_ID>/verdict.json
+ - .agent/tasks/<TASK_ID>/problems.md
+ 
+ Behavior:
++- Follow any links from spec.md to the canonical requirements; inspect relevant code, tests and evidence before editing.
+ - Follow the in-scope Codex project instructions already loaded for this child session.
+ - If you move into a deeper directory or outside the parent's current scope, check for more-specific `AGENTS.override.md`, `AGENTS.md`, or configured fallback guide files that apply to the files you inspect or edit.
+ - If the parent hands you narrowed findings from sibling helper children or a resumed fixer session, reconfirm them in the current repository before editing.
+--- a/assets/templates/codex/task-spec-freezer.toml.tmpl
++++ b/assets/templates/codex/task-spec-freezer.toml.tmpl
+@@ -14,9 +14,8 @@
+ - If the parent provides findings from sibling `explorer` children, treat them as inputs to reconcile with the repository, not as proof to copy through unchanged.
+ - Read the task source and only the minimum relevant code needed to freeze the spec.
+ - Preserve the original task statement.
+-- Produce explicit acceptance criteria labeled AC1, AC2, ...
+-- Include constraints and non-goals.
+-- Add a concise verification plan.
++- If a canonical spec or plan exists, replace seeded placeholder sections with links to it; preserve its IDs without copying its requirements or checklist.
++- Otherwise freeze explicit acceptance criteria (e.g. AC1, AC2), constraints, non-goals and a concise verification plan in spec.md.
+ - Resolve ambiguity narrowly and record assumptions.
+ - Do not change production code.
+ - Do not write evidence.json, verdict.json, or problems.md.
+--- a/assets/templates/codex/task-verifier.toml.tmpl
++++ b/assets/templates/codex/task-verifier.toml.tmpl
+@@ -1,20 +1,21 @@
+ name = "task-verifier"
+-description = "Use when the parent needs a fresh verification pass against the current repository state."
++description = "Use for independent read-only verification of the current repository state, including rechecks."
+ nickname_candidates = ["Verifier", "Audit", "Judge"]
+ developer_instructions = """
+ You are the task-verifier.
+ The parent message provides the active TASK_ID. Treat `<TASK_ID>` as that value.
+ 
+-Primary outputs:
++Reports returned to the lead for persistence:
+ - .agent/tasks/<TASK_ID>/verdict.json
+ - .agent/tasks/<TASK_ID>/problems.md only when the overall verdict is not PASS
+ 
+ Behavior:
+-- This role is intended for a fresh verification pass. Do not treat any remembered builder or fixer narrative as proof.
++- Start with isolated context; reuse this verifier for corrections. Do not treat any remembered builder or fixer narrative as proof.
+ - Follow the in-scope Codex project instructions already loaded for this child session.
+ - If you move into a deeper directory or outside the parent's current scope, check for more-specific `AGENTS.override.md`, `AGENTS.md`, or configured fallback guide files that apply to the files you inspect.
+ - You are not the implementer.
+ - Read spec.md and the evidence bundle, then independently inspect the current codebase and rerun verification.
++- Follow links from spec.md to the canonical spec/plan and preserve their requirement IDs.
+ - Treat any sibling helper-child reports or raw artifacts as hints, not as proof. Source of truth is the current repository state and current rerun results.
+ - Judge the current repository state and current command results, not prior chat claims.
+ - PASS an acceptance criterion only if it is proven now.
+@@ -22,6 +23,8 @@
+ - Use UNKNOWN when it cannot be verified locally.
+ - Do not modify production code.
+ - Do not patch evidence files to make them look complete.
++- Do not write shared checkout files; return the report for the lead to persist verbatim.
++- Before acceptance, check original requirements and previously unreported in-scope defects as well as known repairs.
+ 
+ For each non-PASS acceptance criterion in problems.md include:
+ - criterion id and text
+--- a/assets/templates/managed-block-agents.md.tmpl
++++ b/assets/templates/managed-block-agents.md.tmpl
+@@ -1,14 +1,14 @@
+ <!-- repo-task-proof-loop:start -->
+ ## Repo task proof loop
+ 
+-For substantial features, refactors, and bug fixes, use the repo-task-proof-loop workflow.
++Use the repo-task-proof-loop workflow only when explicitly invoked.
+ 
+ Required artifact path:
+ - Keep all task artifacts in `.agent/tasks/<TASK_ID>/` inside this repository.
+ 
+ Required sequence:
+-1. Freeze `.agent/tasks/<TASK_ID>/spec.md` before implementation.
+-2. Implement against explicit acceptance criteria (`AC1`, `AC2`, ...).
++1. Link an existing canonical spec/plan from `.agent/tasks/<TASK_ID>/spec.md`; freeze a new spec there only if none exists.
++2. Implement against canonical acceptance criteria, preserving their IDs.
+ 3. Create `evidence.md`, `evidence.json`, and raw artifacts.
+ 4. Run a fresh verification pass against the current codebase and rerun checks.
+ 5. If verification is not `PASS`, write `problems.md`, apply the smallest safe fix, and reverify.
+@@ -16,12 +16,13 @@
+ Hard rules:
+ - Do not claim completion unless every acceptance criterion is `PASS`.
+ - Verifiers judge current code and current command results, not prior chat claims.
++- Start one read-only verifier with `fork_context=false` and reuse it for corrections. The lead persists its report; retry limits do not waive unresolved acceptance criteria.
+ - Fixers should make the smallest defensible diff.
+ - For broad Codex tasks, bounded fan-out is allowed only after `init`, only when the user has explicitly asked for delegation or parallel agent work, and only when task shape warrants it: use bounded `explorer` children before or after spec freeze, use bounded `worker` children only after the spec is frozen, keep the task tree shallow, keep evidence ownership with one builder, and keep verdict ownership with one fresh verifier.
+ - This root `AGENTS.md` block is the repo-wide Codex baseline. More-specific nested `AGENTS.override.md` or `AGENTS.md` files still take precedence for their directory trees.
+ - Keep this block lean. If the workflow needs more Codex guidance, prefer nested `AGENTS.md` / `AGENTS.override.md` files or configured fallback guide docs instead of expanding this root block indefinitely.
+ 
+-Installed workflow agents:
++Optional workflow agent templates:
+ - `.codex/agents/task-spec-freezer.toml`
+ - `.codex/agents/task-builder.toml`
+ - `.codex/agents/task-verifier.toml`
+--- a/assets/templates/spec.md.tmpl
++++ b/assets/templates/spec.md.tmpl
+@@ -13,6 +13,7 @@
+ {{TASK_STATEMENT}}
+ 
+ ## Acceptance criteria
++<!-- If an approved spec/plan exists, replace the placeholder sections below with links to it; preserve its requirement IDs rather than copying or renumbering them. -->
+ - AC1: TODO
+ 
+ ## Constraints
+--- a/references/COMMANDS.md
++++ b/references/COMMANDS.md
+@@ -6,21 +6,17 @@
+ 
+ Codex orchestration mapping:
+ 
+-- `spawn_agent`: spawn one child with `agent_type` set to the role name from `.codex/agents/`
++- Use the current subagent tool schema. Pass named roles only if supported; otherwise supply the role prompt to an available agent. Project templates are optional.
+ - built-in `explorer`: preferred Codex role for bounded read-only discovery and proof probes
+ - built-in `worker`: appropriate for bounded disjoint implementation or check shards when explicit ownership is possible
+ - `send_input`: preferred way to reuse a live builder child for evidence packing
+-- `resume_agent`: available when you intentionally want an older builder or fixer child back; do not use it to satisfy verifier freshness
++- Reuse the independent verifier for corrections; create it initially with `fork_context=false`.
+ - child-thread inventory: inspect the current child list before reusing or resuming a child. In Codex CLI, use `/agent`; in other Codex surfaces, use the exposed thread inventory if available.
+ - `update_plan`: optional way to mirror the current proof-loop step in Codex's todo/checklist UI; do not treat it as the durable workflow record
+ - CLI surfaces: `/agent` inspects or switches child threads, `/status` shows session config, `/review` reviews the working tree, and `/init` scaffolds a generic `AGENTS.md` if you are not using this skill's managed block
+ 
+-Claude Code note:
+-
+-- Claude can automatically delegate from the main session based on the request, subagent descriptions, and current context. Write Claude-facing proof-loop prompts so the current phase is obvious.
+-- Claude may use TodoWrite or show a task/todo list UI for multi-step work. Treat that as optional session-scoped progress display only, not as the durable workflow record.
+-- The canonical proof-loop state always lives in `.agent/tasks/<TASK_ID>/...`.
+-- Keep the Claude workflow flat. These custom workflow agents are role endpoints, not recursive orchestrators.
++These are responsibility prompts, not a requirement for a separate child per
++phase. Keep one lead by default and apply the active review/delegation policy.
+ 
+ ## `init`
+ 
+@@ -33,10 +29,8 @@
+ `init` is a serial prerequisite. Never overlap it with `freeze`, `build`, `evidence`, `verify`, `fix`, `validate`, `status`, or child-agent spawning.
+ 
+ After `init`, inspect `.agent/tasks/<TASK_ID>/spec.md` and confirm the repo-local structure is present.
+-In Codex, `/init` is optional and separate; this skill's initializer already manages the workflow block in `AGENTS.md`.
+-In Claude Code, if `init` just created or refreshed `.claude/agents/*` during the current session, do not assume those refreshed agents are already available mid-session.
+-In Claude Code, a TodoWrite list or visible task UI after `init` is optional session progress only. Do not treat it as a substitute for the repo-local task files.
+-In Claude Code, after `init`, normal phase prompts should stay task-focused and let Claude auto-delegate. If delegation is not specific enough, restate the phase more explicitly in natural language rather than relying on out-of-band controls.
++Default initialization creates task artifacts only. Project instructions and
++agent configuration require separate approval and explicit options.
+ 
+ ## `freeze`
+ 
+@@ -62,10 +56,8 @@
+ 
+ Requirements:
+ - Preserve the original task statement
+-- Produce explicit acceptance criteria labeled AC1, AC2, ...
+-- Include constraints
+-- Include non-goals
+-- Add a concise verification plan
++- If a canonical spec or plan exists, replace seeded placeholder sections with links to it; preserve its IDs and do not duplicate its requirements/checklist
++- Otherwise freeze explicit acceptance criteria (e.g. AC1, AC2), constraints, non-goals and a concise verification plan
+ - Resolve ambiguity narrowly and list assumptions
+ - Do not change production code
+ - Do not write evidence, verdict, or problems files
+@@ -86,6 +78,7 @@
+ 
+ Read:
+ - .agent/tasks/<TASK_ID>/spec.md
++- follow its links to the canonical spec and plan before implementing
+ 
+ Your job:
+ - Implement the task against the frozen spec
+@@ -227,6 +220,7 @@
+ 
+ Rules:
+ - For each AC, assign PASS, FAIL, or UNKNOWN
++- Follow linked canonical requirements and preserve their existing IDs
+ - Every PASS must cite concrete proof
+ - FAIL and UNKNOWN must explain the gap
+ - Overall PASS only if every AC is PASS
+@@ -239,7 +233,7 @@
+ - commands a fresh verifier should rerun
+ ```
+ 
+-In Claude Code, this follow-up is the default path. Use the fallback below only if the original builder session is unavailable or you intentionally want a fresh evidence-only run.
++Use the fallback below only if the original implementation context is unavailable.
+ 
+ ### Fallback prompt when the original builder session is unavailable
+ 
+@@ -257,16 +251,17 @@
+ 
+ ## `verify`
+ 
+-### Parent prompt for a fresh verifier subagent
+-
+-Codex note:
+-
+-- Spawn a brand-new verifier child or a fresh standalone session for this step.
+-- Do not satisfy verifier freshness by resuming an older verifier child.
++### Parent prompt for the independent verifier
++
++Codex note:
++
++- Start one read-only verifier with `fork_context=false`; reuse it for rechecks.
++- Supply original requirements, source/artifact paths, diff and test evidence,
++  without the lead's reasoning or conversation history.
+ - If earlier helper children gathered raw outputs, treat them as hints only. The verifier still judges the current repository state and reruns whatever it needs.
+ 
+ ```text
+-You are a strict fresh-session verifier for TASK_ID <TASK_ID>. You are not the implementer.
++You are an independent read-only verifier for TASK_ID <TASK_ID>. You are not the implementer.
+ 
+ Read in this order:
+ 1. .agent/tasks/<TASK_ID>/spec.md
+@@ -274,13 +269,14 @@
+ 3. .agent/tasks/<TASK_ID>/evidence.json
+ 
+ Then independently inspect the current codebase and rerun verification.
++Follow any links from spec.md to the canonical spec/plan and preserve their IDs.
+ Source of truth is the current repository state and current command results, not prior chat claims.
+ Use the currently available verification surface directly. If browser or MCP tools are available and relevant, use them rather than narrowing yourself to code reading alone.
+ 
+-Write:
++Return a verdict report for the lead to persist as:
+ - .agent/tasks/<TASK_ID>/verdict.json
+ 
+-If overall verdict is not PASS, also write:
++If overall verdict is not PASS, also return problem details for:
+ - .agent/tasks/<TASK_ID>/problems.md
+ 
+ Rules:
+@@ -288,6 +284,8 @@
+ - FAIL if contradicted, broken, or incomplete
+ - UNKNOWN if it cannot be verified locally
+ - Overall PASS only if every AC PASS
++- Before acceptance, check the original requirements and previously unreported in-scope defects, not only known repairs
++- Bind evidence to the inspected revision; structural validation and placeholders are not behavioral proof
+ - Do not modify production code
+ - Do not edit the evidence bundle
+ 
+@@ -303,7 +301,7 @@
+ 
+ Return only:
+ - overall_verdict
+-- created files
++- reports returned without modifying the checkout
+ - one-line reason for each non-PASS AC
+ ```
+ 
+@@ -320,13 +318,14 @@
+ ```text
+ You are a repair agent for TASK_ID <TASK_ID>.
+ 
+-Read only:
++Start with:
+ - .agent/tasks/<TASK_ID>/spec.md
+ - .agent/tasks/<TASK_ID>/verdict.json
+ - .agent/tasks/<TASK_ID>/problems.md
+ 
+ Your job:
+ - Reconfirm each listed FAIL or UNKNOWN condition before editing
++- Follow linked canonical requirements and inspect relevant code, tests and evidence
+ - Make the smallest safe change set
+ - Avoid regressing already-passing criteria
+ - Rerun only the relevant checks
+@@ -337,7 +336,7 @@
+ 
+ Do not:
+ - write verdict.json
+-- claim final PASS without a fresh verifier
++- claim final PASS without the independent verifier's current acceptance
+ - make broad refactors unless required to satisfy a criterion
+ 
+ Return only:
+@@ -354,14 +353,14 @@
+ Run this sequence strictly in order.
+ 1. init <TASK_ID>
+ 2. wait for init to finish, then confirm .agent/tasks/<TASK_ID>/spec.md exists
+-3. freeze <TASK_ID> using one spec-freezer child
+-4. build <TASK_ID> using one builder child
+-5. evidence <TASK_ID> in the same builder child by default, otherwise in evidence-only mode
+-6. verify <TASK_ID> using one fresh verifier child
++3. freeze <TASK_ID>, linking any existing canonical spec/plan instead of duplicating it
++4. build <TASK_ID> in the owning agent
++5. evidence <TASK_ID> in that same context when possible
++6. verify <TASK_ID> using one read-only child initially started with fork_context=false
+ 7. if verdict is PASS, stop
+-8. if verdict is FAIL or UNKNOWN, run fix <TASK_ID> using one fixer child, fresh by default
+-9. run verify <TASK_ID> again using one fresh verifier child
+-10. repeat 7-9 until PASS or user stops the loop
++8. if a defect is reproducible, fix <TASK_ID> in the owning agent and refresh evidence
++9. run verify <TASK_ID> again with the same verifier
++10. stop at acceptance, a concrete blocker, user cancellation, or the agreed resource limit; unresolved requirements remain incomplete
+ ```
+ 
+ ### Codex adaptive fan-out path
+@@ -378,10 +377,10 @@
+ 7. if implementation splits cleanly, fan out bounded built-in `worker` children in parallel with explicit file or module ownership
+ 8. continue the live builder with send_input so it integrates the current repo state, reruns focused checks, and evidence <TASK_ID>
+ 9. if proof still needs extra read-only probes, fan out bounded built-in `explorer` children in parallel to rerun disjoint checks or inspect separate proof gaps
+-10. wait for those proof explorers, then run verify <TASK_ID> using one fresh verifier child
++10. wait for those proof explorers, then verify with the single read-only verifier
+ 11. if verdict is PASS, stop
+-12. if verdict is FAIL or UNKNOWN, run fix <TASK_ID> using one fixer child, then run verify <TASK_ID> again using one fresh verifier child
+-13. repeat 11-12 until PASS or user stops the loop
++12. fix reproducible defects, refresh evidence, and request recheck from the same verifier
++13. stop at acceptance, a concrete blocker, user cancellation, or the agreed resource limit; unresolved requirements remain incomplete
+ ```
+ 
+ ## `status`
+@@ -392,5 +391,5 @@
+ scripts/task_loop.py status --task-id <TASK_ID>
+ ```
+ 
+-If the repo is not yet initialized, run `init` first.
++If the task is not initialized, report that state without creating it.
+ Do not run `status` or `validate` in parallel with `init`; wait for `init` to finish first. If `status` reports `init_in_progress: true`, retry later.
+--- a/references/REFERENCE.md
++++ b/references/REFERENCE.md
+@@ -15,19 +15,8 @@
+ Personal skill:
+ - `$HOME/.agents/skills/repo-task-proof-loop/`
+ 
+-### Claude Code
+-
+-Project skill:
+-- `.claude/skills/repo-task-proof-loop/`
+-
+-Personal skill:
+-- `~/.claude/skills/repo-task-proof-loop/`
+-
+-The same skill directory can be reused in either product. The initialization script writes repo-local workflow files into the current repository, not into the skill directory.
+-
+-Claude Code note:
+-- This skill manages its workflow block in the project-root `CLAUDE.md`.
+-- Claude Code also loads `.claude/CLAUDE.md`, `.claude/rules/*.md`, and `CLAUDE.local.md`, but those remain compatible add-ons outside this skill's managed block.
++Follow the host's managed installation procedure when present. The initializer
++writes task artifacts into the target repository, not into the skill directory.
+ 
+ ## Repo files created by `init`
+ 
+@@ -46,7 +35,8 @@
+   problems.md
+ ```
+ 
+-The initializer also creates or refreshes these project-level integration files:
++Only with explicit project-configuration approval and `--install-subagents codex`,
++the initializer installs these files. Existing differing files cause an error:
+ 
+ ```text
+ .codex/agents/
+@@ -54,23 +44,15 @@
+   task-builder.toml
+   task-verifier.toml
+   task-fixer.toml
+-
+-.claude/agents/
+-  task-spec-freezer.md
+-  task-builder.md
+-  task-verifier.md
+-  task-fixer.md
+ ```
+ 
+-And it inserts a managed workflow block into:
++Only with explicit approval and `--guides agents` (or its `auto` alias), it inserts a managed workflow block into:
+ 
+ - repo-root `AGENTS.md`
+-- one Claude guide file: `CLAUDE.md` or `.claude/CLAUDE.md`
+-
+-If both Claude guide locations exist, the initializer updates the repo-root `CLAUDE.md` and leaves `.claude/CLAUDE.md` untouched. The managed block is replaced in place on re-run, so user-authored content outside the managed markers is preserved.
++The managed block is replaced in place on re-run; content outside the markers is preserved.
+ For Codex, the managed block always lives in repo-root `AGENTS.md`. That file acts as the repo-wide baseline. More-specific nested `AGENTS.override.md`, `AGENTS.md`, or configured fallback filenames still take precedence in their directory trees, and the initializer does not rewrite them.
+ If `init` creates or rewrites `AGENTS.md` during a running Codex session, start a new Codex session before relying on the updated instructions.
+-In Claude Code, `CLAUDE.md` is the project guide file Claude checks during onboarding. When `--guides auto` is used together with `--install-subagents claude` or `--install-subagents both`, the initializer ensures `CLAUDE.md` exists even if the repo previously only had `AGENTS.md`.
++Both integration options default to `none`; task initialization does not require either.
+ 
+ ## Commands
+ 
+@@ -80,9 +62,7 @@
+ scripts/task_loop.py init --task-id my-task
+ ```
+ 
+-Codex CLI also has `/init` to scaffold a generic `AGENTS.md`, but this skill's initializer already manages the workflow block and does not require `/init`.
+-
+-In Claude Code, if `init` just created or refreshed `.claude/agents/*` during the current session, do not assume those refreshed agents are already available mid-session.
++Project instruction or role installation is a separate opt-in, not part of default initialization.
+ 
+ Seed the task from a task file:
+ 
+@@ -100,22 +80,16 @@
+ 
+ ```bash
+ scripts/task_loop.py init --task-id my-task --guides auto
+-scripts/task_loop.py init --task-id my-task --guides both
+ scripts/task_loop.py init --task-id my-task --guides agents
+-scripts/task_loop.py init --task-id my-task --guides claude
+ scripts/task_loop.py init --task-id my-task --guides none
+ ```
+ 
+-For Claude Code, `--guides auto` updates an existing `CLAUDE.md` or `.claude/CLAUDE.md`. If neither exists and Claude subagents are being installed, it creates `CLAUDE.md`.
+-
+-`--guides auto` keeps existing guide files up to date, creates both guides when none exist yet, and also creates the product-native guide when you install that product's agents (`CLAUDE.md` for Claude, `AGENTS.md` for Codex).
++`--guides auto` is an explicit opt-in equivalent to `--guides agents`.
+ 
+ Control which project subagent sets are installed:
+ 
+ ```bash
+-scripts/task_loop.py init --task-id my-task --install-subagents both
+ scripts/task_loop.py init --task-id my-task --install-subagents codex
+-scripts/task_loop.py init --task-id my-task --install-subagents claude
+ scripts/task_loop.py init --task-id my-task --install-subagents none
+ ```
+ 
+@@ -141,43 +115,33 @@
+ 2. Freeze the spec
+ 3. Implement
+ 4. Pack evidence
+-5. Fresh verify
++5. Independently verify with one read-only child started with `fork_context=false`
+ 6. Fix if needed
+-7. Fresh verify again
++7. Ask the same verifier to recheck; stop at acceptance, a blocker, or the agreed limit
+ 
+ Codex adaptive orchestration:
+ 
+ - Keep normal Codex usage auto-mode-first and serial by default. Users do not need child-management details unless they explicitly want delegated or parallel agent work.
+-- Only after the user has explicitly asked for sub-agents, delegation, or parallel agent work may the parent choose between the serial path above and bounded fan-out from the frozen spec, repo shape, and current delegation surface.
++- Follow the active review and delegation policy; optional helper fan-out requires authorization and independently useful scopes.
+ - Once delegation is authorized, the parent may fan out bounded built-in `explorer` or `worker` children in parallel when a large Codex task has independent research questions, disjoint write scopes, or several read-only proof probes.
+ - Keep helper fan-out modest and wave-based. Prefer up to 3 parallel helper children at once, then wait before the next phase.
+ - Keep the task tree shallow. The parent session should orchestrate children directly instead of asking one custom task child to spawn more children.
+ - One integration builder still owns `evidence.md` and `evidence.json`.
+-- One fresh verifier still owns `verdict.json` and `problems.md`.
++- One independent verifier judges the task; the lead persists its report in `verdict.json` and `problems.md`.
+ 
+ For exact prompts to use with child agents, see `references/COMMANDS.md`.
+-
+-Claude adaptive delegation:
+-
+-- Let the main Claude Code session decide whether to auto-delegate the current proof-loop phase to a matching project subagent. Users should not need to name a specific Claude subagent for normal operation.
+-- Keep prompts phase-focused so the current need is obvious, for example “freeze the spec”, “run a fresh verification pass”, or “repair the non-PASS criteria”.
+-- If automatic delegation is not specific enough, tighten the natural-language prompt for the current proof-loop phase rather than relying on out-of-band controls.
+-- Keep the proof loop flat even when delegation is automatic. The parent session still owns phase transitions, the evidence bundle stays with one builder, and each verify pass stays fresh.
+ 
+ ## Notes
+ 
+ - The initializer does not write the final `spec.md` content for you. It creates the strict file structure and seeds the task statement when provided. The actual spec freeze is an agent step.
+ - `evidence.json` and `verdict.json` are created with valid placeholder content so validation can run immediately after `init`.
+ - `raw/screenshot-1.png` is created as a tiny placeholder PNG so the required path exists from the start.
+-- Guidance discovery for seeded task specs includes repo-visible `AGENTS.override.md`, `AGENTS.md`, root `CLAUDE.md`, `.claude/CLAUDE.md`, and `.claude/rules/**/*.md` when present.
++- Guidance discovery for seeded task specs includes repo-visible `AGENTS.override.md` and `AGENTS.md` along the path to the working directory.
+ - That seeded guidance list is a workflow artifact, not a literal dump of Codex's automatic project-doc context.
+ - Codex can also load extra fallback filenames configured via `project_doc_fallback_filenames`. The initializer does not try to infer every user's Codex config layer, so treat the seeded guidance list as best-effort when custom fallback filenames matter.
+ - Codex may also render an `update_plan` checklist or todo list in the UI. Treat that as ephemeral session progress, not as durable proof-loop state.
+ - Codex CLI surfaces most relevant to this workflow are `/agent`, `/status`, `/review`, and `/init` (generic scaffold only).
+ - Before reusing or resuming a Codex child, inspect the current child-thread list in `/agent` in the CLI or the equivalent child-thread inventory surface exposed by the current Codex product surface.
+ - Built-in `explorer` is the preferred Codex role for read-only repo discovery and proof probes. Built-in `worker` is appropriate for bounded disjoint implementation or check shards when explicit ownership is possible.
+-- Claude Code also loads `.claude/rules/*.md` and `.claude/CLAUDE.md` as project guidance. The initializer discovers those files when seeding guidance sources for the task.
+-- After installing or refreshing `.claude/agents/` in the current Claude Code session, do not assume the new agent list is already available.
+-- Claude Code uses the subagent `description` field to decide when the main session should delegate automatically. Phrase project agent descriptions as proactive trigger conditions when you want Claude to pick them on its own.
+-- For this workflow, treat the generated Claude agents as flat role endpoints. Do not expect one workflow agent to recursively spawn another.
+-- Claude Code may also render TodoWrite or a task/todo UI for multi-step work. Treat that as optional session-scoped progress display only. The canonical durable workflow state is the repo-local artifact set under `.agent/tasks/<TASK_ID>/`.
++- Claude-specific templates remain upstream reference assets and are not used by the Codex helper or workflow.
++- Structural validation accepts seeded placeholders; it does not certify task completion. Inspect actual evidence at the tested revision.
+--- a/references/SUBAGENTS.md
++++ b/references/SUBAGENTS.md
+@@ -1,6 +1,8 @@
+ # Subagent integration
+ 
+-This skill installs project-scoped subagent templates for both Codex and Claude Code.
++This skill can install Codex project role templates with separate approval.
++Default initialization installs none. Use available subagent tools without
++project configuration changes when possible.
+ 
+ On the Codex side, these are custom agent TOML config layers, not a separate manifest format.
+ 
+@@ -13,15 +15,6 @@
+ .codex/agents/task-builder.toml
+ .codex/agents/task-verifier.toml
+ .codex/agents/task-fixer.toml
+-```
+-
+-### Claude Code
+-
+-```text
+-.claude/agents/task-spec-freezer.md
+-.claude/agents/task-builder.md
+-.claude/agents/task-verifier.md
+-.claude/agents/task-fixer.md
+ ```
+ 
+ The agent files are intentionally narrow and role-specific.
+@@ -47,7 +40,7 @@
+ - Use built-in `explorer` for bounded read-only discovery before spec freeze and for read-only proof probes after build.
+ - Use built-in `worker` only when the task cleanly splits into disjoint implementation or check shards with explicit ownership.
+ - Keep `task-builder` as the integration owner. Even in broader-task Codex fan-out runs, that role remains the single writer for `evidence.md` and `evidence.json`.
+-- Keep `task-verifier` as the single fresh judge. Parallel helper children may gather inputs, but they do not write `verdict.json`.
++- Keep one read-only verifier started with `fork_context=false`, reused for corrections. The lead records its verdict; helper probes are not additional reviewers.
+ 
+ ## Role definitions
+ 
+@@ -77,13 +70,13 @@
+ ### `task-verifier`
+ 
+ Purpose:
+-- Fresh-session verification against the current codebase
++- Independent verification against the current codebase, with the same verifier reused for corrections
+ 
+ Hard boundaries:
+ - Must not edit production code
+ - Must not patch the evidence bundle to make it look complete
+-- Must write `verdict.json`
+-- Must write `problems.md` only when the verdict is not `PASS`
++- Must return the verdict report for the lead to persist in `verdict.json`
++- Must return problem details when the verdict is not `PASS`
+ 
+ ### `task-fixer`
+ 
+@@ -104,26 +97,26 @@
+ 
+ Codex-native expectations that matter here:
+ 
+-- The parent-orchestrator must explicitly spawn a new child, and in Codex it may do so only after the user has explicitly asked for sub-agents, delegation, or parallel agent work.
++- The parent follows the active delegation and review policy; named roles are optional and depend on the exposed tool surface.
+ - Once delegation is authorized, the parent chooses the specific child roles. The user does not need to name the exact role or slash-command flow.
+ - Keep the task tree shallow. The parent session should orchestrate children directly instead of asking one custom task child to spawn more children.
+ - Inspect the current child-thread list with `/agent` in the CLI or the equivalent child-thread inventory surface exposed by the current Codex product surface before respawning or resuming a child.
+ - Use `send_input` to continue a live child.
+-- Use `resume_agent` only when you intentionally want an older builder or fixer child back. Do not reuse or resume a verifier when freshness matters.
++- Reuse the verifier for corrections; its initial context must exclude the lead's reasoning and conversation history.
+ - Before reusing or resuming a child, inspect the current child-thread list rather than assuming the needed child is gone.
+ 
+ Default Codex path for narrower tasks:
+ 
+-- One child per workflow role.
+-- Same builder child for evidence.
+-- Fresh verifier child for every verify pass.
++- One lead for spec, implementation and evidence.
++- One independent read-only verifier, reused for corrections.
++- Separate implementation children only when authorized and useful.
+ 
+ Adaptive Codex fan-out path for broader tasks after delegation is explicitly authorized:
+ 
+ - Fan out up to 3 `explorer` children in parallel when the task needs parallel discovery before the spec is stable.
+ - Keep one `task-builder` child as the integration owner.
+ - If implementation splits cleanly, add bounded `worker` children in parallel with explicit file or module ownership.
+-- If proof needs multiple read-only probes, add bounded `explorer` children in parallel, but keep verdict writing with one fresh verifier child.
++- If proof needs multiple read-only probes, keep them bounded; the single verifier judges the result and the lead persists its report.
+ 
+ Suggested shape:
+ 
+@@ -151,35 +144,6 @@
+ Wait for both. Then fold their findings into one spec-freezer or builder step.
+ ```
+ 
+-## Claude Code invocation pattern
+-
+-Use the installed project subagents from `.claude/agents/`. Claude Code can automatically delegate from the main session to a matching subagent based on the task request, the subagent description, and current context, so normal proof-loop prompts do not need to name an agent explicitly.
+-Because this skill writes agent files directly on disk, if `init` just created or refreshed `.claude/agents/*` during the current Claude Code session, do not assume those refreshed agents are already available.
+-Treat these agents as preferred workflow roles whose descriptions should encourage automatic delegation from the main session. If automatic delegation is not precise enough, make the current proof-loop phase more explicit in the prompt. Keep verifier freshness and same-builder evidence reuse as hard workflow constraints.
+-
+-TodoWrite or the visible task/todo list UI is optional session-scoped progress tracking only.
+-
+-Suggested automatic shape:
+-
+-```text
+-Freeze the repo-local spec for TASK_ID <TASK_ID> in `.agent/tasks/<TASK_ID>/spec.md` before any implementation. Use explicit acceptance criteria and constraints.
+-```
+-
+-For Claude Code, keep this distinction explicit:
+-
+-- TodoWrite or the visible task/todo UI is optional live progress display for the current session.
+-- `.agent/tasks/<TASK_ID>/...` is the canonical durable proof-loop state.
+-
+-When you need a specific role outcome, prefer an explicit natural-language phase prompt:
+-
+-```text
+-Run a fresh verifier pass for TASK_ID <TASK_ID> against the current codebase and write `verdict.json`, plus `problems.md` if needed.
+-```
+-
+-For large tasks, prefer one workflow owner per role rather than handing the entire proof loop to one general-purpose child.
+-Descriptions in the Claude agent templates should read as proactive trigger conditions so Claude can delegate more reliably. Prefer wording that starts with `Use proactively when...`.
+-Keep the delegation flat. Main-session auto-delegation is the intended Claude path here; the workflow agents themselves are leaf roles, so the parent should orchestrate each role directly instead of asking one custom task agent to spawn another.
+-
+ ## Same-session evidence packing
+ 
+ The preferred pattern is:
+@@ -191,9 +155,8 @@
+ In Codex, this same-session follow-up is the preferred path. Keep the builder child alive and send it a follow-up instruction for evidence packing so it can reuse its own command results and local context.
+ If the parent used parallel explorers or workers earlier, the builder should still stay the single owner of `evidence.md` and `evidence.json` and cite those sibling results only after validating they still apply.
+ 
+-In Claude Code, this same-session follow-up is the default path. Only run a second `task-builder` child with an explicit `EVIDENCE-ONLY` prompt if the original builder session is unavailable or you intentionally want a fresh evidence-only run.
+-
+-Verifier freshness is different. In Codex, each verification pass should use a fresh verifier child or a fresh standalone session, not a resumed verifier.
++Verifier independence comes from its initial isolated context and read-only role.
++Reuse that verifier for rechecks, preserving the original acceptance criteria.
+ 
+ ## Why the roles stay separate
+ 
+--- a/scripts/task_loop.py
++++ b/scripts/task_loop.py
+@@ -45,9 +45,11 @@
+     Path("AGENTS.override.md"),
+     Path("AGENTS.md"),
+ )
+-CLAUDE_GUIDE_CANDIDATES = (
+-    Path("CLAUDE.md"),
+-    Path(".claude") / "CLAUDE.md",
++CODEX_AGENT_TEMPLATES = (
++    "task-spec-freezer.toml.tmpl",
++    "task-builder.toml.tmpl",
++    "task-verifier.toml.tmpl",
++    "task-fixer.toml.tmpl",
+ )
+ 
+ 
+@@ -121,16 +123,10 @@
+ 
+ def guidance_candidates_for_directory(directory: Path) -> list[Path]:
+     candidates: list[Path] = []
+-    for rel_path in (*CODEX_GUIDE_CANDIDATES, Path("CLAUDE.md"), Path(".claude") / "CLAUDE.md"):
++    for rel_path in CODEX_GUIDE_CANDIDATES:
+         candidate = directory / rel_path
+         if candidate.exists():
+             candidates.append(candidate)
+-
+-    rules_dir = directory / ".claude" / "rules"
+-    if rules_dir.is_dir():
+-        for candidate in sorted(path for path in rules_dir.rglob("*.md") if path.is_file()):
+-            if candidate.is_file():
+-                candidates.append(candidate)
+ 
+     return candidates
+ 
+@@ -164,13 +160,33 @@
+     path.parent.mkdir(parents=True, exist_ok=True)
+ 
+ 
++def check_destination(path: Path, repo_root: Path) -> None:
++    for candidate in (path, *path.parents):
++        if candidate == repo_root:
++            return
++        if candidate.is_symlink():
++            fail(f"Refusing symlink in task destination: {candidate}")
++        if candidate.is_file() and candidate.stat().st_nlink > 1:
++            fail(f"Refusing hard-linked task destination: {candidate}")
++    fail(f"Task destination is outside the repository: {path}")
++
++
++def check_task_paths(task_dir: Path, repo_root: Path) -> None:
++    for relative in (*REQUIRED_TASK_FILES, INIT_SENTINEL_FILE):
++        check_destination(task_dir / relative, repo_root)
++
++
+ def init_sentinel_path(task_dir: Path) -> Path:
+     return task_dir / INIT_SENTINEL_FILE
+ 
+ 
+ def mark_init_in_progress(task_dir: Path) -> None:
+     sentinel = init_sentinel_path(task_dir)
+-    sentinel.write_text(f"{utc_now_iso()}\n", encoding="utf-8")
++    try:
++        with sentinel.open("x", encoding="utf-8") as stream:
++            stream.write(f"{utc_now_iso()}\n")
++    except FileExistsError:
++        fail(f"Initialization marker already exists: {sentinel}. Inspect its owner before retrying.")
+ 
+ 
+ def clear_init_in_progress(task_dir: Path) -> None:
+@@ -179,13 +195,6 @@
+         sentinel.unlink()
+     except FileNotFoundError:
+         pass
+-
+-
+-def has_managed_block(path: Path) -> bool:
+-    if not path.exists():
+-        return False
+-    content = path.read_text(encoding="utf-8")
+-    return MANAGED_START in content and MANAGED_END in content
+ 
+ 
+ def write_text_file(path: Path, content: str, *, force: bool = False) -> bool:
+@@ -247,18 +256,6 @@
+     return "\n".join(f"- {relative_or_absolute(path, repo_root)}" for path in discovered)
+ 
+ 
+-def choose_claude_guide_path(repo_root: Path) -> Path:
+-    for rel_path in CLAUDE_GUIDE_CANDIDATES:
+-        candidate = repo_root / rel_path
+-        if has_managed_block(candidate):
+-            return candidate
+-    for rel_path in CLAUDE_GUIDE_CANDIDATES:
+-        candidate = repo_root / rel_path
+-        if candidate.exists():
+-            return candidate
+-    return repo_root / "CLAUDE.md"
+-
+-
+ def template_context(task_id: str, repo_root: Path, current: Path, task_file: str | None, task_text: str | None) -> dict[str, str]:
+     return {
+         "TASK_ID": task_id,
+@@ -299,78 +296,29 @@
+ def install_codex_agents(repo_root: Path) -> list[str]:
+     target_dir = repo_root / ".codex" / "agents"
+     target_dir.mkdir(parents=True, exist_ok=True)
+-    written: list[str] = []
+-    for template_name in (
+-        "task-spec-freezer.toml.tmpl",
+-        "task-builder.toml.tmpl",
+-        "task-verifier.toml.tmpl",
+-        "task-fixer.toml.tmpl",
+-    ):
++    pending: dict[Path, str] = {}
++    for template_name in CODEX_AGENT_TEMPLATES:
+         content = (TEMPLATES_DIR / "codex" / template_name).read_text(encoding="utf-8")
+         target = target_dir / template_name.replace(".tmpl", "")
++        if target.exists():
++            if target.read_text(encoding="utf-8") != content:
++                fail(f"Existing agent differs from template: {target}. Review it before replacement.")
++        else:
++            pending[target] = content
++    for target, content in pending.items():
+         target.write_text(content, encoding="utf-8")
+-        written.append(str(target))
+-    return written
+-
+-
+-def install_claude_agents(repo_root: Path) -> list[str]:
+-    target_dir = repo_root / ".claude" / "agents"
+-    target_dir.mkdir(parents=True, exist_ok=True)
+-    written: list[str] = []
+-    for template_name in (
+-        "task-spec-freezer.md.tmpl",
+-        "task-builder.md.tmpl",
+-        "task-verifier.md.tmpl",
+-        "task-fixer.md.tmpl",
+-    ):
+-        content = (TEMPLATES_DIR / "claude" / template_name).read_text(encoding="utf-8")
+-        target = target_dir / template_name.replace(".tmpl", "")
+-        target.write_text(content, encoding="utf-8")
+-        written.append(str(target))
+-    return written
+-
+-
+-def update_guides(repo_root: Path, guides: str, install_subagents: str) -> dict[str, str]:
++    return [str(target) for target in pending]
++
++
++def update_guides(repo_root: Path, guides: str) -> dict[str, str]:
+     actions: dict[str, str] = {}
+     if guides == "none":
+         return actions
+ 
+     agents_guide = repo_root / "AGENTS.md"
+-    claude_guide = choose_claude_guide_path(repo_root)
+-    existing_claude_guides = [
+-        repo_root / rel_path
+-        for rel_path in CLAUDE_GUIDE_CANDIDATES
+-        if (repo_root / rel_path).exists()
+-    ]
+-
+-    want_codex = install_subagents in {"both", "codex"}
+-    want_claude = install_subagents in {"both", "claude"}
+-
+-    include_agents = guides in {"both", "agents"}
+-    include_claude = guides in {"both", "claude"}
+-
+-    if guides == "auto":
+-        include_agents = agents_guide.exists()
+-        include_claude = bool(existing_claude_guides)
+-
+-        if want_codex and not include_agents:
+-            include_agents = True
+-        if want_claude and not include_claude:
+-            include_claude = True
+-
+-        if not include_agents and not include_claude:
+-            include_agents = True
+-            include_claude = True
+-
+-    guide_targets: list[tuple[Path, str]] = []
+-    if include_agents:
+-        guide_targets.append((agents_guide, load_text_template("managed-block-agents.md.tmpl")))
+-    if include_claude:
+-        guide_targets.append((claude_guide, load_text_template("managed-block-claude.md.tmpl")))
+-
+-    for path, template in guide_targets:
+-        action = upsert_managed_block(path, template)
+-        actions[str(path)] = action
++    actions[str(agents_guide)] = upsert_managed_block(
++        agents_guide, load_text_template("managed-block-agents.md.tmpl")
++    )
+ 
+     return actions
+ 
+@@ -447,6 +395,15 @@
+     repo_root = discover_repo_root(current)
+     task_id = validate_task_id(args.task_id)
+     task_dir = repo_root / ".agent" / "tasks" / task_id
++    check_task_paths(task_dir, repo_root)
++    if args.guides != "none":
++        check_destination(repo_root / "AGENTS.md", repo_root)
++    if args.install_subagents == "codex":
++        for template_name in CODEX_AGENT_TEMPLATES:
++            check_destination(
++                repo_root / ".codex" / "agents" / template_name.removesuffix(".tmpl"),
++                repo_root,
++            )
+     task_dir.mkdir(parents=True, exist_ok=True)
+     mark_init_in_progress(task_dir)
+     try:
+@@ -454,12 +411,10 @@
+         created_files = install_task_files(task_dir, context, force=args.force)
+ 
+         installed_agents: list[str] = []
+-        if args.install_subagents in {"both", "codex"}:
++        if args.install_subagents == "codex":
+             installed_agents.extend(install_codex_agents(repo_root))
+-        if args.install_subagents in {"both", "claude"}:
+-            installed_agents.extend(install_claude_agents(repo_root))
+-
+-        guide_actions = update_guides(repo_root, args.guides, args.install_subagents)
++
++        guide_actions = update_guides(repo_root, args.guides)
+ 
+         result = {
+             "repo_root": str(repo_root),
+@@ -480,6 +435,7 @@
+     repo_root = discover_repo_root(current)
+     task_id = validate_task_id(args.task_id)
+     task_dir = repo_root / ".agent" / "tasks" / task_id
++    check_task_paths(task_dir, repo_root)
+ 
+     missing = [str(task_dir / rel) for rel in REQUIRED_TASK_FILES if not (task_dir / rel).exists()]
+     errors: list[str] = []
+@@ -529,6 +485,7 @@
+     repo_root = discover_repo_root(current)
+     task_id = validate_task_id(args.task_id)
+     task_dir = repo_root / ".agent" / "tasks" / task_id
++    check_task_paths(task_dir, repo_root)
+ 
+     report: dict[str, Any] = {
+         "repo_root": str(repo_root),
+@@ -587,15 +544,15 @@
+     init_parser.add_argument("--repo-root", help="Optional working directory inside the repo. Defaults to the current directory.")
+     init_parser.add_argument(
+         "--guides",
+-        choices=["auto", "agents", "claude", "both", "none"],
+-        default="auto",
+-        help="Which guide files to create or update.",
++        choices=["auto", "agents", "none"],
++        default="none",
++        help="Opt in to a managed AGENTS.md block; default leaves project guidance unchanged.",
+     )
+     init_parser.add_argument(
+         "--install-subagents",
+-        choices=["both", "codex", "claude", "none"],
+-        default="both",
+-        help="Which project-scoped subagent sets to install or refresh.",
++        choices=["codex", "none"],
++        default="none",
++        help="Opt in to Codex agent templates; differing existing files are never overwritten.",
+     )
+     init_parser.add_argument("--force", action="store_true", help="Overwrite existing task artifact templates.")
+     init_parser.set_defaults(func=cmd_init)
+--- a/scripts/verify_package.py
++++ b/scripts/verify_package.py
+@@ -1,374 +1,216 @@
+ #!/usr/bin/env python3
+-"""Smoke-test the repo-task-proof-loop skill package."""
++"""Exercise the Codex package in disposable repositories; no model calls."""
+ 
+ from __future__ import annotations
+ 
++import argparse
+ import json
++import os
+ from pathlib import Path
+-import re
+ import subprocess
+ import sys
+ import tempfile
+-
+-
+-REQUIRED_FRONTMATTER_KEYS = {"name", "description"}
+-
+-
+-def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
+-    text = path.read_text(encoding="utf-8")
+-    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.DOTALL)
+-    if not match:
+-        raise ValueError("SKILL.md must start with YAML frontmatter.")
+-    frontmatter_text, body = match.groups()
+-    data: dict[str, str] = {}
+-    current_key: str | None = None
+-    for raw_line in frontmatter_text.splitlines():
+-        line = raw_line.rstrip()
+-        if not line.strip():
+-            continue
+-        if re.match(r"^[A-Za-z0-9_-]+:", line):
+-            key, value = line.split(":", 1)
+-            data[key.strip()] = value.strip().strip('"')
+-            current_key = key.strip()
+-        elif current_key and line.startswith("  "):
+-            # Ignore nested metadata content for this smoke test.
+-            continue
+-    return data, body
+-
+-
+-def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+-    return subprocess.run(cmd, cwd=cwd, check=True, text=True, capture_output=True)
++import unittest
++
++
++SKILL_ROOT = Path(__file__).resolve().parent.parent
++
++
++class PackageTests(unittest.TestCase):
++    def setUp(self) -> None:
++        self.temp = tempfile.TemporaryDirectory(prefix="proof-loop-check-")
++        self.addCleanup(self.temp.cleanup)
++        self.repo = Path(self.temp.name)
++        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
++
++    def command(self, verb: str, *args: str) -> subprocess.CompletedProcess[str]:
++        return subprocess.run(
++            [sys.executable, str(SKILL_ROOT / "scripts/task_loop.py"), verb,
++             "--task-id", "demo", *args],
++            cwd=self.repo, text=True, capture_output=True, timeout=20,
++        )
++
++    def init(self, *args: str) -> dict:
++        result = self.command("init", "--task-text", "Implement a demo.", *args)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        return json.loads(result.stdout)
++
++    def test_frontmatter_and_explicit_activation(self) -> None:
++        text = (SKILL_ROOT / "SKILL.md").read_text()
++        self.assertTrue(text.startswith("---\n"))
++        self.assertIn("\nname: repo-task-proof-loop\n", text)
++        metadata = (SKILL_ROOT / "agents/openai.yaml").read_text()
++        self.assertIn("allow_implicit_invocation: false", metadata)
++
++    def test_default_init_only_creates_task_artifacts(self) -> None:
++        result = self.init()
++        self.assertEqual(result["guide_file_actions"], {})
++        self.assertEqual(result["installed_or_refreshed_subagent_files"], [])
++        self.assertEqual({p.name for p in self.repo.iterdir()}, {".git", ".agent"})
++        task = self.repo / ".agent/tasks/demo"
++        for name in ("spec.md", "evidence.md", "evidence.json", "verdict.json",
++                     "problems.md", "raw/build.txt", "raw/screenshot-1.png"):
++            self.assertTrue((task / name).is_file(), name)
++
++    def test_existing_guidance_and_task_survive_default_rerun(self) -> None:
++        guide = self.repo / "AGENTS.md"
++        guide.write_text("# Existing project rules\n")
++        self.init()
++        spec = self.repo / ".agent/tasks/demo/spec.md"
++        spec.write_text("# Approved specification\n")
++        self.init()
++        self.assertEqual(guide.read_text(), "# Existing project rules\n")
++        self.assertEqual(spec.read_text(), "# Approved specification\n")
++
++    def test_placeholder_validation_does_not_mean_task_passed(self) -> None:
++        self.init()
++        validation = self.command("validate")
++        self.assertEqual(validation.returncode, 0, validation.stderr)
++        self.assertTrue(json.loads(validation.stdout)["valid"])
++        status = json.loads(self.command("status").stdout)
++        self.assertEqual(status["evidence_overall_status"], "UNKNOWN")
++        self.assertEqual(status["verdict_overall_status"], "UNKNOWN")
++
++    def test_optional_codex_install_and_guide_are_separate(self) -> None:
++        result = self.init("--install-subagents", "codex")
++        self.assertEqual(len(result["installed_or_refreshed_subagent_files"]), 4)
++        self.assertFalse((self.repo / "AGENTS.md").exists())
++        guide = self.repo / "AGENTS.md"
++        guide.write_text("# Keep this rule\n")
++        self.init("--guides", "agents")
++        self.init("--guides", "agents")
++        self.assertTrue(guide.read_text().startswith("# Keep this rule\n"))
++        self.assertEqual(guide.read_text().count("<!-- repo-task-proof-loop:start -->"), 1)
++        self.assertEqual({p.name for p in self.repo.iterdir()},
++                         {".git", ".agent", ".codex", "AGENTS.md"})
++
++    def test_differing_agent_is_not_overwritten(self) -> None:
++        self.init("--install-subagents", "codex")
++        agent = self.repo / ".codex/agents/task-builder.toml"
++        agent.write_text("# User-maintained agent\n")
++        result = self.command("init", "--install-subagents", "codex", "--force")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertIn("Existing agent differs", result.stderr)
++        self.assertEqual(agent.read_text(), "# User-maintained agent\n")
++
++    def test_guidance_seed_does_not_import_other_products(self) -> None:
++        (self.repo / "AGENTS.md").write_text("# Rules\n")
++        (self.repo / "AGENTS.override.md").write_text("# Overrides\n")
++        (self.repo / "CLAUDE.md").write_text("# Other product\n")
++        self.init()
++        spec = (self.repo / ".agent/tasks/demo/spec.md").read_text()
++        self.assertIn("- AGENTS.override.md", spec)
++        self.assertIn("- AGENTS.md", spec)
++        self.assertNotIn("- CLAUDE.md", spec)
++
++    def test_init_sentinel_blocks_validation(self) -> None:
++        self.init()
++        sentinel = self.repo / ".agent/tasks/demo/.init-in-progress"
++        sentinel.write_text("active\n")
++        validation = self.command("validate")
++        self.assertNotEqual(validation.returncode, 0)
++        self.assertTrue(json.loads(validation.stdout)["init_in_progress"])
++        self.assertTrue(json.loads(self.command("status").stdout)["init_in_progress"])
++
++    def test_corrupt_evidence_fails_validation(self) -> None:
++        self.init()
++        (self.repo / ".agent/tasks/demo/evidence.json").write_text("{broken")
++        result = self.command("validate")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertFalse(json.loads(result.stdout)["valid"])
++
++    def test_invalid_task_id_does_not_create_artifacts(self) -> None:
++        result = self.command("init", "--task-id", "../escape")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertFalse((self.repo / ".agent").exists())
++
++    def test_status_is_read_only_when_uninitialized(self) -> None:
++        before = {p.name for p in self.repo.iterdir()}
++        result = self.command("status")
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertFalse(json.loads(result.stdout)["exists"])
++        self.assertEqual(before, {p.name for p in self.repo.iterdir()})
++
++    def test_symlink_destinations_are_rejected_before_writes(self) -> None:
++        cases = [
++            (".agent", True, ()),
++            (".agent/tasks", True, ()),
++            (".agent/tasks/demo", True, ()),
++            (".agent/tasks/demo/raw", True, ()),
++            (".agent/tasks/demo/evidence.json", False, ()),
++            (".agent/tasks/demo/.init-in-progress", False, ()),
++            ("AGENTS.md", False, ("--guides", "agents")),
++            (".codex", True, ("--install-subagents", "codex")),
++            (".codex/agents/task-builder.toml", False, ("--install-subagents", "codex")),
++        ]
++        for relative, directory, options in cases:
++            with self.subTest(path=relative), tempfile.TemporaryDirectory() as temporary:
++                self.repo = Path(temporary) / "repo"
++                self.repo.mkdir()
++                subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
++                outside = Path(temporary) / "outside"
++                outside.mkdir()
++                precious = outside / "keep"
++                precious.write_text("user state\n")
++                link = self.repo / relative
++                link.parent.mkdir(parents=True, exist_ok=True)
++                link.symlink_to(outside if directory else precious)
++                result = self.command("init", *options)
++                self.assertNotEqual(result.returncode, 0)
++                self.assertIn("symlink", result.stderr)
++                self.assertEqual(precious.read_text(), "user state\n")
++                self.assertEqual({p.name for p in outside.iterdir()}, {"keep"})
++                self.assertFalse((self.repo / ".agent/tasks/demo/spec.md").exists())
++
++    def test_dangling_artifact_link_is_rejected(self) -> None:
++        task = self.repo / ".agent/tasks/demo"
++        task.mkdir(parents=True)
++        target = self.repo / "not-created"
++        (task / "evidence.json").symlink_to(target)
++        result = self.command("init")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertFalse(target.exists())
++        self.assertFalse((task / "spec.md").exists())
++
++    def test_existing_init_marker_is_preserved(self) -> None:
++        task = self.repo / ".agent/tasks/demo"
++        task.mkdir(parents=True)
++        marker = task / ".init-in-progress"
++        marker.write_text("another initializer\n")
++        result = self.command("init")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertEqual(marker.read_text(), "another initializer\n")
++        self.assertFalse((task / "spec.md").exists())
++
++    def test_force_does_not_modify_hard_link_target(self) -> None:
++        task = self.repo / ".agent/tasks/demo"
++        task.mkdir(parents=True)
++        target = self.repo / "other-user-file"
++        target.write_text("preserve\n")
++        os.link(target, task / "spec.md")
++        result = self.command("init", "--force")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertEqual(target.read_text(), "preserve\n")
++
++    def test_read_commands_reject_redirected_task_directory(self) -> None:
++        (self.repo / ".agent").symlink_to(self.repo / ".git")
++        for command in ("validate", "status"):
++            with self.subTest(command=command):
++                result = self.command(command)
++                self.assertNotEqual(result.returncode, 0)
++                self.assertIn("symlink", result.stderr)
+ 
+ 
+ def main() -> int:
+-    skill_root = Path(__file__).resolve().parent.parent
+-    skill_md = skill_root / "SKILL.md"
+-    task_loop = skill_root / "scripts" / "task_loop.py"
+-    codex_wording_files = [
+-        skill_root / "SKILL.md",
+-        skill_root / "README.md",
+-        skill_root / "references" / "REFERENCE.md",
+-        skill_root / "references" / "SUBAGENTS.md",
+-        skill_root / "references" / "COMMANDS.md",
+-    ]
+-
+-    frontmatter, body = parse_frontmatter(skill_md)
+-    missing = sorted(REQUIRED_FRONTMATTER_KEYS - set(frontmatter.keys()))
+-    if missing:
+-        raise SystemExit(f"SKILL.md frontmatter missing keys: {', '.join(missing)}")
+-
+-    if frontmatter["name"] != skill_root.name:
+-        raise SystemExit("SKILL.md name must match the parent directory name.")
+-
+-    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", frontmatter["name"]):
+-        raise SystemExit("SKILL.md name does not match the allowed skill-name pattern.")
+-
+-    if not body.strip():
+-        raise SystemExit("SKILL.md body must not be empty.")
+-
+-    for path in codex_wording_files:
+-        content = path.read_text(encoding="utf-8")
+-        if "list_agents" in content:
+-            raise SystemExit(f"Codex-facing wording should prefer public child-thread inventory surfaces over raw list_agents mentions: {path}")
+-        if "automatic bounded fan-out" in content or "without waiting for a separate user request" in content:
+-            raise SystemExit(f"Codex-facing wording should not claim automatic Codex child spawning without explicit user authorization: {path}")
+-        if "Users should not need to request subagents" in content or "user should not need to request subagents" in content:
+-            raise SystemExit(f"Codex-facing wording should not imply that Codex child spawning requires no explicit user authorization: {path}")
+-
+-    if "up to 3 built-in `explorer` children" not in body:
+-        raise SystemExit("SKILL.md should cap the Codex explorer fan-out wording at up to 3 parallel helpers.")
+-    if "validate`, `status`" not in body:
+-        raise SystemExit("SKILL.md should explicitly serialize validate and status after init.")
+-    if "explicitly asks for delegation or parallel agent work" not in body:
+-        raise SystemExit("SKILL.md should state that Codex child spawning requires explicit user authorization for delegation or parallel agent work.")
+-    if "The user should not need to name specific child roles or slash commands." not in body:
+-        raise SystemExit("SKILL.md should keep the Codex UX simple even when delegation is authorized.")
+-
+-    with tempfile.TemporaryDirectory(prefix="repo-task-proof-loop-") as tmp_dir:
+-        repo = Path(tmp_dir) / "demo-repo"
+-        repo.mkdir(parents=True)
+-        run(["git", "init"], repo)
+-
+-        init_result = run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "init",
+-                "--task-id",
+-                "demo-task",
+-                "--task-text",
+-                "Implement a demo task.",
+-                "--guides",
+-                "both",
+-                "--install-subagents",
+-                "both",
+-            ],
+-            repo,
+-        )
+-        validate_result = subprocess.run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "validate",
+-                "--task-id",
+-                "demo-task",
+-            ],
+-            cwd=repo,
+-            text=True,
+-            capture_output=True,
+-        )
+-        status_result = run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "status",
+-                "--task-id",
+-                "demo-task",
+-            ],
+-            repo,
+-        )
+-
+-        validate_json = json.loads(validate_result.stdout)
+-        if validate_result.returncode != 0 or not validate_json.get("valid"):
+-            raise SystemExit(f"Validation failed: {validate_result.stdout}\n{validate_result.stderr}")
+-
+-        init_sentinel = repo / ".agent" / "tasks" / "demo-task" / ".init-in-progress"
+-        init_sentinel.write_text("smoke-test-init-in-progress\n", encoding="utf-8")
+-        race_validate_result = subprocess.run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "validate",
+-                "--task-id",
+-                "demo-task",
+-            ],
+-            cwd=repo,
+-            text=True,
+-            capture_output=True,
+-        )
+-        race_status_result = run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "status",
+-                "--task-id",
+-                "demo-task",
+-            ],
+-            repo,
+-        )
+-        init_sentinel.unlink()
+-
+-        race_validate_json = json.loads(race_validate_result.stdout)
+-        race_status_json = json.loads(race_status_result.stdout)
+-        if race_validate_result.returncode == 0:
+-            raise SystemExit("Expected validate to fail while the init sentinel is present.")
+-        if not race_validate_json.get("init_in_progress"):
+-            raise SystemExit("Expected validate output to report init_in_progress when the init sentinel is present.")
+-        if not any("still in progress" in error for error in race_validate_json.get("errors", [])):
+-            raise SystemExit("Expected validate to report that initialization is still in progress.")
+-        if not race_status_json.get("init_in_progress"):
+-            raise SystemExit("Expected status output to report init_in_progress when the init sentinel is present.")
+-
+-        required_paths = [
+-            repo / ".agent" / "tasks" / "demo-task" / "spec.md",
+-            repo / ".agent" / "tasks" / "demo-task" / "evidence.json",
+-            repo / ".agent" / "tasks" / "demo-task" / "verdict.json",
+-            repo / ".agent" / "tasks" / "demo-task" / "raw" / "screenshot-1.png",
+-            repo / ".codex" / "agents" / "task-spec-freezer.toml",
+-            repo / ".claude" / "agents" / "task-spec-freezer.md",
+-            repo / "AGENTS.md",
+-            repo / "CLAUDE.md",
+-        ]
+-        for path in required_paths:
+-            if not path.exists():
+-                raise SystemExit(f"Expected path missing after init: {path}")
+-
+-        codex_agent_files = [
+-            repo / ".codex" / "agents" / "task-spec-freezer.toml",
+-            repo / ".codex" / "agents" / "task-builder.toml",
+-            repo / ".codex" / "agents" / "task-verifier.toml",
+-            repo / ".codex" / "agents" / "task-fixer.toml",
+-        ]
+-        for path in codex_agent_files:
+-            content = path.read_text(encoding="utf-8")
+-            if "CLAUDE.md" in content:
+-                raise SystemExit(f"Codex agent template should not mention CLAUDE.md: {path}")
+-
+-        managed_agents = (repo / "AGENTS.md").read_text(encoding="utf-8")
+-        if "explorer" not in managed_agents or "worker" not in managed_agents:
+-            raise SystemExit("Expected generated AGENTS.md managed block to mention Codex explorer/worker fan-out guidance.")
+-        if "before or after spec freeze" not in managed_agents or "only after the spec is frozen" not in managed_agents:
+-            raise SystemExit("Expected generated AGENTS.md managed block to distinguish explorer timing from worker timing.")
+-        if "explicitly asked for delegation or parallel agent work" not in managed_agents:
+-            raise SystemExit("Expected generated AGENTS.md managed block to require explicit user authorization before Codex fan-out.")
+-
+-        generated_builder = (repo / ".codex" / "agents" / "task-builder.toml").read_text(encoding="utf-8")
+-        if "integration owner" not in generated_builder:
+-            raise SystemExit("Expected generated Codex task-builder template to describe the integration-owner role.")
+-
+-        commands_reference = (skill_root / "references" / "COMMANDS.md").read_text(encoding="utf-8")
+-        if "Codex adaptive fan-out path" not in commands_reference:
+-            raise SystemExit("Expected COMMANDS.md to document the Codex adaptive fan-out orchestration path.")
+-        if "`/agent`" not in commands_reference or "child-thread inventory" not in commands_reference:
+-            raise SystemExit("Expected COMMANDS.md to mention public child-thread inventory guidance for Codex child reuse.")
+-        if "up to 3 built-in `explorer` children" not in commands_reference:
+-            raise SystemExit("Expected COMMANDS.md to cap the Codex explorer fan-out wording at up to 3 parallel helpers.")
+-        if "Spawn one built-in `explorer` child" not in commands_reference or "Spawn one built-in `worker` child" not in commands_reference:
+-            raise SystemExit("Expected COMMANDS.md to provide first-class helper prompts for built-in explorer and worker roles.")
+-        if "Do not run `status` or `validate` in parallel with `init`" not in commands_reference:
+-            raise SystemExit("Expected COMMANDS.md to document that validate and status must not race init.")
+-        if "only after Codex delegation is explicitly authorized by the user" not in commands_reference:
+-            raise SystemExit("Expected COMMANDS.md to require explicit user authorization before Codex adaptive helpers are used.")
+-
+-        readme = (skill_root / "README.md").read_text(encoding="utf-8")
+-        if "Do not run `validate` or `status` in parallel with `init`." not in readme:
+-            raise SystemExit("Expected README.md to document that validate and status must not race init.")
+-        if "explicitly authorized to use subagents and bounded parallel helper work" not in readme:
+-            raise SystemExit("Expected README.md to carry explicit delegation authorization inside the Do Task prompt.")
+-        if "Do Task" not in readme:
+-            raise SystemExit("Expected README.md to expose the slim Do Task prompt surface.")
+-        if "initialize it first and then continue automatically after init completes" not in readme:
+-            raise SystemExit("Expected README.md to make Do Task the init-if-needed end-to-end path.")
+-
+-        reference = (skill_root / "references" / "REFERENCE.md").read_text(encoding="utf-8")
+-        if "init_in_progress: true" not in reference:
+-            raise SystemExit("Expected REFERENCE.md to explain the retry-later init_in_progress status signal.")
+-        if "Only after the user has explicitly asked for sub-agents, delegation, or parallel agent work" not in reference:
+-            raise SystemExit("Expected REFERENCE.md to require explicit user authorization before Codex bounded fan-out.")
+-
+-        skill_prompt = (skill_root / "agents" / "openai.yaml").read_text(encoding="utf-8")
+-        if "Do not run validate or status until init has fully finished." not in skill_prompt:
+-            raise SystemExit("Expected Codex default prompt metadata to serialize validate/status after init.")
+-        if "explorer" not in skill_prompt or "worker" not in skill_prompt:
+-            raise SystemExit("Expected Codex default prompt metadata to mention explorer/worker adaptive fan-out guidance.")
+-        if "user explicitly asks for sub-agents, delegation, or parallel agent work" not in skill_prompt:
+-            raise SystemExit("Expected Codex default prompt metadata to require explicit user authorization before child spawning.")
+-
+-        claude_auto_repo = Path(tmp_dir) / "claude-auto-repo"
+-        claude_auto_repo.mkdir(parents=True)
+-        run(["git", "init"], claude_auto_repo)
+-        (claude_auto_repo / "AGENTS.md").write_text("# Existing AGENTS\n", encoding="utf-8")
+-        run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "init",
+-                "--task-id",
+-                "demo-task",
+-                "--task-text",
+-                "Implement a demo task.",
+-                "--guides",
+-                "auto",
+-                "--install-subagents",
+-                "claude",
+-            ],
+-            claude_auto_repo,
+-        )
+-        if not (claude_auto_repo / "CLAUDE.md").exists():
+-            raise SystemExit("Expected CLAUDE.md to be created for Claude installs in --guides auto mode.")
+-
+-        codex_auto_repo = Path(tmp_dir) / "codex-auto-repo"
+-        codex_auto_repo.mkdir(parents=True)
+-        run(["git", "init"], codex_auto_repo)
+-        (codex_auto_repo / "CLAUDE.md").write_text("# Existing CLAUDE\n", encoding="utf-8")
+-        run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "init",
+-                "--task-id",
+-                "demo-task",
+-                "--task-text",
+-                "Implement a demo task.",
+-                "--guides",
+-                "auto",
+-                "--install-subagents",
+-                "codex",
+-            ],
+-            codex_auto_repo,
+-        )
+-        if not (codex_auto_repo / "AGENTS.md").exists():
+-            raise SystemExit("Expected AGENTS.md to be created for Codex installs in --guides auto mode.")
+-
+-        guidance_repo = Path(tmp_dir) / "guidance-repo"
+-        guidance_repo.mkdir(parents=True)
+-        run(["git", "init"], guidance_repo)
+-        (guidance_repo / "AGENTS.md").write_text("# Root AGENTS\n", encoding="utf-8")
+-        (guidance_repo / "AGENTS.override.md").write_text("# Root AGENTS override\n", encoding="utf-8")
+-        nested_rule = guidance_repo / ".claude" / "rules" / "nested" / "workflow.md"
+-        nested_rule.parent.mkdir(parents=True, exist_ok=True)
+-        nested_rule.write_text("# Nested workflow rule\n", encoding="utf-8")
+-        run(
+-            [
+-                sys.executable,
+-                str(task_loop),
+-                "init",
+-                "--task-id",
+-                "demo-task",
+-                "--task-text",
+-                "Implement a demo task.",
+-                "--guides",
+-                "none",
+-                "--install-subagents",
+-                "none",
+-            ],
+-            guidance_repo,
+-        )
+-        guidance_spec = (guidance_repo / ".agent" / "tasks" / "demo-task" / "spec.md").read_text(encoding="utf-8")
+-        override_marker = "- AGENTS.override.md"
+-        agents_marker = "- AGENTS.md"
+-        rule_marker = "- .claude/rules/nested/workflow.md"
+-        override_index = guidance_spec.find(override_marker)
+-        agents_index = guidance_spec.find(agents_marker)
+-        if override_index == -1 or agents_index == -1:
+-            raise SystemExit("Expected guidance seeding to include AGENTS.override.md and AGENTS.md.")
+-        if override_index > agents_index:
+-            raise SystemExit("Expected AGENTS.override.md to appear before AGENTS.md in seeded guidance.")
+-        if rule_marker not in guidance_spec:
+-            raise SystemExit("Expected seeded guidance to include nested .claude/rules/**/*.md files.")
+-
+-        print(json.dumps(
+-            {
+-                "skill_root": str(skill_root),
+-                "frontmatter_name": frontmatter["name"],
+-                "init_stdout": json.loads(init_result.stdout),
+-                "validate_stdout": validate_json,
+-                "status_stdout": json.loads(status_result.stdout),
+-                "init_race_checks": {
+-                    "validate_reports_init_in_progress": race_validate_json.get("init_in_progress") is True,
+-                    "validate_reports_still_in_progress_error": any(
+-                        "still in progress" in error for error in race_validate_json.get("errors", [])
+-                    ),
+-                    "status_reports_init_in_progress": race_status_json.get("init_in_progress") is True,
+-                },
+-                "claude_auto_guides": {
+-                    "agents_md": str(claude_auto_repo / "AGENTS.md"),
+-                    "claude_md": str(claude_auto_repo / "CLAUDE.md"),
+-                },
+-                "codex_auto_guides": {
+-                    "agents_md": str(codex_auto_repo / "AGENTS.md"),
+-                    "claude_md": str(codex_auto_repo / "CLAUDE.md"),
+-                },
+-                "guidance_seed_checks": {
+-                    "override_before_agents": True,
+-                    "nested_rule_detected": str(nested_rule),
+-                },
+-                "codex_adaptive_orchestration_checks": {
+-                    "managed_agents_mentions_parallel_roles": True,
+-                    "managed_agents_distinguishes_explorer_vs_worker_timing": True,
+-                    "managed_agents_require_explicit_user_authorization": True,
+-                    "builder_mentions_integration_owner": True,
+-                    "default_prompt_mentions_parallel_roles": True,
+-                    "default_prompt_requires_explicit_user_authorization": True,
+-                    "commands_reference_mentions_adaptive_fan_out": True,
+-                    "commands_reference_includes_builtin_helper_prompts": True,
+-                    "readme_keeps_internal_role_selection_simple": True,
+-                },
+-                "result": "PASS",
+-            },
+-            indent=2,
+-        ))
+-    return 0
++    global SKILL_ROOT
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--skill-root", type=Path, default=SKILL_ROOT)
++    args = parser.parse_args()
++    SKILL_ROOT = args.skill_root.resolve()
++    result = unittest.TextTestRunner(verbosity=2).run(
++        unittest.defaultTestLoader.loadTestsFromTestCase(PackageTests)
++    )
++    return 0 if result.wasSuccessful() else 1
+ 
+ 
+ if __name__ == "__main__":

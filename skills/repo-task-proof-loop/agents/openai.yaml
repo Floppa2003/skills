@@ -1,0 +1,6 @@
+interface:
+  display_name: "Repo Task Proof Loop"
+  short_description: "Track task requirements, evidence, and independent acceptance."
+  default_prompt: "Use $repo-task-proof-loop for this task. Reuse its canonical spec and plan, initialize only task artifacts when needed, collect current evidence, and use one read-only verifier started with fork_context=false and reused for corrections. Do not change project instructions or agent configuration without approval. Report unresolved requirements rather than treating a retry limit or structural validation as success."
+policy:
+  allow_implicit_invocation: false

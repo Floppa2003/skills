@@ -1,8 +1,8 @@
 # Scoped Re-Review Prompt Template
 
-Use this template when dispatching a re-review after a fix round. The
-re-reviewer verifies the findings were addressed and checks the fix diff for
-new breakage. It is not a fresh review — the full review already happened.
+Use the same reviewer after a fix round. `REPAIR CHECK` verifies known fixes
+and new breakage; `TASK ACCEPTANCE` separately verifies original requirements
+before completion. Closing repairs alone does not accept the task.
 
 **Purpose:** Verify each finding from the previous review was addressed, and
 that the fix itself broke nothing.
@@ -14,8 +14,8 @@ Subagent (general-purpose):
          model silently inherits the session's most expensive one]
   prompt: |
     You are re-reviewing one task's fix round. A previous review produced
-    findings; an implementer has attempted to fix them. Your job is to
-    verdict each finding and inspect the fix diff — nothing else.
+    findings; an implementer has attempted to fix them.
+    Review mode: [REVIEW_MODE: REPAIR CHECK or TASK ACCEPTANCE].
 
     ## The Task
 
@@ -54,12 +54,14 @@ Subagent (general-purpose):
 
     ## Scope
 
-    Your scope is the findings list and the fix diff. Verdict every finding.
-    Inspect the fix diff for new problems the fix itself introduced. Do NOT
-    re-review code the fix did not touch: if you notice an issue entirely
-    outside the fix diff, report it under Out-of-Scope Observations — it
-    does not block this task and does not extend the loop. A broad
-    whole-branch review happens after all tasks are complete.
+    In REPAIR CHECK, verdict each finding and inspect the fix diff for new
+    breakage. Record observations outside that diff at their actual severity;
+    fix scope does not downgrade a task-relevant blocker.
+
+    In TASK ACCEPTANCE, also check every original task-critical requirement
+    and previously unreported in-scope defects. Read unchanged code and
+    inspect or rerun evidence where needed. Unknown or failed material
+    requirements prevent acceptance even when all known repairs succeeded.
 
     ## Tests
 
@@ -91,16 +93,22 @@ Subagent (general-purpose):
 
     ### Out-of-Scope Observations
 
-    Issues you noticed entirely outside the fix diff. Non-blocking; the
-    controller ledgers these for the final review. "None" if none.
+    Issues you noticed entirely outside the fix diff, with severity,
+    evidence, and affected requirement. "None" if none.
 
     ### Verdict
 
     **Fix round:** [All findings addressed, no new Critical/Important
     breakage | Findings remain open] — list the open ones.
+
+    In TASK ACCEPTANCE also return requirement IDs with PASS/FAIL/UNKNOWN,
+    evidence, tested revision and remaining gaps, followed by a separate
+    **Task acceptance:** [Accepted | Incomplete]. All material requirements
+    must be proven and no Critical/Important finding may remain unresolved.
 ```
 
 **Placeholders:**
+- `[REVIEW_MODE]` — REPAIR CHECK during fixes; TASK ACCEPTANCE before completion
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection; scoped
   re-reviews of small fix diffs take a cheap-to-mid tier
 - `[BRIEF_FILE]` — the task brief file (same file the implementer worked from)

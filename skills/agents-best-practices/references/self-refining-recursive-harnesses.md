@@ -355,6 +355,18 @@ Use this transaction:
 
 Validation should be independent of the proposer for consequential changes. At minimum, use deterministic validators plus held-out cases the proposing model did not select.
 
+### Optional contrastive probe
+
+When testing reusable harness edits, compare a general-purpose candidate and
+a domain-specific candidate separately against the same frozen baseline,
+tasks, model/tool versions, and budgets. Use observed differences to propose
+their composition, then evaluate that composition too: individual gains need
+not combine. Keep the unchanged baseline eligible; reject or quarantine
+inconclusive variants. Promotion still requires the existing held-out,
+authority, cost, and rollback gates. This bounded recipe does not require
+installing [Harness2](https://github.com/google-research/harness2), whose
+propose-probe-compose method motivates the comparison.
+
 ## Immutable authority boundary
 
 Self-refinement must not be self-authorization. The editable ledger cannot modify:

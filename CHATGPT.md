@@ -371,6 +371,12 @@ Decision framework for parsing structured text (quizzes, forms, invoices, receip
 
 Entrypoint: `skills/regex-vs-llm-structured-text/SKILL.md`
 
+## repo-task-proof-loop
+
+Use when explicitly asked to run Repo Task Proof Loop for a substantial coding task with repo-local acceptance criteria, evidence, independent verification, and corrective work.
+
+Entrypoint: `skills/repo-task-proof-loop/SKILL.md`
+
 ## requesting-code-review
 
 Use when completing tasks, implementing major features, or before merging to verify work meets requirements
