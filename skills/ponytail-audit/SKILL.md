@@ -60,6 +60,11 @@ tested and fixed later. This is a report the user asked for, so give it in full.
   wrong result". No case, no finding.
 - Before calling code unused, grep the whole tree for it, including tests,
   fixtures, config, and string or dynamic references.
+- Before calling code or config removable, trace relevant external consumers.
+  For runtime-configured paths, check current configuration and available
+  telemetry with its coverage window; no observed use is not proof.
+  Preserve operational safeguards and emergency paths unless their retirement
+  is explicitly justified. Missing evidence is a gap, not permission to delete.
 - A shortcut marked with a `shortcut:` (or older `ponytail:`) comment that names its limit is a
   decision, not a finding, unless the expected load already crosses it.
 - Propose the smallest fix that works. Prefer fixes that delete code. Never
