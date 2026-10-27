@@ -84,6 +84,5 @@ environment. Only install source revisions you are willing to trust.
 After review and merge, deploy the canonical `main` state to Codex:
 
 ```bash
-python3 skill_updater/update_skills.py deploy --check
-python3 skill_updater/update_skills.py deploy --apply
+skill_updater/sync_and_deploy.sh
 ```

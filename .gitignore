@@ -10,3 +10,4 @@ skill_updater/backups/
 skill_updater/compatibility/
 skill_updater/logs/
 skill_updater/tmp/
+skill_updater/runtime-tools/
