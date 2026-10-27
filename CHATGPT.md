@@ -449,6 +449,12 @@ Run an extremely strict maintainability review for abstraction quality, giant fi
 
 Entrypoint: `skills/thermo-nuclear-code-quality-review/SKILL.md`
 
+## ub-mode
+
+Follow the reduced principles when writing or changing code. Every change follows First Make it Work, then Then Make it Right, then Follow Practice. Use when the user runs /ub-mode or asks for the reduced principles.
+
+Entrypoint: `skills/ub-mode/SKILL.md`
+
 ## ui-ux-pro-max
 
 UI/UX design intelligence for web, mobile, and desktop. This skill should be used when designing, building, reviewing, or fixing interfaces, including pages, components, design systems, accessibility, interaction, responsive layout, typography, color, charts, and stack-specific UI implementation. Searchable local data: 79 searchable styles (50 active), 192 product palettes and reasoning profiles, 74 font pairings, 119 UX guidelines, 105 icons, 17 GSAP presets, 25 chart types, and 22 stacks.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ub Mode"
+  short_description: "Help with Ub Mode tasks and workflows"
+  default_prompt: "Use $ub-mode to help with a relevant task."

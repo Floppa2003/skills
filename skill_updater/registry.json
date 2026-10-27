@@ -1300,6 +1300,25 @@
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "ub-mode",
+      "repo": "unclebob/ub-mode",
+      "path": ".",
+      "ref": "master",
+      "adapter": "repo_root",
+      "overlay": null,
+      "enabled": true,
+      "installed_commit": "57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f",
+      "installed_hash": "19679d2be091f88eb5ba01fc82447ba9e2f51a5fb32d7cb343f59eb511fc3bd3",
+      "skip_reason": null,
+      "required_paths": [
+        "SKILL.md",
+        "README.md",
+        "agents/openai.yaml"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }
