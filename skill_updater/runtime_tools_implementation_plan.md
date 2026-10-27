@@ -88,12 +88,16 @@ Files: registry.json, scripts/validate_repository.py,
   wire repository validation, strict local audit and read-only runtime CI.
 - [x] Run the complete updater suite, manifest check, repository validation,
   real tool probe and deployment preflight.
-- [ ] Independently review the original scope and resolve all Critical/Important
+- [x] Independently review the original scope and resolve all Critical/Important
   findings, rechecking corrections with the same verifier.
-- [ ] With release authorization, publish PR, pass CI, merge, deploy only from
-  origin/main and verify remote source, all skill hashes and live tool state.
-- [ ] Finalize this checklist and remove task-owned ephemeral resources while
-  retaining evidence and preserving the primary checkout's unrelated changes.
+
+## Release Conditions
+
+After independent acceptance and authorized PR publication, require passing CI,
+merge, deployment only from origin/main, and verification of the remote source,
+all skill hashes and live tool state. Record the resulting commit and deployment
+evidence in the PR and workspace evidence ledger. Remove task-owned ephemeral
+resources, retain evidence, and preserve the primary checkout's unrelated changes.
 
 ## Acceptance Evidence
 
