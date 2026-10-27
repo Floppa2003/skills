@@ -10,6 +10,12 @@ from pathlib import Path
 PREPARATION_STAGES = {"fetch", "stage", "overlay", "metadata", "validation", "compatibility"}
 
 
+def _subjects(registry: dict) -> dict:
+    return {skill["name"]: skill for skill in registry["skills"]} | {
+        f"runtime:{bundle['name']}": bundle for bundle in registry.get("runtime_tools", [])
+    }
+
+
 def check_result(exit_code: int, summary: dict, registry: dict, baseline: dict, base: str) -> list[dict]:
     events = summary["events"]
     errors = [event for event in events if event["status"] == "error_skip"]
@@ -17,8 +23,8 @@ def check_result(exit_code: int, summary: dict, registry: dict, baseline: dict, 
         raise ValueError("refresh exit code and completed summary disagree")
     if summary["errors"] != errors or summary["counts"] != dict(Counter(e["status"] for e in events)):
         raise ValueError("refresh summary is inconsistent")
-    current = {skill["name"]: skill for skill in registry["skills"]}
-    previous = {skill["name"]: skill for skill in baseline["skills"]}
+    current = _subjects(registry)
+    previous = _subjects(baseline)
     if current.keys() != previous.keys() or Counter(e["skill"] for e in events) != Counter(current.keys()):
         raise ValueError("refresh did not account for every registered skill exactly once")
     for event in events:
@@ -29,7 +35,8 @@ def check_result(exit_code: int, summary: dict, registry: dict, baseline: dict, 
                 raise ValueError(f"unsafe refresh failure: {name} at {stage}")
             if current[name] != previous[name]:
                 raise ValueError(f"failed skill registry changed: {name}")
-            subprocess.run(["git", "diff", "--exit-code", base, "--", f"skills/{name}"], check=True)
+            if not name.startswith("runtime:"):
+                subprocess.run(["git", "diff", "--exit-code", base, "--", f"skills/{name}"], check=True)
         elif (status, stage) not in {
             ("updated", "replacement"), ("unchanged", "compare"), ("expected_skip", "registry")
         }:
