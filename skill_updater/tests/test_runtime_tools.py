@@ -4,6 +4,7 @@ import csv
 import hashlib
 import io
 import os
+from pathlib import Path
 import shutil
 import signal
 import sys
@@ -122,7 +123,10 @@ class RuntimeDeploymentTests(RuntimeFixture):
         env = self.tool_dir / bundle.tool
         site = env / "lib/python3.12/site-packages"
         write(env / "pyvenv.cfg", "version_info = 3.12.13\n")
-        write(env / "bin/python", "fixture interpreter\n")
+        interpreter = env / "bin/python"
+        interpreter.parent.mkdir(parents=True, exist_ok=True)
+        if not interpreter.is_symlink():
+            interpreter.symlink_to(sys.executable)
         records = []
         for package in bundle.packages:
             records.append((package.name, "0.1.0", {
@@ -179,6 +183,128 @@ class RuntimeDeploymentTests(RuntimeFixture):
             "audit", "--strict", "--registry", str(self.registry),
             "--codex-home", str(self.home), "--work-root", str(self.state),
         ]))
+
+    def test_missing_external_python_provider_fails_check_and_audit(self):
+        from skill_updater import runtime_tools
+        env = self.install_fixture(self.bundle)
+        interpreter = env / "bin/python"
+        interpreter.unlink()
+        provider = self.root / "external-python"
+        provider.symlink_to(sys.executable)
+        interpreter.symlink_to(provider)
+        paths = runtime_tools.tool_paths(self.state)
+        runtime_tools._write_json(runtime_tools._receipt(self.bundle, paths), runtime_tools.inspect_bundle(self.bundle, paths))
+        provider.unlink()
+        with self.assertRaisesRegex(ValueError, "Python|interpreter"):
+            update_skills.deploy_skills(self.registry, self.home, self.home, self.state, apply=False)
+        self.assertEqual(1, update_skills.main([
+            "audit", "--strict", "--registry", str(self.registry),
+            "--codex-home", str(self.home), "--work-root", str(self.state),
+        ]))
+
+    def test_wrong_or_unlaunchable_interpreter_is_not_accepted_from_cfg(self):
+        from skill_updater import runtime_tools
+        env = self.install_fixture(self.bundle)
+        interpreter = env / "bin/python"
+        interpreter.unlink()
+        provider = write(self.root / "python-provider", "#!/bin/sh\necho 3.13\n")
+        provider.chmod(0o755)
+        interpreter.symlink_to(provider)
+        with self.assertRaisesRegex(ValueError, "Python"):
+            runtime_tools.inspect_bundle(self.bundle, runtime_tools.tool_paths(self.state))
+        provider.write_text("#!/bin/sh\nexit 3\n")
+        with self.assertRaisesRegex(ValueError, "Python interpreter cannot start"):
+            runtime_tools.inspect_bundle(self.bundle, runtime_tools.tool_paths(self.state))
+
+    def parent_death_recovery(self, stop_signal):
+        from skill_updater import runtime_tools
+        env = self.install_fixture(self.bundle)
+        paths = runtime_tools.tool_paths(self.state)
+        with patch.object(runtime_tools, "probe_bundle", return_value={"result": "PASS"}):
+            update_skills.deploy_skills(self.registry, self.home, self.home, self.state, apply=True)
+        self.payload["runtime_tools"][0]["packages"][0]["commit"] = "b" * 40
+        self.save()
+        source = env / "lib/python3.12/site-packages/crapper/__init__.py"
+        original = source.read_text()
+        pidfile, done = self.root / "installer.pid", self.root / "installer.done"
+        program = (
+            "import os,sys,time; from pathlib import Path; "
+            "Path(sys.argv[1]).write_text(str(os.getpid())); time.sleep(1); "
+            "Path(sys.argv[2]).write_text('orphan write\\n'); Path(sys.argv[3]).touch()"
+        )
+        driver_code = (
+            "import sys; from pathlib import Path; from unittest.mock import patch; "
+            "from skill_updater import runtime_tools,update_skills; "
+            "install=lambda bundle,paths:runtime_tools._command([sys.executable,'-B','-c',*sys.argv[1:5]]); "
+            "context=patch.object(runtime_tools,'install_bundle',side_effect=install); context.start(); "
+            "update_skills.deploy_skills(Path(sys.argv[5]),Path(sys.argv[6]),Path(sys.argv[6]),Path(sys.argv[7]),apply=True)"
+        )
+        driver = subprocess.Popen([sys.executable, "-B", "-c", driver_code, program, str(pidfile), str(source),
+                                   str(done), str(self.registry), str(self.home), str(self.state)],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        try:
+            for _ in range(100):
+                if pidfile.exists():
+                    break
+                time.sleep(0.02)
+            self.assertTrue(pidfile.exists(), "installer did not start")
+            driver.send_signal(stop_signal)
+            driver.wait(timeout=5)
+            with update_skills._exclusive_lock(self.state):
+                runtime_tools.recover_bundle(self.bundle, paths)
+            for _ in range(150):
+                if done.exists():
+                    break
+                time.sleep(0.02)
+            self.assertTrue(done.exists(), "owned installer did not finish")
+            self.assertEqual(original, source.read_text(), "a pre-recovery installer overwrote restored data")
+            self.assertFalse(runtime_tools._pending(self.bundle, paths).exists())
+        finally:
+            if driver.poll() is None:
+                os.killpg(driver.pid, signal.SIGKILL)
+                driver.wait(timeout=5)
+            if pidfile.exists():
+                pid = int(pidfile.read_text())
+                command = subprocess.run(["ps", "-o", "command=", "-p", str(pid)], capture_output=True, text=True).stdout
+                if str(pidfile) in command:
+                    try:
+                        os.killpg(os.getpgid(pid), signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+
+    def test_sigterm_cannot_leave_a_writer_racing_recovery(self):
+        self.parent_death_recovery(signal.SIGTERM)
+
+    def test_sigkill_cannot_leave_a_writer_racing_recovery(self):
+        self.parent_death_recovery(signal.SIGKILL)
+
+    def test_delayed_old_worker_cannot_start_after_recovery(self):
+        from skill_updater import runtime_tools
+        self.install_fixture(self.bundle)
+        paths = runtime_tools.tool_paths(self.state)
+        runtime_tools._prepare_rollback(self.bundle, paths, replacing=False)
+        pending = runtime_tools._pending(self.bundle, paths)
+        journal = json.loads(pending.read_text())
+        journal["token"] = "a" * 32
+        pending.write_text(json.dumps(journal))
+        output = self.root / "worker-wrote"
+        command = [sys.executable, "-B", str(Path(runtime_tools.__file__).with_name("runtime_process.py")),
+                   "--writer-lock", str(paths.state / "ub-mode-tools.writer.lock"),
+                   "--gate", str(pending), "--token", "a" * 32, "--timeout", "5", "--",
+                   sys.executable, "-c", "import sys; from pathlib import Path; Path(sys.argv[1]).touch()", str(output)]
+        valid = subprocess.run(command, capture_output=True, text=True, timeout=10, start_new_session=True)
+        self.assertEqual(0, valid.returncode, valid.stderr)
+        self.assertTrue(output.exists(), "positive worker control did not execute")
+        runtime_tools.recover_bundle(self.bundle, paths)
+        output.unlink()
+        stale = subprocess.run(command, capture_output=True, text=True, timeout=10, start_new_session=True)
+        self.assertNotEqual(0, stale.returncode)
+        self.assertFalse(output.exists(), "an obsolete transaction executed after recovery")
+        runtime_tools._prepare_rollback(self.bundle, paths, replacing=False)
+        replaced = subprocess.run(command, capture_output=True, text=True, timeout=10, start_new_session=True)
+        self.assertNotEqual(0, replaced.returncode)
+        self.assertFalse(output.exists(), "an obsolete token executed during a different transaction")
+        runtime_tools.recover_bundle(self.bundle, paths)
 
     def test_install_failure_restores_environment_and_commands(self):
         from skill_updater import runtime_tools

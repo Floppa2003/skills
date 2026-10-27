@@ -76,6 +76,11 @@ not another source of approved versions. An interrupted update is recovered
 on the next authorized apply; checks never perform recovery. Keep local command
 changes for review rather than forcing them through a deploy.
 
+Managed commands hold a kernel writer lease even if their updater parent dies;
+recovery waits for that lease before restoring files. Transaction tokens prevent
+late commands from an older update from starting afterward. Audit checks the
+actual isolated Python interpreter as well as package and command integrity.
+
 Tool execution is not guaranteed read-only: upstream coverage can install
 dependencies in the inspected project. CI is not an OS-level sandbox; builds
 execute the selected upstream code with service tokens removed from their

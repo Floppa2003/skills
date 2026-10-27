@@ -66,7 +66,7 @@ tests/test_runtime_tools.py, tests/test_refresh_publication.py.
 
 ### Validation and Deployment
 
-Files: runtime_tools.py, runtime_probe.py, update_skills.py,
+Files: runtime_tools.py, runtime_process.py, runtime_probe.py, update_skills.py,
 tests/test_runtime_tools.py.
 
 - [x] Add failing tests for read-only checks, origin/entrypoint/source drift,

@@ -13,11 +13,15 @@ import os
 import re
 from pathlib import Path
 import shutil
-import signal
-import subprocess
 import sys
 import tempfile
 import tomllib
+import uuid
+
+try:
+    from skill_updater.runtime_process import CommandLease, owned_commands, run as _command, writer_lock
+except ModuleNotFoundError:
+    from runtime_process import CommandLease, owned_commands, run as _command, writer_lock
 
 
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -120,23 +124,6 @@ class ToolPaths:
     state: Path
 
 
-def _command(args: list[str], *, env=None, timeout=300) -> str:
-    process = subprocess.Popen(args, env=env, text=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, start_new_session=True)
-    try:
-        output, _ = process.communicate(timeout=timeout)
-    except BaseException:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        process.communicate()
-        raise
-    if process.returncode:
-        raise RuntimeError(f"runtime command failed ({process.returncode}): {args[0]}: {output[-8000:]}")
-    return output
-
-
 def tool_paths(work_root: Path) -> ToolPaths:
     tools = os.environ.get("UV_TOOL_DIR") or _command(["uv", "tool", "dir"]).strip()
     commands = os.environ.get("UV_TOOL_BIN_DIR") or _command(["uv", "tool", "dir", "--bin"]).strip()
@@ -201,6 +188,17 @@ def inspect_bundle(bundle: ToolBundle, paths: ToolPaths, *, pending_ok=False) ->
         return None
     if not (env / "uv-receipt.toml").is_file():
         raise ValueError(f"unmanaged runtime environment: {env}")
+    interpreter = env / "bin/python"
+    if not interpreter.is_file() or not os.access(interpreter, os.X_OK):
+        raise ValueError(f"runtime Python interpreter missing or nonexecutable: {interpreter}")
+    try:
+        actual_python = _command([str(interpreter), "-I", "-S", "-c",
+                                  "import sys; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor))"],
+                                 env={"PATH": os.environ.get("PATH", "")}, timeout=10).strip()
+    except Exception as exc:
+        raise ValueError(f"runtime Python interpreter cannot start: {interpreter}: {exc}") from exc
+    if actual_python != bundle.python:
+        raise ValueError(f"runtime Python: expected={bundle.python} actual={actual_python}")
     configuration = configparser.ConfigParser()
     configuration.read_string("[venv]\n" + (env / "pyvenv.cfg").read_text())
     version = configuration["venv"]["version_info"]
@@ -307,20 +305,27 @@ def validate_bundles(bundles: list[ToolBundle], work_root: Path) -> None:
         with tempfile.TemporaryDirectory(prefix="runtime-", dir=temporary) as directory:
             root = Path(directory)
             paths = ToolPaths(root / "tools", root / "bin", root / "state")
-            install_bundle(bundle, paths)
-            observed = inspect_bundle(bundle, paths)
-            if observed["profile"] != desired_profile(bundle):
-                raise ValueError(f"staged runtime profile mismatch: {bundle.name}")
-            evidence = probe_bundle(bundle, paths)
-            print(f"runtime validated: {bundle.name}: {json.dumps(evidence, sort_keys=True)}")
+            with deploy_bundles([bundle], paths) as evidence:
+                pass
+            print(f"runtime validated: {bundle.name}: {json.dumps(evidence[bundle.name], sort_keys=True)}")
 
 
-def _prepare_rollback(bundle: ToolBundle, paths: ToolPaths, *, replacing: bool) -> None:
+def _writer_path(bundle: ToolBundle, paths: ToolPaths) -> Path:
+    return paths.state / f"{bundle.name}.writer.lock"
+
+
+def _prepare_rollback(bundle: ToolBundle, paths: ToolPaths, *, replacing: bool) -> CommandLease:
+    with writer_lock(_writer_path(bundle, paths)):
+        return _prepare_rollback_locked(bundle, paths, replacing=replacing)
+
+
+def _prepare_rollback_locked(bundle: ToolBundle, paths: ToolPaths, *, replacing: bool) -> CommandLease:
     backup = _backup(bundle, paths)
     if backup.exists():
         raise ValueError(f"orphan runtime backup requires inspection: {backup}")
     env = paths.tools / bundle.tool
     journal = {"tools": str(paths.tools), "commands": str(paths.commands), "phase": "preparing",
+               "token": uuid.uuid4().hex,
                "replacing": replacing, "had_environment": env.exists(),
                "had_state": _receipt(bundle, paths).exists(),
                "links": {name: (paths.commands / name).is_symlink() for name in bundle.executables}}
@@ -331,16 +336,24 @@ def _prepare_rollback(bundle: ToolBundle, paths: ToolPaths, *, replacing: bool) 
     if journal["had_state"]:
         shutil.copy2(_receipt(bundle, paths), backup / "state.json")
     _write_json(_pending(bundle, paths), journal | {"phase": "prepared"})
+    return CommandLease(_writer_path(bundle, paths), _pending(bundle, paths), journal["token"])
 
 
 def _finish(bundle: ToolBundle, paths: ToolPaths) -> None:
-    journal = _pending(bundle, paths)
-    _write_json(journal, json.loads(journal.read_text()) | {"phase": "committed"})
-    shutil.rmtree(_backup(bundle, paths))
-    journal.unlink()
+    with writer_lock(_writer_path(bundle, paths)):
+        journal = _pending(bundle, paths)
+        _write_json(journal, json.loads(journal.read_text()) | {"phase": "committed"})
+        shutil.rmtree(_backup(bundle, paths))
+        journal.unlink()
 
 
 def recover_bundle(bundle: ToolBundle, paths: ToolPaths) -> None:
+    if _pending(bundle, paths).exists():
+        with writer_lock(_writer_path(bundle, paths)):
+            _recover_locked(bundle, paths)
+
+
+def _recover_locked(bundle: ToolBundle, paths: ToolPaths) -> None:
     journal_path = _pending(bundle, paths)
     if not journal_path.exists():
         return
@@ -349,6 +362,8 @@ def recover_bundle(bundle: ToolBundle, paths: ToolPaths) -> None:
         raise ValueError(f"runtime recovery paths differ: {journal_path}")
     if journal["phase"] not in {"preparing", "prepared", "committed"}:
         raise ValueError(f"unknown runtime recovery phase: {journal_path}")
+    if not re.fullmatch(r"[0-9a-f]{32}", journal["token"]):
+        raise ValueError(f"invalid runtime recovery token: {journal_path}")
     if set(journal["links"]) != set(bundle.executables) or not all(isinstance(value, bool) for value in journal["links"].values()):
         raise ValueError(f"invalid runtime recovery entrypoints: {journal_path}")
     if not all(isinstance(journal[key], bool) for key in ("replacing", "had_environment", "had_state")):
@@ -384,25 +399,26 @@ def recover_bundle(bundle: ToolBundle, paths: ToolPaths) -> None:
 @contextmanager
 def deploy_bundles(bundles: list[ToolBundle], paths: ToolPaths):
     changed = []
+    evidence_by_name = {}
     try:
         for bundle in bundles:
             recover_bundle(bundle, paths)
             observed = inspect_bundle(bundle, paths)
             replacing = observed is None or observed["profile"] != desired_profile(bundle)
-            if replacing or not _receipt(bundle, paths).exists():
-                changed.append(bundle)
-                _prepare_rollback(bundle, paths, replacing=replacing)
-            if replacing:
-                install_bundle(bundle, paths)
-                # The old receipt describes the old environment until commit.
-                previous = _receipt(bundle, paths)
-                previous.unlink(missing_ok=True)
-                observed = inspect_bundle(bundle, paths, pending_ok=True)
-            evidence = probe_bundle(bundle, paths)
-            if bundle in changed:
+            changed.append(bundle)
+            lease = _prepare_rollback(bundle, paths, replacing=replacing)
+            with owned_commands(lease):
+                if replacing:
+                    install_bundle(bundle, paths)
+                    # The old receipt describes the old environment until commit.
+                    previous = _receipt(bundle, paths)
+                    previous.unlink(missing_ok=True)
+                    observed = inspect_bundle(bundle, paths, pending_ok=True)
+                evidence = probe_bundle(bundle, paths)
+                evidence_by_name[bundle.name] = evidence
                 _write_json(_receipt(bundle, paths), observed)
             print(f"runtime ready: {bundle.name}: {json.dumps(evidence, sort_keys=True)}")
-        yield
+        yield evidence_by_name
     except BaseException:
         for bundle in reversed(changed):
             recover_bundle(bundle, paths)
