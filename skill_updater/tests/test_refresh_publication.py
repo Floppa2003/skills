@@ -89,6 +89,33 @@ class RefreshPublicationTests(TempDirTest):
         self.assertNotEqual(0, self.run_gate(0).returncode)
         self.assertFalse((self.repo / "output").exists())
 
+    def register_runtime(self):
+        runtime = {"name": "ub-mode-tools", "packages": [{"commit": "a" * 40}]}
+        self.registry["runtime_tools"] = [runtime]
+        write(self.repo / "skill_updater/registry.json", json.dumps(self.registry))
+        subprocess.run(["git", "add", "skill_updater/registry.json"], cwd=self.repo, check=True)
+        subprocess.run(["git", "commit", "-m", "runtime baseline"], cwd=self.repo, check=True, capture_output=True)
+        return runtime
+
+    def test_partial_refresh_accounts_for_runtime_once(self):
+        self.register_runtime()
+        self.events.append({"skill": "runtime:ub-mode-tools", "status": "unchanged", "stage": "compare"})
+        result = self.run_gate()
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_failed_runtime_pin_change_blocks_publication(self):
+        runtime = self.register_runtime()
+        runtime["packages"][0]["commit"] = "b" * 40
+        write(self.repo / "skill_updater/registry.json", json.dumps(self.registry))
+        self.events.append({"skill": "runtime:ub-mode-tools", "status": "error_skip", "stage": "fetch",
+                            "message": "source unavailable", "installed_copy_preserved": True})
+        self.assertNotEqual(0, self.run_gate().returncode)
+        self.assertFalse((self.repo / "output").exists())
+
+    def test_missing_runtime_event_blocks_publication(self):
+        self.register_runtime()
+        self.assertNotEqual(0, self.run_gate().returncode)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,24 @@
 {
   "version": 1,
+  "runtime_tools": [
+    {
+      "name": "ub-mode-tools",
+      "tool": "crapper",
+      "python": "3.12",
+      "used_by": ["ub-mode"],
+      "packages": [
+        {"name": "crapper", "repo": "unclebob/crapper", "ref": "master", "commit": "6fd92c4c9bcc56efb64a2f8743d5a2993bcfd42d"},
+        {"name": "dryer", "repo": "unclebob/dryer", "ref": "master", "commit": "66ff6d21a42c04afcad89c78a80066176d1294b0"},
+        {"name": "mutator", "repo": "unclebob/mutator", "ref": "main", "commit": "a5a0cb803b66e0cdb8bf471b3b08af701d424a41"}
+      ],
+      "requirements": [
+        "coverage==7.17.0", "iniconfig==2.3.1", "packaging==26.3", "pluggy==1.7.0",
+        "pygments==2.21.0", "pytest==9.1.1", "tree-sitter==0.26.0", "tree-sitter-language-pack==1.22.1"
+      ],
+      "executables": ["crapper", "dryer", "mutator"],
+      "probe": "ub-mode"
+    }
+  ],
   "retired_skills": [
     {
       "name": "diagnose",
