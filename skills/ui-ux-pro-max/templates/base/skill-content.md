@@ -18,6 +18,14 @@ If the user prefers not to install Python, skip the CLI searches and {{#QR}}rely
 
 ---
 
+## Using the Search Script (CLI)
+
+When invoked, this skill can run the bundled Python search script to query the catalogs. The script uses only the Python 3 standard library - no extra dependencies.
+
+The script lives in this skill's own `scripts/search.py`. The commands below use the install-rooted path so they resolve when run from the project root.
+
+---
+
 ## How to Use This Skill
 
 Use this skill when the user requests any of the following:
@@ -50,6 +58,8 @@ For accessibility work, search one observable outcome at a time and use explicit
 Do not accept a generic accessibility result for a specific interaction or WCAG criterion.
 
 For text-layout and compact-component bugs, search the **semantic UX outcome first, then the detected stack** for implementation details. Useful outcome queries include `"orphan heading line balance" --domain ux`, `"badge chip label wraps" --domain ux`, `"live badge count screen reader" --domain ux`, and `"rapid chip animation interrupted" --domain ux`. After choosing the applicable UX guidance, use a separate stack query such as `"chip badge overflow nowrap" --stack html-tailwind`; do not replace the outcome search with a framework keyword.
+
+For right-to-left interfaces (Arabic, Hebrew, Persian, Urdu, or an explicit `dir="rtl"` / `rtl:` request), add `--rtl` to the `style` and `product` searches and respect the returned `rtl_level`: `full` needs no directional rework, `partial` mirrors but requires per-component checks (icons, carousels, motion paths, charts), and `caveats` means the style or product encodes reading direction — say so before recommending it, and propose a mirrorable alternative when the user needs a strict RTL build. `--rtl=full` restricts the search to the safest rows; `--rtl` alone keeps every level.
 
 Before using a result, verify the returned domain/category, top result identity, and whether its guidance fits the user's product and platform. **Retry once** with a narrower rewrite or an explicit domain/stack when the result is empty or off-topic. If the retry still fails, state that no verified match was found and use clearly labeled general guidance instead. **Do not persist unverified output.**
 
@@ -170,6 +180,7 @@ python3 {{SCRIPT_PATH}} "<keyword>" --domain <domain> [-n <max_results>]
 | Icon suggestions | `icons` | `"decorative icon aria hidden" --domain icons` |
 | Individual Google Fonts | `google-fonts` | `"variable sans serif" --domain google-fonts` |
 | GSAP animation snippets | `gsap` | `"scroll reveal stagger" --domain gsap` |
+| RTL compatibility | `style`, `product` | `"dashboard" --domain style --rtl=full` |
 
 ### Step 4: Stack Guidelines
 
@@ -312,7 +323,7 @@ Scope notice: The rules below are for App UI (iOS/Android/React Native/Flutter),
 
 ### Icons & Visual Elements
 
-- 默认图标库使用 **Phosphor (`@phosphor-icons/react`)**。`src/ui-ux-pro-max/data/icons.csv` 中列出的只是常用推荐图标，不是完整集合。
+- 默认图标库使用 **Phosphor (`@phosphor-icons/react`)**。`data/icons.csv` 中列出的只是常用推荐图标，不是完整集合。
 - 当推荐表中找不到合适的图标时：
   - **优先继续从 Phosphor 的完整图标集中选择任何语义更贴切的图标**；
   - 如果 Phosphor 也没有理想选项，可以使用 **Heroicons (`@heroicons/react`)** 作为备选，注意保持风格一致（线性/填充、笔画粗细、圆角风格）。

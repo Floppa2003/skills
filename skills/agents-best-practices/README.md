@@ -202,6 +202,8 @@ Agent  > Treat this as a post-MVP architecture. Keep large inputs and child
 
 Use [`references/self-refining-recursive-harnesses.md`](references/self-refining-recursive-harnesses.md) with the context, workflow, permissions, security, and eval references.
 
+For bounded refinement on one task, use [task-local contrastive refinement](references/self-refining-recursive-harnesses.md#task-local-contrastive-refinement): probe candidate harness edits, compose supported changes, and execute the composition. This post-MVP option does not require a resident runtime or recursive children; [search evals](references/evals.md#task-local-harness-search-evals) separate proxy judgments from correctness and transferable gains.
+
 ### Case 6 - Speculatively overlap safe programmatic calls
 
 You have a measured code-mode harness whose critical path is dominated by expensive calls that become identifiable while the model is still generating the program.
@@ -319,6 +321,7 @@ For scheduled monitors and briefs, use its [recurring collection and delivery co
 - **"How do I build a voice agent that handles interruptions and corrections while tools run?"** -> use the [realtime voice profile](references/realtime-voice-agents.md) for media, turn, playback, and execution boundaries, and [voice evals](references/evals.md#realtime-voice-agent-evals) for task and audible acceptance. Start with a narrow voice MVP; broader orchestration is optional.
 
 - **"How can one session route requests across models safely?"** -> use [per-request model routing](references/agentic-loop.md#per-request-model-routing) for selected/dispatched identity, target compatibility, and routing-state contracts.
+- **"How do I integrate a latent/text model without losing state between tool turns?"** -> use [native generation-state adapters](references/provider-api-patterns.md#native-generation-state-adapters) and [continuation/efficiency evals](references/evals.md#native-generation-state-and-hybrid-serving-evals); this requires backend support, rather than prompt-only harness changes.
 - **"How can instructions and tools change during a conversation without losing replay semantics?"** -> use [runtime configuration events](references/architecture.md#runtime-instruction-and-tool-configuration-events).
 - **"Which compaction, planning, and action-interface profile fits my model, task mix, and context budget?"** -> use [component diagnostics](references/evals.md#component-diagnostics), which links to the existing mechanism owners and separates efficiency from premature failure.
 - **"How can users act on displayed records without losing UI state or bypassing business limits?"** -> use [presentation and transaction contracts](references/tools-and-permissions.md#presentation-tools-and-rendered-state).
@@ -327,6 +330,7 @@ For scheduled monitors and briefs, use its [recurring collection and delivery co
 - **"When should a large task become a decomposed workflow?"** -> use [`references/workflow-orchestration.md`](references/workflow-orchestration.md).
 - **"How can an agent safely discover and bind tools in an unfamiliar environment?"** -> use [`references/environment-adaptive-tools.md`](references/environment-adaptive-tools.md).
 - **"How do I build an RLM, programmable-context agent, or continual refinement loop?"** -> use [`references/self-refining-recursive-harnesses.md`](references/self-refining-recursive-harnesses.md).
+- **"How can an agent adapt its harness to an unfamiliar task without a ground-truth verifier?"** -> use [task-local contrastive refinement](references/self-refining-recursive-harnesses.md#task-local-contrastive-refinement) and [search evals](references/evals.md#task-local-harness-search-evals).
 - **"Can a code-mode agent start safe tool calls before generation finishes?"** -> use [`references/speculative-tool-execution.md`](references/speculative-tool-execution.md).
 - **"How should auto-compaction preserve active work?"** -> use [`references/context-memory-compaction.md`](references/context-memory-compaction.md).
 - **"What is the smallest safe coding-agent harness?"** -> use [`references/coding-agents.md`](references/coding-agents.md).
