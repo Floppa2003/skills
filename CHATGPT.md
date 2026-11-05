@@ -35,6 +35,12 @@ For each user task:
 
 # Available Skills
 
+## agent-desktop-cli
+
+Use for desktop GUI tasks explicitly using agent-desktop, running from a terminal or custom harness, or lacking native Computer Use. Prefer native Computer Use when available; not for browser DOM or API extraction.
+
+Entrypoint: `skills/agent-desktop-cli/SKILL.md`
+
 ## agent-transcript
 
 Requested GitHub PR/issue agent transcripts: redact, trim, preview, and insert safely.

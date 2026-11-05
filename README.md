@@ -64,12 +64,21 @@ separately from native skills. Currently `ub-mode-tools` contains crapper, dryer
 and mutator in one uv-managed Python 3.12 environment. Supporting packages are
 fixed, not automatically upgraded.
 
+The optional `release_tools` section pins Agent Desktop stable release tags,
+source commits, asset sizes and SHA-256 digests for macOS/Linux targets. Refresh
+reads release metadata only and refuses same-tag drift. Validation verifies the
+archive and GitHub build attestation, then probes version and binary-owned
+guides in disposable roots with service credentials removed. The first adoption
+of an existing native installation compares its files to the verified archive.
+Local receipts under `release-tools` track integrity separately from approved
+versions; modified or foreign installations are preserved and reported.
+
 Refresh proposes new source commits without executing their code. Read-only CI
 installs those exact commits in disposable uv roots and checks real coverage,
 duplicate and mutation controls. Run the same validation locally with
 `python3 skill_updater/update_skills.py validate-runtimes`.
 
-Merged-main deployment uses uv, detects source/entrypoint drift, probes the
+Merged-main deployment uses the registered runtime adapter, detects source/entrypoint drift, probes the
 result and restores the previous environment if installation, probing or skill
 deployment fails. Its generated local receipts are deployment observations,
 not another source of approved versions. An interrupted update is recovered
@@ -80,6 +89,12 @@ Managed commands hold a kernel writer lease even if their updater parent dies;
 recovery waits for that lease before restoring files. Transaction tokens prevent
 late commands from an older update from starting afterward. Audit checks the
 actual isolated Python interpreter as well as package and command integrity.
+
+The `agent-desktop-cli` skill is a local router, not a copied upstream manual.
+It reads version-matched core/platform guidance from the installed CLI and keeps
+native Computer Use preferred when available. No MCP server or OS permission
+grant is enabled by installation or runtime validation. Native probes establish
+version and guide availability, not general GUI correctness or permissions.
 
 Tool execution is not guaranteed read-only: upstream coverage can install
 dependencies in the inspected project. CI is not an OS-level sandbox; builds

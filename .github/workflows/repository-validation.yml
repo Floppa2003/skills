@@ -43,6 +43,8 @@ jobs:
           version: "0.11.31"
       - name: Install and probe pinned runtime tools in disposable roots
         run: python3 skill_updater/update_skills.py validate-runtimes
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Verify video backend consent and isolation
         run: python3 -m unittest discover -s skills/video-watch/evals
       - name: Verify proof-loop initialization boundaries
