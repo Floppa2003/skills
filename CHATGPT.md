@@ -95,6 +95,12 @@ Automate the user's logged-in Chromium browser: read pages, fill forms, scrape d
 
 Entrypoint: `skills/browser-skill/SKILL.md`
 
+## china-fashion-shopping
+
+Use when searching for or evaluating clothing and shoes on Taobao, Tmall, 1688, Pinduoduo, Dewu/Poizon, Xianyu/Goofish or Chinese brand mini-programs; when researching export-stock claims, Chinese fashion brands, shopping guides, Reels, Shorts, Telegram posts or comment attachments for a purchase. Applies to одежда и обувь из Китая, экспортные магазины, поиск по фото и артикулу, проверка оригинальности, размеров, выкупа и полной стоимости доставки.
+
+Entrypoint: `skills/china-fashion-shopping/SKILL.md`
+
 ## chrome-cdp
 
 Interact with local Chrome browser session (only on explicit user approval after being asked to inspect, debug, or interact with a page open in Chrome)

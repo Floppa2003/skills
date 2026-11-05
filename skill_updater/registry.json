@@ -1338,6 +1338,32 @@
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "china-fashion-shopping",
+      "repo": null,
+      "path": null,
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": null,
+      "enabled": false,
+      "installed_commit": null,
+      "installed_hash": "01db02f4abfc007cc00cffe862934ea977bd39f519eda69475099490ec94ce4d",
+      "skip_reason": "locally authored skill; intentionally unmanaged",
+      "required_paths": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/chinese-lexicon.md",
+        "references/media-access.md",
+        "references/purchase-and-qc.md",
+        "references/search-workflow.md",
+        "references/social-shop-leads.md",
+        "references/source-registry.md",
+        "references/stores-and-catalogues.md",
+        "references/video-observations.md"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }
