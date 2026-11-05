@@ -1348,19 +1348,17 @@
       "overlay": null,
       "enabled": false,
       "installed_commit": null,
-      "installed_hash": "01db02f4abfc007cc00cffe862934ea977bd39f519eda69475099490ec94ce4d",
+      "installed_hash": "b65a62c83cf2cd93b7a90561ca898fef553b015af95b4e47fd476727f246bd56",
       "skip_reason": "locally authored skill; intentionally unmanaged",
       "required_paths": [
         "SKILL.md",
         "agents/openai.yaml",
         "references/chinese-lexicon.md",
-        "references/media-access.md",
         "references/purchase-and-qc.md",
         "references/search-workflow.md",
-        "references/social-shop-leads.md",
-        "references/source-registry.md",
-        "references/stores-and-catalogues.md",
-        "references/video-observations.md"
+        "references/source-retrieval.md",
+        "references/sources.md",
+        "references/stores-and-catalogues.md"
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []

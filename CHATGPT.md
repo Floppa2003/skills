@@ -97,7 +97,7 @@ Entrypoint: `skills/browser-skill/SKILL.md`
 
 ## china-fashion-shopping
 
-Use when searching for or evaluating clothing and shoes on Taobao, Tmall, 1688, Pinduoduo, Dewu/Poizon, Xianyu/Goofish or Chinese brand mini-programs; when researching export-stock claims, Chinese fashion brands, shopping guides, Reels, Shorts, Telegram posts or comment attachments for a purchase. Applies to одежда и обувь из Китая, экспортные магазины, поиск по фото и артикулу, проверка оригинальности, размеров, выкупа и полной стоимости доставки.
+Use when searching for or buying clothing and shoes from Chinese marketplaces, evaluating export-stock or authenticity claims, or finding shopping guides in YouTube, Instagram and Telegram. Applies to Taobao, Tmall, 1688, Pinduoduo, Dewu/Poizon, Xianyu, одежда и обувь из Китая, поиск по фото, артикулу и китайским запросам.
 
 Entrypoint: `skills/china-fashion-shopping/SKILL.md`
 

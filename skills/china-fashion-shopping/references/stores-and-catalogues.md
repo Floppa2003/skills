@@ -1,159 +1,159 @@
-# Магазины, QR и товарные зацепки
+# Магазины и каталоги для поиска
 
-Реестр из main_guide_v8.md, проверка 4–5 ноября 2026 года. Это поисковые исходники с точным статусом, не подборка доступных сейчас покупок. У всех записей отдельно проверять текущий продавец/ID, точный товар/вариант, наличие, цену, происхождение, возврат и доставку. Публичные короткие ссылки сохранены как опубликованы; новые ссылки по одному имени не конструировались.
+Использовать как стартовые точки. Перед рекомендацией покупки открыть точную карточку и проверить продавца/ID, вариант, состояние, происхождение, наличие, цену, мерки, возврат и доставку по [рабочему алгоритму](search-workflow.md). Подписи соцсетей и названия с `官方旗舰店` сами по себе не подтверждают официальный статус. Доступность конкретного товара здесь не обещается.
 
 ## Навигация
 
-- [1. Экспортные магазины из трёх QR PDF](#1-экспортные-магазины-из-трёх-qr-pdf)
-- [2. Названия из /352: не привязывать к порядку коротких ссылок](#2-названия-из-352-не-привязывать-к-порядку-коротких-ссылок)
-- [3. Названия из видео и Reels](#3-названия-из-видео-и-reels)
-- [4. Семь ссылок из /1842](#4-семь-ссылок-из-1842)
-- [5. Pinduoduo из комментария 5405](#5-pinduoduo-из-комментария-5405)
-- [6. Пять QR из /339 и три отдельные карточки](#6-пять-qr-из-339-и-три-отдельные-карточки)
-- [7. Каналы, опубликованные самими брендами](#7-каналы-опубликованные-самими-брендами)
-- [8. Артикулы и примеры, которые нельзя перепутать](#8-артикулы-и-примеры-которые-нельзя-перепутать)
+- [Каналы, опубликованные брендами](#каналы-опубликованные-брендами)
+- [Марочные магазины Taobao/Tmall](#марочные-магазины-taobaotmall)
+- [Экспортный ассортимент и магазины одежды](#экспортный-ассортимент-и-магазины-одежды)
+- [Независимые марки](#независимые-марки)
+- [Pinduoduo и отдельные товарные ссылки](#pinduoduo-и-отдельные-товарные-ссылки)
 
-## 1. Экспортные магазины из трёх QR PDF
+## Каналы, опубликованные брендами
 
-PDF об экспортных магазинах, страницы 10–11; связан с [perekatova /602](https://t.me/perekatova_chine/602). Название и QR сопоставлены по расположению. Декодирование и наблюдаемый редирект не подтверждают содержимое магазина за входом.
+Если нужен оригинал, начинать с этих маршрутов и заново сверять связь витрины с брендом. Наличие и выбранный вариант проверять отдельно.
 
-| Магазин | Заявленный автором ассортимент | Исходная QR-ссылка | Наблюдаемый адрес перенаправления | Статус |
-|---|---|---|---|---|
-| 轻装派对 | LIME, SKIMS и другие | https://m.tb.cn/h.7EjYQGIHXE5CcJ5 | shop34749848.taobao.com | Форма входа Taobao |
-| 鹿姐外贸 | Много LIME и другие | https://m.tb.cn/h.hXAU0OtFXmHS4vU | shop532989879.taobao.com | Форма входа Taobao |
-| 俏皮外贸女装 | LIME, ZARA и другие | https://m.tb.cn/h.hXBalAXUEsOndb2 | shop188689835.taobao.com | Форма входа Taobao |
+| Бренд | Маршрут | Основание |
+| --- | --- | --- |
+| adidas | https://adidas.tmall.com · https://adidasoutlets.tmall.com · https://adidasoriginals.tmall.com · https://adidas.jd.com | [Правила adiClub](https://static1.adidas.com.cn/ecp-cms/cdn-file/tac/content/WMS/0/TAC_MEMBER.html) |
+| UNIQLO | https://uniqlo.tmall.com/ · https://www.uniqlo.cn/ | [Официальная справка](https://www.uniqlo.cn/public/code/DH/DH3.html); мини-приложение — в [маршруте UNIQLO](search-workflow.md) |
+| GU | https://gucn.tmall.com/ | [Fast Retailing](https://www.fastretailing.com/employment/zh_chs/gu/cn/storestaff/company/) |
+| ZARA | https://www.zara.cn/cn/ | Сайт бренда для сверки модели и артикула |
+| H&M | https://www.hm.com.cn/ | Сайт бренда для сверки модели и артикула |
 
-Если короткая ссылка не работает: попробовать исходную ссылку в Taobao / исходный QR, затем искать название во вкладке 店铺 и сверять ID. Одноимённый результат не считать автоматически тем же продавцом.
+Правила adiClub также упоминают официальный канал adidas на Pinduoduo: название площадки само по себе не решает вопрос происхождения.
 
-## 2. Названия из /352: не привязывать к порядку коротких ссылок
+## Марочные магазины Taobao/Tmall
 
-<!-- FLAG F02: Неустановленное соответствие имён и коротких ссылок сохранено. -->
+Основной источник — [каталог магазинов](https://t.me/shopping_in_chinaaa/323?comment=446). Massimo Dutti, GAP и Victoria’s Secret — [дополнительная подборка](https://t.me/lubchinskaia/1842); прямой Intimissimi — [подборка Rafinadova](https://t.me/rafinadova/14141). Указанные названия — ориентиры для поиска, не независимая сертификация магазинов. UNIQLO и GU приведены выше.
 
-[Четыре изображения /352](https://t.me/lubchinskaia/352), 18.06.2025:
+| Бренд | Название / ориентир для поиска | Ссылка |
+| --- | --- | --- |
+| H&M | `HM官方旗舰店` | https://m.tb.cn/h.TI2pQTnXZHs1C7k |
+| ZARA | `ZARA官方旗舰店` | https://m.tb.cn/h.TI3XFCApETxb9b2 |
+| ZARA HOME | `zarahome官方旗舰店` | https://m.tb.cn/h.TI29gNCsuRoGK7O |
+| Asics | `asics官方旗舰店` | https://m.tb.cn/h.TIqJetHEKprD5QC |
+| Li-Ning | `李宁官方网店` | https://m.tb.cn/h.TId0Q7D9psgfjtq |
+| Semir | `森马官方旗舰店` | https://m.tb.cn/h.TIRtV27PT3yfdDc |
+| MEXICAN | `稻草人箱包旗舰店` | https://m.tb.cn/h.TIRtBnQ29PGv14W |
+| Tommy Hilfiger | `Tommy Hilfiger官方旗舰店` | https://m.tb.cn/h.TId07r8B6NvgbPU |
+| GUESS | `guess官方旗舰店` | https://m.tb.cn/h.TIqr9Pg3fZfkV7C |
+| Reebok | `reebok官方旗舰店` | https://m.tb.cn/h.TIRGLzFfCO8UrwG |
+| NIKE | `NIKE官方旗舰店` | https://m.tb.cn/h.TIdbGrS1lfLfpGw |
+| New Balance | `New Balance官方旗舰店` | https://m.tb.cn/h.TI33wg8Yvh0lAuA |
+| Intimissimi | `intimissimi官方旗舰店` | https://intimissimi.world.tmall.com/ |
+| Levi’s | `Levi's官方旗舰店` | https://m.tb.cn/h.TI3qFS8JGJF72DH |
+| KARL LAGERFELD | `KARL LAGERFELD旗舰店` | https://m.tb.cn/h.TI80FArc5xyhdWZ |
+| Lacoste | `lacoste官方旗舰店` | https://m.tb.cn/h.TIdVOtVLeb0ldqi |
+| Calvin Klein | `Calvin Klein官方旗舰店` | https://m.tb.cn/h.TI2znwNXTvnaANe |
+| RALPH LAUREN | `RALPH LAUREN官方旗舰店` | https://m.tb.cn/h.TI81CO1pl9potzH |
+| MICHAEL KORS | `MICHAEL KORS官方旗舰店` | https://m.tb.cn/h.TIdbIhfa3u99EZ5 |
+| COACH | `COACH蔻驰官方旗舰店` | https://m.tb.cn/h.TIJ4Hrw9FKItXdT |
+| KENZO | `KENZO官方旗舰店` | https://m.tb.cn/h.TI2AJ31auPquymm |
+| Massimo Dutti | `Massimo Dutti官方旗舰店` | https://e.tb.cn/h.7yRnDseuZozgxmi?tk=xaEPUoaJaUQ |
+| GAP | Искать по точной подписи `Gap` | https://e.tb.cn/h.7yRo6JVM2SmK8nA?tk=UIonUoaq5sQ |
+| Victoria’s Secret | Искать по точной подписи `VICTORIA SECRET` | https://e.tb.cn/h.7yRL3Sh2XkLmHWb?tk=MGGnUoarKie |
 
-| Позиция изображения | Название | Статус |
-|---|---|---|
-| 1 | 姗珊小众外贸 | Прочитано с изображения; текущий ID/ассортимент/происхождение не подтверждены |
-| 2 | 鹿姐外贸 | То же имя встречается в PDF; совпадение продавца между источниками отдельно не доказано |
-| 3 | 轻装派对 | То же имя встречается в PDF; совпадение продавца между источниками отдельно не доказано |
-| 4 | 迪家外贸童装店 | Название детского магазина; текущий ID/ассортимент не подтверждены |
+Короткую ссылку открывать в Taobao. Если она не работает, искать точное имя во вкладке `店铺`, сверять ID и связь с брендом; одноимённый результат считать новым кандидатом до проверки. Не конструировать адрес магазина по названию.
 
-QR видны, машинная расшифровка этих четырёх изображений не удалась. Автор предлагает сохранить и сканировать в Taobao; этот путь в пользовательском аккаунте не проверен.
+## Экспортный ассортимент и магазины одежды
 
-| Подпись ссылки автора | Точный URL | Проверка 05.11.2026 |
-|---|---|---|
-| Женская одежда 1 | https://m.tb.cn/h.hXG33NWPMmSvS9c | scanError.htm |
-| Женская одежда 2 | https://m.tb.cn/h.hX8FQSo6GCUiwUM | scanError.htm |
-| Женская одежда 3 | https://m.tb.cn/h.hXjNeSUo4QW1OiK | scanError.htm |
-| Детская одежда | https://m.tb.cn/h.hXuVuZRzu7Zxhfv | scanError.htm |
+Здесь «LIME», «SKIMS», «ZARA» и другие марки — подписи источников о предполагаемом ассортименте. `外贸` или видимая бирка не подтверждают происхождение партии.
 
-Порядок названий не сопоставлен с порядком ссылок переходом. Ошибка допускает истечение/отсутствие кода или временную проблему; конкретная причина не установлена, закрытие магазинов не доказано.
+| Магазин | Ссылка / известный ID | Для чего искать | Источник |
+| --- | --- | --- | --- |
+| `轻装派对` | https://m.tb.cn/h.7EjYQGIHXE5CcJ5 · ID `34749848` | LIME, SKIMS и другие марки по подписи | [Гайд](https://t.me/perekatova_chine/602) |
+| `鹿姐外贸` | https://shop532989879.world.taobao.com/ · ID `532989879` | LIME/Ostin и другой ассортимент | [Гайд](https://t.me/perekatova_chine/602), [подборка](https://t.me/rafinadova/14141) |
+| `俏皮外贸女装` | https://m.tb.cn/h.hXBalAXUEsOndb2 · ID `188689835` | LIME, ZARA и другие марки по подписи | [Гайд](https://t.me/perekatova_chine/602) |
+| `猫猫and猫姐的店` | https://m.tb.cn/h.TIJGUICXJZ2tycV | Экспортный ассортимент | [Каталог](https://t.me/shopping_in_chinaaa/339?comment=448) |
+| `西西小象 新店` | https://m.tb.cn/h.TIeT3ZAOwUc6URi | Экспортный ассортимент | [Каталог](https://t.me/shopping_in_chinaaa/339?comment=448) |
+| `CC Paradise 欧美日韩配饰` | https://m.tb.cn/h.TI8AI8vsej7RHVm | Ассортимент/аксессуары | [Каталог](https://t.me/shopping_in_chinaaa/339?comment=448) |
+| `文子李的外贸小店半自助购物` | https://m.tb.cn/h.TIdwWeykxwx41rC | Экспортный ассортимент | [Каталог](https://t.me/shopping_in_chinaaa/339?comment=448) |
+| `zipper girl` | https://m.tb.cn/h.TIjZArtFXpxHAlH | До оплаты отдельно выяснить способ заказа и возврат | [Каталог](https://t.me/shopping_in_chinaaa/339?comment=448) |
 
-## 3. Названия из видео и Reels
+Ещё магазины из [подборки Rafinadova](https://t.me/rafinadova/14141); категории — по подписи автора. Тарифы и опыт доставки автора не переносить на свой адрес.
 
-| Название | Где видно | Что известно / граница |
-|---|---|---|
-| 彼岸外贸原单 | Короткое видео 2:06, 01:53; сопоставлено с [lubchinskaia /1083](https://t.me/lubchinskaia/1083) | Полный заголовок блока магазина, футболки; текущий URL/ID не установлен |
-| 壹个破店 | То же видео, ~00:47–00:57, выдача/карточка брюк | Название прочитано; действующая карточка не проверена |
-| most original | То же видео, под вещами с L*chi | Название прочитано; соответствие нынешнему магазину не проверено |
-| hello 外贸淘吧 | Длинный урок 15:23, имя магазина/заказ; водяной знак фото отчётливо на 07:40 | Восстановленный адрес https://shop105683761.taobao.com ведёт к входу; владелец/современное имя/ассортимент/цены не проверены. Водяной знак не гарантирует нынешнюю принадлежность |
-| 鹿姐外贸 | [lubchinskaia /590](https://t.me/lubchinskaia/590) и [/1600](https://t.me/lubchinskaia/1600) | Виден переход/корзина/выкуп, не проверка сегодняшних карточек или оригинальности |
-| All in SHOP | [kolevski_em, DeycfFjs5Qn](https://www.instagram.com/kolevski_em/reel/DeycfFjs5Qn/) | Обувной магазин по кадрам; действующая витрина/ID не проверены |
-| GBOY原创男鞋男装 | Тот же Reel | То же ограничение |
-| Lingle Store | Тот же Reel | То же ограничение |
+| Категория по подписи | Ссылка |
+| --- | --- |
+| Детская одежда ZARA | https://shop365877983.world.taobao.com/ |
+| Детское бельё | https://shop66608060.world.taobao.com/ |
+| Детская одежда, магазин `36234997` | https://shop36234997.world.taobao.com/ |
+| Детская одежда, магазин `34509038` | https://shop34509038.world.taobao.com/ |
+| Сумки и рюкзаки | https://shop523940677.world.taobao.com/ |
+| Incanto / Etam / Lindex | https://shop311032807.world.taobao.com/ |
 
-Фото голубого домашнего комплекта hello 外贸淘吧 не подтверждает конкретный бренд. Другие продавцы в корзине/доптоварах не добавлены как рекомендации: покупка этих позиций не показана.
+Имена для поиска во вкладке `店铺`, когда прямой адрес не установлен:
 
-## 4. Семь ссылок из /1842
+| Имена | Источник / применение |
+| --- | --- |
+| `姗珊小众外贸` · `迪家外贸童装店` | [Подборка магазинов](https://t.me/lubchinskaia/352); второе имя — детский магазин |
+| `彼岸外贸原单` · `壹个破店` · `most original` | [Поиск экспортного ассортимента](https://t.me/lubchinskaia/1083) |
+| `hello 外贸淘吧` | Название из пользовательского урока Taobao; витрину и ID установить перед отбором товара |
 
-<!-- FLAG F03: Слова автора об официальности не повышены до независимого подтверждения. -->
+Название без ID — поисковая зацепка. Если совпало имя, но не подтверждён продавец, не выдавать новый результат за тот же магазин.
 
-[Пост 18.02.2026](https://t.me/lubchinskaia/1842) называет магазины официальными. При проверке все семь адресов привели к форме входа Taobao; фактические продавцы, витрины, наличие, размеры и цены за входом не прочитаны. Статус «официальный» остаётся утверждением автора.
+## Независимые марки
 
-| Подпись | Исходная ссылка |
-|---|---|
-| Zara | https://e.tb.cn/h.7yRl0MVYcKJr23W?tk=tsQKUoaMgx9 |
-| HM | https://e.tb.cn/h.7CRekkTfsgDsCtd?tk=2Q8DUoaLPIU |
-| Uniqlo | https://e.tb.cn/h.7CBofpM8SfEEY2f?tk=iG3DUoaLxH6 |
-| MassimoDutti | https://e.tb.cn/h.7yRnDseuZozgxmi?tk=xaEPUoaJaUQ |
-| Gap | https://e.tb.cn/h.7yRo6JVM2SmK8nA?tk=UIonUoaq5sQ |
-| GU | https://e.tb.cn/h.7CBpHvBnAfJLIU7?tk=4gsvUoaJnNc |
-| VICTORIA SECRET | https://e.tb.cn/h.7yRL3Sh2XkLmHWb?tk=MGGnUoarKie |
+Начать с открытого каталога [Eddy Brands](https://www.eddyzzlz.com/brands); переходить по прямой Taobao/Tmall-ссылке. В подборках возможны партнёрские ссылки, поэтому посредник автора не является обязательным условием покупки. Список ниже — стартовые марки; для расширения просматривать сам каталог.
 
-На двух изображениях видно Massimo Dutti官方旗舰店, 天猫/官方 и 粉丝. Это историческое изображение интерфейса, не удостоверение короткой ссылки или другого одноимённого магазина.
+| Марка / название каталога | Прямая ссылка |
+| --- | --- |
+| MUSCLEDOG | https://muscledog.world.tmall.com |
+| VEST UP | https://vestup.world.taobao.com/ |
+| LARA STAR | https://laolazhixing.world.tmall.com |
+| GG | https://shop474860656.world.taobao.com/ |
+| GENU PAVILION | https://kt1oc6uzrfogye9jjeedg0nnppq4cge.world.taobao.com/ |
+| HOTDRY SIS | https://shop291197545.world.taobao.com/ |
+| NO E MOSEN | https://shop587409115.world.taobao.com/ |
+| 2000 RSK | https://shop315248444.world.taobao.com |
+| TWILLTANG | https://shop373754151.world.taobao.com |
+| LOST IN LUNAR | https://shop521900799.world.taobao.com |
+| BE ALL KABUTO | https://shop492961167.world.taobao.com |
+| WOOSTER EUGENE | https://shop113953468.world.taobao.com |
+| HYPEYOURSELF | https://sr0fd2ml7c9o5j812abdm4m5xrzmwgq.world.taobao.com |
+| HAMCUS | https://hamcus.world.taobao.com/ |
+| RICHILL | https://shop218176970.world.taobao.com |
+| LILITHHOUSE | https://shop580481844.world.taobao.com |
+| BLOOD SUPPLY | https://shop581692375.world.taobao.com |
+| WEAR AND TEAR | https://shop218663956.world.taobao.com |
+| TERRAINCOGNITA | https://shop129522949.world.taobao.com/ |
+| RETRO 21 | https://shop255001002.world.taobao.com |
+| JCAESAR | https://shop175282967.world.taobao.com |
+| FNGISED | https://fngised.world.taobao.com |
+| BUNNYBUNNYGUN | https://shop114315378.world.taobao.com |
+| DEADENDKIDS | https://deadendkids.world.taobao.com/ |
+| KI00 BI00 | https://dxwmxbk5wfac2xuxm52f1dm4lzkspby.world.taobao.com/ |
 
-### Дополнительные H&M / Zara из /786 и /1651
+В [Bought](https://www.eddyzzlz.com/bought-links) искать конкретные вещи из авторских обзоров: **ENSHADOWER TEFLON WATERPROOF JACKET, CDRANCH WORK TROUSERS, ILLUSIONIST LACED BOOTS, MASON PRINCE, TERRAINCOGNITA CHELSEA BOOTS**. У партнёрской ссылки проверить исходный `productLink`; сам обзор не заменяет проверку выбранной карточки. [Outfits](https://www.eddyzzlz.com/outfits-2) использовать как ещё один вход в авторские подборки образов.
 
-| Источник / подпись | Точный URL | Наблюдение |
-|---|---|---|
-| [/786](https://t.me/lubchinskaia/786), H&M/Taobao | https://m.tb.cn/h.hBuxbdaKS6ntV63 | scanError.htm; на историческом фото HM官方旗舰店 |
-| /786, H&M/Pinduoduo | https://mobile.yangkeduo.com/mall_page.html?ps=jKkw7q5XmU | Вход; в параметре возврата mall_id=877744735. Имя/официальный статус за входом не проверены |
-| /786, Zara | https://e.tb.cn/h.Sx5OcTJNRhijW6e?tk=0pv2fnjDtKm | Вход; исходный текст отправки описывает платье 6895275 333, хотя подпись называет магазин |
-| [/1651](https://t.me/lubchinskaia/1651), Zara | https://e.tb.cn/h.8kOVFbK62bAY5fF?tk=yxztT2XmjIO | Вход; текст отправки описывает футболку 4174315. Это не показанные в видео детские футболки |
+Дополнительные точные названия для поиска; адреса по ним не придумывать:
 
-Общий путь item.taobao.com/.../login_jump в некоторых редиректах не раскрыл точный itemID/shopID. Классификация двух Zara-ссылок как товарных основана на тексте отправки, не прочитанной карточке.
+| Марки / магазины | Первичный материал |
+| --- | --- |
+| **RARE SENSE, MISSPRINS, ROVENTE** | [Elin](https://www.instagram.com/always.elin/reel/DcBpy2SSnZU/) |
+| **NEVA HU, WANGXO, SRYS AME, URBAN REVIVO** | [DUNA](https://www.instagram.com/duna_privat/reel/Ddl_cmGtFYU/) |
+| **Bad Taste, Flower Birds Market, OfAkiva, 2 th Desire** | [Lisa Fevral](https://www.youtube.com/watch?v=TPXMbSc-pCs) |
+| **All in SHOP, GBOY原创男鞋男装, Lingle Store** | [kolevski_em](https://www.instagram.com/kolevski_em/reel/DeycfFjs5Qn/) |
+| **PaperMoon** | [kara.ins](https://www.instagram.com/kara.ins/reel/DePx9FWy-J0/) |
+| **Wu Ren Gu Dao NOMANIAI, ENSHADOWER Flagship Store, Simple Project, BEKNIDEA, TIRED STUDIO** | [Eddy](https://www.instagram.com/eddyzzlz/reel/Deq_-6_iOcw/) |
 
-## 5. Pinduoduo из комментария 5405
+## Pinduoduo и отдельные товарные ссылки
 
-[Комментарий /1842?comment=5405](https://t.me/lubchinskaia/1842?comment=5405) соответствует [lubchinskaiaChat/5405](https://t.me/lubchinskaiaChat/5405). Дата виджета — 15.08.2026, 14:49 МСК; сообщение редактировалось, дата правки неизвестна.
+Товарная ссылка — вход к конкретной карточке, а не установленный адрес официального магазина. Открыть вариант, перейти к продавцу, проверить его ID и условия. Рекламные слова и параметры шаринга не использовать как цену или доказательство бренда.
 
-| Подпись | Точная ссылка | Goods ID из перехода |
-|---|---|---:|
-| GUESS | https://mobile.yangkeduo.com/goods.html?ps=Z5UMeIjXDA | 773234545462 |
-| GAP | https://mobile.yangkeduo.com/goods1.html?ps=DnJ2x5tvx9 | 703232668980 |
-| HM | https://mobile.yangkeduo.com/goods1.html?ps=5kbvSFsOC7 | 667938984957 |
+| Подпись / тип | Ссылка | Идентификатор и источник |
+| --- | --- | --- |
+| GUESS, товар | https://mobile.yangkeduo.com/goods.html?ps=Z5UMeIjXDA | Goods ID `773234545462`; [подборка](https://t.me/lubchinskaia/1842?comment=5405) |
+| GAP, товар | https://mobile.yangkeduo.com/goods1.html?ps=DnJ2x5tvx9 | Goods ID `703232668980`; [подборка](https://t.me/lubchinskaia/1842?comment=5405) |
+| H&M, товар | https://mobile.yangkeduo.com/goods1.html?ps=5kbvSFsOC7 | Goods ID `667938984957`; [подборка](https://t.me/lubchinskaia/1842?comment=5405) |
+| H&M, магазин по подписи | https://mobile.yangkeduo.com/mall_page.html?ps=jKkw7q5XmU | Mall ID `877744735`; [источник](https://t.me/lubchinskaia/786) |
+| Пиджак | https://mobile.yangkeduo.com/goods1.html?ps=i5RHxmMv2b | [Подборка](https://t.me/ssylkapindo/4292) |
+| Боди | https://mobile.yangkeduo.com/goods1.html?ps=OirUkaBcUm | [Подборка](https://t.me/ssylkapindo/4294) |
+| Пижама | https://mobile.yangkeduo.com/goods.html?ps=pkOobpiSMg | [Подборка](https://t.me/ssylkapindo/4296) |
+| Розовый лонгслив | https://mobile.yangkeduo.com/goods.html?ps=uUmYP93uuo | [Felyn Tan](https://www.youtube.com/watch?v=64avGIDKkxI) |
+| Рубашка | https://mobile.yangkeduo.com/goods2.html?ps=teCMwR31pm | [Felyn Tan](https://www.youtube.com/watch?v=64avGIDKkxI) |
+| Белый топ | https://mobile.yangkeduo.com/goods.html?ps=ORLk5DGTzq | [Felyn Tan](https://www.youtube.com/watch?v=64avGIDKkxI) |
+| Белая юбка | https://mobile.yangkeduo.com/goods1.html?ps=8ZPgRNbuOx | [Felyn Tan](https://www.youtube.com/watch?v=64avGIDKkxI) |
 
-Это товарные ссылки, а не установленные магазины. Получены HTTP 200 и оболочки 拼多多 без карточки; дополнительная отрисовка завершилась тайм-аутом. Не установлено, вызвано ли это входом, CAPTCHA или ошибкой товара. Цена, продавец, наличие, доставка и подлинность неизвестны. Параметры шаринга не являются ценой; _x_query=Zara у GUESS не доказывает ошибку без чтения товара.
-
-Комментарий не называет эти три предложения официальными; фраза основного поста о Tmall на них не распространяется. Документов/отдельных фотографий в сообщении нет; предпросмотр ссылки не является подтверждением товара. Другие ответы ветки не прочитаны.
-
-Путь проверки: исходный URL в своём приложении → точная карточка/вариант → магазин продавца → имя/ID → происхождение, мерки, отзывы и возврат → полная цена.
-
-## 6. Пять QR из /339 и три отдельные карточки
-
-[Комментарии 448–452 к shopping_in_chinaaa /339](https://t.me/shopping_in_chinaaa/339?comment=448): все пять изображений 800×800 просмотрены, QR декодированы, названия сопоставлены со страницами PDF «Статья экспорт». Конечные адреса/нынешние магазины не открывались.
-
-| Комментарий | Магазин | Страница PDF | QR URL |
-|---|---|---:|---|
-| 448 | 猫猫and猫姐的店 | 12 | https://m.tb.cn/h.TIJGUICXJZ2tycV |
-| 449 | 西西小象 新店 | 11 | https://m.tb.cn/h.TIeT3ZAOwUc6URi |
-| 450 | CC Paradise 欧美日韩配饰 | 8 | https://m.tb.cn/h.TI8AI8vsej7RHVm |
-| 451 | 文子李的外贸小店半自助购物 | 10 | https://m.tb.cn/h.TIdwWeykxwx41rC |
-| 452 | zipper girl | 9 | https://m.tb.cn/h.TIjZArtFXpxHAlH |
-
-Коды CC Paradise и zipper girl читаемые и отличаются от двух нерасшифрованных изображений PDF; это не доказательство работоспособности или оригинальности. У zipper girl в PDF пометка 不退不换: возврат уточнять до оплаты.
-
-Из /339 прочитаны фактические href трёх карточек, подписанных автором LIME; карточки не открывались и не сопоставлены по порядку с QR:
-
-- https://item.taobao.com/item.htm?id=807829560915
-- https://item.taobao.com/item.htm?id=806911060259
-- https://item.taobao.com/item.htm?id=832716240584
-
-## 7. Каналы, опубликованные самими брендами
-
-| Бренд | Адрес канала | Первичное основание / граница |
-|---|---|---|
-| adidas | https://adidas.tmall.com | Правила adiClub, действуют с 02.11.2026, §2-4 |
-| adidas | https://adidasoutlets.tmall.com | То же |
-| adidas | https://adidasoriginals.tmall.com | То же |
-| adidas | https://adidas.jd.com | То же |
-| Uniqlo | https://uniqlo.tmall.com/ | Опубликован в официальной справке Uniqlo |
-| GU | https://gucn.tmall.com/ | Опубликован на странице Fast Retailing; там есть старые справочные данные, сегодняшнее наличие не установлено |
-
-Первичные ссылки: [adiClub](https://static1.adidas.com.cn/ecp-cms/cdn-file/tac/content/WMS/0/TAC_MEMBER.html), [Uniqlo](https://www.uniqlo.cn/public/code/DH/DH3.html), [GU / Fast Retailing](https://www.fastretailing.com/employment/zh_chs/gu/cn/storestaff/company/).
-
-AdiClub также называет официальный магазин adidas на Pinduoduo, поэтому происхождение нельзя решать только по названию платформы. Каталоги Uniqlo/GU полностью не открылись. Эти подтверждения адресов не связывают автоматически короткие ссылки /1842 с указанными витринами и не подтверждают наличие/цену конкретной вещи.
-
-Для сверки артикула: собственные китайские сайты [Zara](https://www.zara.cn/cn/) и [H&M](https://www.hm.com.cn/). GU не назван здесь «дочерним брендом Uniqlo»: исходная формулировка поста не подтверждена, Uniqlo предостерегает от приписывания ему «подбрендов». Проверять магазин на ресурсе соответствующего бренда/группы.
-
-## 8. Артикулы и примеры, которые нельзя перепутать
-
-<!-- FLAG F04: Артикулы отдельной вещи, комплекта, подписи и показанного аналога различаются. -->
-
-| Источник | Точный текст / артикул | Что установлено |
-|---|---|---|
-| [/893](https://t.me/lubchinskaia/893) | belle you W2090045, Macchiato | Бирка трусов: 95% хлопка, 5% эластана; второе фото показывает весь комплект. Код/состав нельзя автоматически переносить на комплект; текущая карточка/оригинальность не подтверждены |
-| [/788](https://t.me/lubchinskaia/788) | ZARA 4341878 716 → KASLEAD с теми же цифрами | Результат 找相似 относится к другому указанному бренду; оригинал ZARA не подтверждён |
-| [/1651](https://t.me/lubchinskaia/1651), 01:52 / 01:56 | 0895700 800 / 0895700 620 | Разные полные коды детских футболок; сохранять цвет вместе с артикулом |
-| [perekatova /13](https://t.me/perekatova_chine/13) | Nike, FJ4553 | Код виден; это наблюдение старого интерфейса, не текущая карточка |
-| [/424](https://t.me/lubchinskaia/424) | 猫家优选 | Текст внутри заголовка не устанавливает название или ID магазина |
+Три Taobao-карточки с подписью LIME из [подборки](https://t.me/shopping_in_chinaaa/339): [807829560915](https://item.taobao.com/item.htm?id=807829560915), [806911060259](https://item.taobao.com/item.htm?id=806911060259), [832716240584](https://item.taobao.com/item.htm?id=832716240584). Их принадлежность магазинам выше отдельно не установлена. Для всех товарных ссылок проверить фактическую карточку, не переносить цену, состав или условия с соседнего товара.
