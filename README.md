@@ -72,6 +72,11 @@ guides in disposable roots with service credentials removed. The first adoption
 of an existing native installation compares its files to the verified archive.
 Local receipts under `release-tools` track integrity separately from approved
 versions; modified or foreign installations are preserved and reported.
+Existing native files are backed up before any executable deployment probe,
+including unchanged installs and first adoption. Read-only startup checks use
+an isolated copy. Full embedded guides use the shared compatibility scanner:
+actionable unavailable-runtime directives block validation; documentary matches
+are recorded for review.
 
 Refresh proposes new source commits without executing their code. Read-only CI
 installs those exact commits in disposable uv roots and checks real coverage,

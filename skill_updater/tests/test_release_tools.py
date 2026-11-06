@@ -128,6 +128,59 @@ class ReleaseRegistryTests(ReleaseFixture):
 
 
 class ReleaseDeploymentTests(ReleaseFixture):
+    def mutation_preserves_existing(self, *, adoption=False, version_probe=False):
+        self.package_boundaries()
+        native = self.native()
+        tool = native.load_releases(self.payload)[0]
+        root = self.tools / "agent-desktop"
+        if adoption:
+            native.prepare_release(tool, root)
+            self.commands.mkdir()
+            for name in tool.executables:
+                (self.commands / name).symlink_to(root / "bin" / name)
+        else:
+            update_skills.deploy_skills(self.registry, self.home, self.home, self.state, apply=True)
+        binary = root / "bin/agent-desktop"
+        before = binary.read_bytes()
+        method = "verify_version" if version_probe else "probe_release"
+        original = getattr(native, method)
+
+        def mutate(*args):
+            result = original(*args)
+            binary.write_bytes(binary.read_bytes() + b"# probe mutation\n")
+            return result
+
+        with patch.object(native, method, side_effect=mutate):
+            with self.assertRaisesRegex(ValueError, "modified|integrity|drift"):
+                update_skills.deploy_skills(self.registry, self.home, self.home, self.state, apply=True)
+        self.assertEqual(before, binary.read_bytes())
+
+    def test_unchanged_installation_restores_probe_mutation(self):
+        self.mutation_preserves_existing()
+
+    def test_first_adoption_restores_probe_mutation(self):
+        self.mutation_preserves_existing(adoption=True)
+
+    def test_version_preflight_restores_probe_mutation(self):
+        self.mutation_preserves_existing(version_probe=True)
+
+    def test_read_only_startup_probe_uses_an_isolated_copy(self):
+        self.package_boundaries()
+        update_skills.deploy_skills(self.registry, self.home, self.home, self.state, apply=True)
+        native = self.native()
+        binary = self.tools / "agent-desktop/bin/agent-desktop"
+        original_bytes = binary.read_bytes()
+        original = native.verify_version
+
+        def mutate(path, *args):
+            original(path, *args)
+            path.write_bytes(path.read_bytes() + b"# version changed itself\n")
+
+        with patch.object(native, "verify_version", side_effect=mutate):
+            with self.assertRaisesRegex(ValueError, "modified|integrity"):
+                update_skills.deploy_skills(self.registry, self.home, self.home, self.state, apply=False)
+        self.assertEqual(original_bytes, binary.read_bytes())
+
     def test_audit_executes_version_not_only_recorded_hashes(self):
         provider = self.root / "external-python"
         provider.symlink_to(sys.executable)
@@ -235,6 +288,33 @@ class ReleaseDeploymentTests(ReleaseFixture):
 
 
 class ReleaseArchiveTests(ReleaseFixture):
+    def probe_with_guides(self, content):
+        native = self.native()
+        tool = native.load_releases(self.payload)[0]
+        os_name = "macos" if sys.platform == "darwin" else "linux"
+        version = {"ok": True, "data": {"version": "1.2.0", "os": os_name,
+                                           "target": self.target.split("-")[0]}}
+        desktop = {"ok": True, "data": {"skill": "agent-desktop", "full": True, "content": content}}
+        platform_guide = {"ok": True, "data": {"skill": "agent-desktop-" + os_name,
+                                                  "full": True, "content": "# Platform guide\n"}}
+        with patch.object(native, "_command", side_effect=[json.dumps(p) for p in (version, desktop, platform_guide)]):
+            return native.probe_release(tool, self.root / "candidate", self.root / "private")
+
+    def test_full_guides_block_unavailable_runtime_tools(self):
+        for name in ("TodoWrite", "TodoRead", "AskUserQuestion", "EnterPlanMode", "ExitPlanMode"):
+            with self.subTest(tool=name):
+                with self.assertRaisesRegex(ValueError, "compatibility|provider"):
+                    self.probe_with_guides(f"# Guide\n\n## Linked reference\nUse {name} for desktop actions.\n")
+
+    def test_documentary_provider_mentions_are_reported_not_runtime_directives(self):
+        result = self.probe_with_guides("# Background\nClaude Code is another desktop client.\n")
+        self.assertEqual("PASS", result["result"])
+        self.assertTrue(result["compatibility_review"])
+
+    def test_binary_guide_content_cannot_bypass_text_scan(self):
+        with self.assertRaisesRegex(ValueError, "compatibility|coverage"):
+            self.probe_with_guides("# Guide\n\0\nUse TodoWrite for desktop actions.\n")
+
     def test_archive_digest_mismatch_prevents_extraction(self):
         self.package_boundaries()
         record = self.record | {"assets": {self.target: self.record["assets"][self.target] | {"sha256": "0" * 64}}}

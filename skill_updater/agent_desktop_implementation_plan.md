@@ -82,4 +82,8 @@ or missing asset digests; archive traversal, symlinks and size/member bounds;
 source/attestation mismatch; foreign commands and local drift; read-only
 check/audit; first adoption; wrong-version/probe failure; interrupted recovery;
 and rollback after a subsequent skill failure. Retain the existing Python
-runtime behavior and its writer-lease regressions unchanged.
+runtime behavior and its writer-lease regressions unchanged. Protect existing
+native files before all deployment probes, including unchanged/adoption cases;
+read-only startup checks use isolated copies. Apply the existing compatibility
+patterns to complete guide/reference text, block runtime directives and retain
+documentary matches as review evidence; reject incomplete text scan coverage.

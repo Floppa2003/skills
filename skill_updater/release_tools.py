@@ -20,12 +20,14 @@ try:
         _write_json, recover_bundle,
     )
     from skill_updater.runtime_process import owned_commands, run as _command
+    from skill_updater.compatibility import MAX_SCAN_BYTES, RUNTIME_CODE, RUNTIME_DIRECTIVE, scan_skill
 except ModuleNotFoundError:
     from runtime_tools import (
         ToolPaths, _check_commands, _finish, _pending, _prepare_rollback, _receipt,
         _write_json, recover_bundle,
     )
     from runtime_process import owned_commands, run as _command
+    from compatibility import MAX_SCAN_BYTES, RUNTIME_CODE, RUNTIME_DIRECTIVE, scan_skill
 
 
 TARGETS = {
@@ -182,7 +184,8 @@ def installed_state(tool: ReleaseTool, root: Path) -> dict:
             "modes": {name: (root / name).stat().st_mode & 0o777 for name in files}}
 
 
-def inspect_release(tool: ReleaseTool, paths: ToolPaths, *, pending_ok=False, adoption_files=None) -> dict | None:
+def inspect_release(tool: ReleaseTool, paths: ToolPaths, *, pending_ok=False,
+                    adoption_files=None, check_startup=True) -> dict | None:
     if _pending(tool, paths).exists() and not pending_ok:
         raise ValueError(f"interrupted native deployment: {_pending(tool, paths)}; approved apply required")
     root = paths.tools / tool.tool
@@ -200,11 +203,15 @@ def inspect_release(tool: ReleaseTool, paths: ToolPaths, *, pending_ok=False, ad
         raise ValueError(f"unmanaged native installation: {root}; approved apply must verify its archive")
     elif state["files"] != adoption_files or state["profile"] != desired_release(tool):
         raise ValueError(f"native installation differs from verified archive: {root}")
-    with tempfile.TemporaryDirectory(prefix="native-inspect-") as directory:
-        verify_version(root / "bin/agent-desktop", state["profile"]["tag"].removeprefix("v"),
-                       command_environment(Path(directory)))
-    if installed_state(tool, root) != state:
-        raise ValueError(f"native version probe modified its installation: {root}")
+    if check_startup:
+        with tempfile.TemporaryDirectory(prefix="native-inspect-") as directory:
+            private_root = Path(directory)
+            copy = private_root / "installation"
+            shutil.copytree(root, copy)
+            verify_version(copy / "bin/agent-desktop", state["profile"]["tag"].removeprefix("v"),
+                           command_environment(private_root))
+            if installed_state(tool, copy) != state:
+                raise ValueError(f"native version probe modified its isolated installation copy: {root}")
     return state
 
 
@@ -295,22 +302,42 @@ def verify_version(binary: Path, expected: str, environment: dict) -> None:
         raise ValueError(f"native version/platform: expected={expected}/{target} actual={version}")
 
 
+def check_guide(content: str, guide: str, private_root: Path) -> list[dict]:
+    if "\0" in content or len(content.encode("utf-8")) > MAX_SCAN_BYTES:
+        raise ValueError(f"native guide cannot receive complete text compatibility coverage: {guide}")
+    root = private_root / "guides" / guide
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "SKILL.md").write_text(content, encoding="utf-8")
+    lines = content.splitlines()
+    reviews = []
+    for finding in scan_skill(root):
+        directive = RUNTIME_DIRECTIVE.search(lines[finding.line - 1]) or RUNTIME_CODE.search(lines[finding.line - 1])
+        actionable = finding.kind in {"claude_path", "anthropic_runtime", "claude_tool", "provider_reference"} and directive
+        if finding.disposition == "block" or actionable:
+            raise ValueError(f"native guide compatibility blocker: {guide}:{finding.line}: {finding.kind}: {finding.match}")
+        reviews.append({"guide": guide, "line": finding.line, "kind": finding.kind, "match": finding.match})
+    return reviews
+
+
 def probe_release(tool: ReleaseTool, root: Path, private_root: Path) -> dict:
     environment = command_environment(private_root)
     binary = str(root / "bin/agent-desktop")
     expected_version = tool.tag.removeprefix("v")
     verify_version(Path(binary), expected_version, environment)
     guides = []
+    reviews = []
     for guide in ("desktop", "platform"):
         result = json.loads(_command([binary, "skills", "get", guide, "--full"], env=environment, timeout=30))
         expected_skill = "agent-desktop" if guide == "desktop" else "agent-desktop-" + ("macos" if platform.system() == "Darwin" else "linux")
         if (not result["ok"] or result["data"]["skill"] != expected_skill
                 or not result["data"]["full"] or not result["data"]["content"].strip()):
             raise ValueError(f"native guide missing: {guide}")
-        if re.search(r"~/.claude|\.claude|anthropic|claude[_ -]code|claude-only", result["data"]["content"], re.I):
-            raise ValueError(f"native guide requires provider-compatibility review: {guide}")
+        reviews.extend(check_guide(result["data"]["content"], guide, private_root))
         guides.append(result["data"]["skill"])
-    return {"result": "PASS", "version": expected_version, "guides": guides}
+    evidence = {"result": "PASS", "version": expected_version, "guides": guides}
+    if reviews:
+        evidence["compatibility_review"] = reviews
+    return evidence
 
 
 @contextmanager
@@ -329,14 +356,16 @@ def deploy_releases(tools: list[ReleaseTool], paths: ToolPaths):
                 if root.exists() and not _receipt(tool, paths).exists():
                     candidate = prepare_release(tool, work / "candidate")
                     hashes = json.loads((candidate / "installation.json").read_text())["files"]
-                    observed = inspect_release(tool, paths, adoption_files=hashes)
+                    observed = inspect_release(tool, paths, adoption_files=hashes, check_startup=False)
                 else:
-                    observed = inspect_release(tool, paths)
+                    observed = inspect_release(tool, paths, check_startup=False)
                 replacing = observed is None or observed["profile"] != desired_release(tool)
                 if replacing and candidate is None:
                     candidate = prepare_release(tool, work / "candidate")
                 changed.append(tool)
-                lease = _prepare_rollback(tool, paths, replacing=replacing)
+                # Even unchanged/adopted installations are protected before
+                # any executable preflight can modify their files.
+                lease = _prepare_rollback(tool, paths, replacing=True)
                 with owned_commands(lease):
                     if replacing:
                         if root.exists():
@@ -350,9 +379,10 @@ def deploy_releases(tools: list[ReleaseTool], paths: ToolPaths):
                             link.symlink_to(root / "bin" / name)
                         _receipt(tool, paths).unlink(missing_ok=True)
                         hashes = json.loads((root / "installation.json").read_text())["files"]
-                        observed = inspect_release(tool, paths, pending_ok=True, adoption_files=hashes)
+                        observed = inspect_release(tool, paths, pending_ok=True, adoption_files=hashes, check_startup=False)
                     evidence[tool.name] = probe_release(tool, root, work)
-                    observed = inspect_release(tool, paths, pending_ok=True, adoption_files=observed["files"])
+                    observed = inspect_release(tool, paths, pending_ok=True,
+                                               adoption_files=observed["files"], check_startup=False)
                     _write_json(_receipt(tool, paths), observed)
                 print(f"native ready: {tool.name}: {json.dumps(evidence[tool.name], sort_keys=True)}")
         yield evidence
