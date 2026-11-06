@@ -40,7 +40,7 @@ of PR/merge/deployment including native GitHub Release/SHA-256 updater support.
 - [x] Implement the authorized native-release lifecycle with regression checks.
 - [x] Install the approved CLI/helper, verify actual installed state and perform
   the smallest safe task-owned UI control when feasible without new permissions.
-- [ ] Run repository/updater and skill activation checks; independently review
+- [x] Run repository/updater and skill activation checks; independently review
   correctness, source provenance, security, routing and acceptance evidence.
 
 ## Release Conditions
