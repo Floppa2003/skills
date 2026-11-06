@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime
 from pathlib import Path
@@ -23,11 +23,19 @@ try:
     from skill_updater.openai_metadata import ensure_openai_yaml, validate_openai_yaml
     from skill_updater.runtime_tools import bundle_records, load_bundles, refresh_bundle
     from skill_updater.runtime_tools import deploy_bundles, desired_profile, inspect_bundle, tool_paths, validate_bundles
+    from skill_updater.release_tools import (
+        load_releases, release_records, refresh_release, release_paths,
+        desired_release, inspect_release, deploy_releases, validate_releases,
+    )
 except ModuleNotFoundError:
     from compatibility import CompatibilityFinding, scan_skill
     from openai_metadata import ensure_openai_yaml, validate_openai_yaml
     from runtime_tools import bundle_records, load_bundles, refresh_bundle
     from runtime_tools import deploy_bundles, desired_profile, inspect_bundle, tool_paths, validate_bundles
+    from release_tools import (
+        load_releases, release_records, refresh_release, release_paths,
+        desired_release, inspect_release, deploy_releases, validate_releases,
+    )
 
 
 ROOT = Path(__file__).resolve().parent
@@ -181,6 +189,7 @@ def _registry_state(payload: dict) -> tuple[list[SkillSpec], list[RetiredSkill]]
     if overlap:
         raise RegistryError(f"active skill is also retired: {sorted(overlap)[0]}")
     load_bundles(payload)
+    load_releases(payload)
     return specs, retired
 
 
@@ -534,7 +543,7 @@ def run_runtime_setup(spec: SkillSpec, root: Path) -> None:
         _run(list(RUNTIME_SETUPS[setup]), cwd=root)
 
 
-def _save_registry(path: Path, specs: list[SkillSpec], *, runtime_tools=None) -> None:
+def _save_registry(path: Path, specs: list[SkillSpec], *, runtime_tools=None, release_tools=None) -> None:
     payload = _load_registry_payload(path) if path.exists() else {"version": 1, "skills": []}
     retired = _registry_state(payload)[1]
     overlap = {spec.name for spec in specs} & {skill.name for skill in retired}
@@ -547,6 +556,8 @@ def _save_registry(path: Path, specs: list[SkillSpec], *, runtime_tools=None) ->
     })
     if runtime_tools is not None:
         payload["runtime_tools"] = bundle_records(runtime_tools)
+    if release_tools is not None:
+        payload["release_tools"] = release_records(release_tools)
     temporary = path.with_name(f".{path.name}.tmp")
     temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
@@ -905,11 +916,13 @@ def run_updates(
             payload = _load_registry_payload(registry_path)
             specs = _registry_state(payload)[0]
             bundles = load_bundles(payload)
+            releases = load_releases(payload)
         except Exception as exc:
             log.emit(_global_error("registry", exc))
             return log.finish()
         state = list(specs)
         bundle_state = list(bundles)
+        release_state = list(releases)
         index_by_name = {spec.name: index for index, spec in enumerate(specs)}
         skills_dir = codex_home / "skills"
         skills_dir.mkdir(parents=True, exist_ok=True)
@@ -1139,6 +1152,29 @@ def run_updates(
                             message=str(exc), installed_copy_preserved=True,
                             suggested_action="inspect runtime source/ref/metadata; prior pins were preserved",
                         ))
+                for index, release in enumerate(releases):
+                    try:
+                        proposal = refresh_release(release)
+                        changed = proposal != release
+                        event = SkillEvent(
+                            skill=release.event_name, status="updated" if changed and apply else "unchanged",
+                            stage="replacement" if changed and apply else "compare",
+                            repo=release.repo, ref=proposal.tag, upstream_commit=proposal.source_commit,
+                            error_type=None, installed_copy_preserved=True,
+                            message=f"{'release pins proposed, not installed' if changed else 'release pins current'}; {proposal.tag}",
+                        )
+                        if changed and apply:
+                            release_state[index] = proposal
+                            pending_update_events.append(event)
+                        else:
+                            log.emit(event)
+                    except Exception as exc:
+                        log.emit(SkillEvent(
+                            skill=release.event_name, status="error_skip", stage="fetch",
+                            repo=release.repo, ref=release.tag, upstream_commit=release.source_commit,
+                            error_type=type(exc).__name__, message=str(exc), installed_copy_preserved=True,
+                            suggested_action="inspect native release metadata; prior pins were preserved",
+                        ))
         finally:
             try:
                 if stage_root.exists():
@@ -1151,10 +1187,12 @@ def run_updates(
 
         if apply:
             try:
+                options = {}
                 if bundles:
-                    _save_registry(registry_path, state, runtime_tools=bundle_state)
-                else:
-                    _save_registry(registry_path, state)
+                    options["runtime_tools"] = bundle_state
+                if releases:
+                    options["release_tools"] = release_state
+                _save_registry(registry_path, state, **options)
             except Exception as exc:
                 rollback_errors = []
                 for installed, backup, had_installed in reversed(replacements):
@@ -1286,23 +1324,34 @@ def deploy_skills(
     payload = _load_registry_payload(registry_path)
     specs, retired = _registry_state(payload)
     bundles = load_bundles(payload)
+    releases = load_releases(payload)
     validate_canonical_skills(specs, repository_root / "skills")
     arguments = (specs, retired, repository_root, codex_home, work_root, apply)
-    if not bundles:
+    if not bundles and not releases:
         return _deploy_skill_files(*arguments)
-    paths = tool_paths(work_root)
     if not apply:
         pending = []
-        for bundle in bundles:
-            observed = inspect_bundle(bundle, paths)
-            if observed is None or observed["profile"] != desired_profile(bundle):
-                pending.append(bundle.name)
+        if bundles:
+            paths = tool_paths(work_root)
+            for bundle in bundles:
+                observed = inspect_bundle(bundle, paths)
+                if observed is None or observed["profile"] != desired_profile(bundle):
+                    pending.append(bundle.name)
+        if releases:
+            paths = release_paths(work_root)
+            for release in releases:
+                observed = inspect_release(release, paths)
+                if observed is None or observed["profile"] != desired_release(release):
+                    pending.append(release.name)
         result = _deploy_skill_files(*arguments)
         print(f"runtime deployment changes available: {pending}")
         return int(bool(result or pending))
-    with _exclusive_lock(work_root):
-        with deploy_bundles(bundles, paths):
-            return _deploy_skill_files(*arguments)
+    with _exclusive_lock(work_root), ExitStack() as installed:
+        if bundles:
+            installed.enter_context(deploy_bundles(bundles, tool_paths(work_root)))
+        if releases:
+            installed.enter_context(deploy_releases(releases, release_paths(work_root)))
+        return _deploy_skill_files(*arguments)
 
 
 def _deploy_skill_files(
@@ -1512,6 +1561,7 @@ def main(argv: list[str] | None = None) -> int:
                 payload = _load_registry_payload(registry_path)
                 _registry_state(payload)
                 validate_bundles(load_bundles(payload), work_root)
+                validate_releases(load_releases(payload), work_root)
                 return 0
             if args.command == "refresh":
                 if args.apply:
@@ -1563,6 +1613,18 @@ def main(argv: list[str] | None = None) -> int:
                 except ValueError as exc:
                     runtime_errors.append(bundle.name)
                     print(f"RUNTIME_ERROR runtime={bundle.name} message={exc}")
+        releases = load_releases(payload)
+        if releases:
+            paths = release_paths(work_root)
+            for release in releases:
+                try:
+                    observed = inspect_release(release, paths)
+                    if observed is None or observed["profile"] != desired_release(release):
+                        runtime_errors.append(release.name)
+                        print(f"RUNTIME_OUTDATED runtime={release.name}")
+                except (ValueError, OSError, KeyError) as exc:
+                    runtime_errors.append(release.name)
+                    print(f"RUNTIME_ERROR runtime={release.name} message={exc}")
         return 1 if args.strict and (events or runtime_errors) else 0
 
     args = _parser().parse_args(arguments)

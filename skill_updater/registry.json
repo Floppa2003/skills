@@ -19,6 +19,37 @@
       "probe": "ub-mode"
     }
   ],
+  "release_tools": [
+    {
+      "name": "agent-desktop",
+      "repo": "vercel-labs/agent-desktop",
+      "tag": "v1.2.0",
+      "source_commit": "2b0a7334fc111730454b726e6800aa41cdafc093",
+      "used_by": ["agent-desktop-cli"],
+      "assets": {
+        "aarch64-apple-darwin": {
+          "name": "agent-desktop-v1.2.0-aarch64-apple-darwin.tar.gz",
+          "size": 2230641,
+          "sha256": "219813428bb1ad8decae172faed05c5964a2415170df402e2786ccfa6452ba82"
+        },
+        "x86_64-apple-darwin": {
+          "name": "agent-desktop-v1.2.0-x86_64-apple-darwin.tar.gz",
+          "size": 2359765,
+          "sha256": "d9dc50226f28d7fc86a2f5b0945f0c206dff6c31e418907749f493b6f9e773e6"
+        },
+        "aarch64-unknown-linux-gnu": {
+          "name": "agent-desktop-v1.2.0-aarch64-unknown-linux-gnu.tar.gz",
+          "size": 3333305,
+          "sha256": "68e8ebbb4f80e44485d2f1cf972943a38ee43108e2e0ce56bdfa641fd1599f68"
+        },
+        "x86_64-unknown-linux-gnu": {
+          "name": "agent-desktop-v1.2.0-x86_64-unknown-linux-gnu.tar.gz",
+          "size": 3458001,
+          "sha256": "591ae7f4a38479dc045df97e27447c0c8b530441730ab6b990e27c813162af44"
+        }
+      }
+    }
+  ],
   "retired_skills": [
     {
       "name": "diagnose",
@@ -43,6 +74,24 @@
     }
   ],
   "skills": [
+    {
+      "name": "agent-desktop-cli",
+      "repo": null,
+      "path": null,
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": null,
+      "enabled": false,
+      "installed_commit": null,
+      "installed_hash": "7a53662e7d7167fd8acfcb46f2bd1093d6855378d187908739c2bc7639d2f78e",
+      "skip_reason": "Locally authored CLI router; detailed upstream guides are loaded from the installed agent-desktop binary; intentionally unmanaged instruction text",
+      "required_paths": [
+        "SKILL.md",
+        "agents/openai.yaml"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
+    },
     {
       "name": "audit-instruction-system",
       "repo": null,

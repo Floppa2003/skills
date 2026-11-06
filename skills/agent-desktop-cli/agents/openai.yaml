@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Desktop CLI"
+  short_description: "Operate desktop apps through the native CLI"
+  default_prompt: "Use $agent-desktop-cli for the requested terminal-driven desktop task."

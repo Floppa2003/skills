@@ -62,6 +62,15 @@ RUNTIME_CODE = re.compile(
     r"|\bAnthropic\s*\("
     r"|[\"']?model[\"']?\s*[:=]\s*[\"']?claude-"
 )
+MARKDOWN_PREFIX = re.compile(r"^\s*(?:>\s*|(?:[-+*]|\d+[.)])\s+|#{1,6}\s+|\[[ xX]\]\s+)")
+
+
+def is_runtime_directive(line_text: str) -> bool:
+    # Classify the instruction, not its Markdown list, quote or emphasis markers.
+    while match := MARKDOWN_PREFIX.match(line_text):
+        line_text = line_text[match.end():]
+    plain = re.sub(r"[*_`]+", "", line_text.strip())
+    return bool(RUNTIME_DIRECTIVE.search(plain))
 
 
 @dataclass(frozen=True)
@@ -117,8 +126,8 @@ def _disposition(kind: str, relative: Path, line_text: str) -> str:
     if kind == "incompatible_metadata":
         return "block"
     if kind == "anthropic_runtime":
-        return "block" if RUNTIME_DIRECTIVE.search(line_text) or RUNTIME_CODE.search(line_text) else "review"
-    return "block" if RUNTIME_DIRECTIVE.search(line_text) else "review"
+        return "block" if is_runtime_directive(line_text) or RUNTIME_CODE.search(line_text) else "review"
+    return "block" if is_runtime_directive(line_text) else "review"
 
 
 def scan_skill(skill_dir: Path) -> list[CompatibilityFinding]:

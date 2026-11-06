@@ -116,6 +116,19 @@ class RefreshPublicationTests(TempDirTest):
         self.register_runtime()
         self.assertNotEqual(0, self.run_gate().returncode)
 
+    def test_release_runtime_is_required_and_failed_pins_are_preserved(self):
+        self.registry["release_tools"] = [{"name": "agent-desktop", "tag": "v1.2.0"}]
+        write(self.repo / "skill_updater/registry.json", json.dumps(self.registry))
+        commit_all(self.repo, "release baseline")
+        self.assertNotEqual(0, self.run_gate().returncode)
+        self.events.append({"skill": "runtime:agent-desktop", "status": "error_skip", "stage": "fetch",
+                            "message": "source unavailable", "installed_copy_preserved": True})
+        result = self.run_gate()
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.registry["release_tools"][0]["tag"] = "v1.3.0"
+        write(self.repo / "skill_updater/registry.json", json.dumps(self.registry))
+        self.assertNotEqual(0, self.run_gate().returncode)
+
 
 if __name__ == "__main__":
     unittest.main()

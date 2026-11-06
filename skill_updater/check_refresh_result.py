@@ -12,7 +12,8 @@ PREPARATION_STAGES = {"fetch", "stage", "overlay", "metadata", "validation", "co
 
 def _subjects(registry: dict) -> dict:
     return {skill["name"]: skill for skill in registry["skills"]} | {
-        f"runtime:{bundle['name']}": bundle for bundle in registry.get("runtime_tools", [])
+        f"runtime:{bundle['name']}": bundle
+        for bundle in registry.get("runtime_tools", []) + registry.get("release_tools", [])
     }
 
 

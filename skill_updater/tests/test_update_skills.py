@@ -483,6 +483,22 @@ class CandidateValidationTests(TempDirTest):
 
         self.assertEqual(["review"], sorted({finding.disposition for finding in findings}))
 
+    def test_compatibility_blocks_markdown_formatted_runtime_directives(self) -> None:
+        for instruction in ("1. Use", "1) Use", "+ Use", "- [ ] Use",
+                            "> 1. **Use**", "  > - [x] __Use__", "### `Use`"):
+            with self.subTest(instruction=instruction):
+                skill = valid_skill(self.root / "sample", body=f"{instruction} TodoWrite for progress.\n")
+                with self.assertRaises(CompatibilityError):
+                    validate_skill_compatibility(skill)
+
+    def test_compatibility_preserves_markdown_documentary_and_negative_mentions(self) -> None:
+        for text in ("1. Claude Code is another client.",
+                     "> - **Do not** use TodoWrite; it is unavailable."):
+            with self.subTest(text=text):
+                skill = valid_skill(self.root / "sample", body=f"{text}\n")
+                findings = validate_skill_compatibility(skill)
+                self.assertEqual({"review"}, {finding.disposition for finding in findings})
+
     def test_compatibility_allows_provider_neutral_runtime_path_documentation(self) -> None:
         skill = valid_skill(
             self.root / "sample",
