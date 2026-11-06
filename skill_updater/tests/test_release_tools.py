@@ -302,14 +302,20 @@ class ReleaseArchiveTests(ReleaseFixture):
 
     def test_full_guides_block_unavailable_runtime_tools(self):
         for name in ("TodoWrite", "TodoRead", "AskUserQuestion", "EnterPlanMode", "ExitPlanMode"):
-            with self.subTest(tool=name):
-                with self.assertRaisesRegex(ValueError, "compatibility|provider"):
-                    self.probe_with_guides(f"# Guide\n\n## Linked reference\nUse {name} for desktop actions.\n")
+            for instruction in ("Use", "1. Use", "1) Use", "+ Use", "- [ ] Use",
+                                "> 1. **Use**", "  > - [x] __Use__", "### `Use`"):
+                with self.subTest(tool=name, instruction=instruction):
+                    with self.assertRaisesRegex(ValueError, "compatibility|provider"):
+                        self.probe_with_guides(f"# Guide\n\n## Linked reference\n{instruction} {name} for desktop actions.\n")
 
     def test_documentary_provider_mentions_are_reported_not_runtime_directives(self):
-        result = self.probe_with_guides("# Background\nClaude Code is another desktop client.\n")
-        self.assertEqual("PASS", result["result"])
-        self.assertTrue(result["compatibility_review"])
+        for text in ("Claude Code is another desktop client.",
+                     "1. Claude Code is another desktop client.",
+                     "> - **Do not** use TodoWrite; it is unavailable."):
+            with self.subTest(text=text):
+                result = self.probe_with_guides(f"# Background\n{text}\n")
+                self.assertEqual("PASS", result["result"])
+                self.assertTrue(result["compatibility_review"])
 
     def test_binary_guide_content_cannot_bypass_text_scan(self):
         with self.assertRaisesRegex(ValueError, "compatibility|coverage"):

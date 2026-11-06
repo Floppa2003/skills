@@ -20,14 +20,14 @@ try:
         _write_json, recover_bundle,
     )
     from skill_updater.runtime_process import owned_commands, run as _command
-    from skill_updater.compatibility import MAX_SCAN_BYTES, RUNTIME_CODE, RUNTIME_DIRECTIVE, scan_skill
+    from skill_updater.compatibility import MAX_SCAN_BYTES, RUNTIME_CODE, is_runtime_directive, scan_skill
 except ModuleNotFoundError:
     from runtime_tools import (
         ToolPaths, _check_commands, _finish, _pending, _prepare_rollback, _receipt,
         _write_json, recover_bundle,
     )
     from runtime_process import owned_commands, run as _command
-    from compatibility import MAX_SCAN_BYTES, RUNTIME_CODE, RUNTIME_DIRECTIVE, scan_skill
+    from compatibility import MAX_SCAN_BYTES, RUNTIME_CODE, is_runtime_directive, scan_skill
 
 
 TARGETS = {
@@ -311,7 +311,7 @@ def check_guide(content: str, guide: str, private_root: Path) -> list[dict]:
     lines = content.splitlines()
     reviews = []
     for finding in scan_skill(root):
-        directive = RUNTIME_DIRECTIVE.search(lines[finding.line - 1]) or RUNTIME_CODE.search(lines[finding.line - 1])
+        directive = is_runtime_directive(lines[finding.line - 1]) or RUNTIME_CODE.search(lines[finding.line - 1])
         actionable = finding.kind in {"claude_path", "anthropic_runtime", "claude_tool", "provider_reference"} and directive
         if finding.disposition == "block" or actionable:
             raise ValueError(f"native guide compatibility blocker: {guide}:{finding.line}: {finding.kind}: {finding.match}")

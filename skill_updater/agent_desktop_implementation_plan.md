@@ -87,3 +87,6 @@ native files before all deployment probes, including unchanged/adoption cases;
 read-only startup checks use isolated copies. Apply the existing compatibility
 patterns to complete guide/reference text, block runtime directives and retain
 documentary matches as review evidence; reject incomplete text scan coverage.
+Normalize Markdown list, checkbox, quote, heading and emphasis markers before
+classifying directives; preserve documentary and negative mentions. Check the
+classification impact across the complete canonical skill inventory.
