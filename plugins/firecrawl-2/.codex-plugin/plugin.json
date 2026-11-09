@@ -47,5 +47,9 @@
     "web monitoring"
   ],
   "mcpServers": "./.mcp.json",
-  "onboardingSkill": "./skills/get-started/SKILL.md"
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/get-started/SKILL.md"
+    }
+  }
 }
