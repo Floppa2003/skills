@@ -3,13 +3,12 @@
   "upstream_version": "2.11.0",
   "upstream_publisher": "SideGuide Technologies, Inc.",
   "copied_components": [
-    "skills",
-    "assets"
+    "skills"
   ],
   "adaptations": [
-    "Scope workflow routing to Firecrawl 2",
+    "Scope workflow routing to this Firecrawl 2 App connection",
     "Preserve existing account defaults",
-    "Keep independent OAuth MCP configuration"
+    "Preserve the existing native ChatGPT App binding and presentation"
   ],
   "upstream_files": {
     "skills/brand-identity/SKILL.md": "901bef5a1a1f758e2b0619d8cfa8db0c41a69d6981cb8bef0377fc079defbb10",
@@ -40,8 +39,6 @@
     "skills/property-listings/SKILL.md": "27f8b988b460f83c4d036b997283d1c8a63f9aafddfbfb632d8f6ea49d8b9704",
     "skills/read-docs/SKILL.md": "a20df03ffeb704a15688b760e5e79660e2b852b4c9c0ea83a6c5407414c644ec",
     "skills/seo-audit/SKILL.md": "8184dc41f179130dd9c03d6f83cf9af02974d7f35a1d6290093e31610b15f7e0",
-    "skills/video-transcripts/SKILL.md": "80437312affe258b7cdcc5f803bdfeb335f02b38aab825a6157b09cd9f5f7611",
-    "assets/composer-icon.png": "22cd6a00f7f1adcf2f576836da2e52f8983e849a0fecc2c9ccde1b1473e2ba6d",
-    "assets/logo.png": "443993e148098c1de53cedc510fc840dea11d8c8e9a3f39a25617a72c776b90d"
+    "skills/video-transcripts/SKILL.md": "80437312affe258b7cdcc5f803bdfeb335f02b38aab825a6157b09cd9f5f7611"
   }
 }

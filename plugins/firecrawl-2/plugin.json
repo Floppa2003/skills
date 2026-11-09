@@ -1,35 +1,11 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "author": {
-    "name": "Andrei Shevtsov"
-  },
-  "description": "Private connection to the official Firecrawl MCP server for a second Firecrawl account.",
-  "extensions": {
-    "com.openai": {
-      "interface": {
-        "capabilities": [
-          "Web search",
-          "Page scraping",
-          "Site crawling",
-          "Structured extraction",
-          "Browser interaction",
-          "Change monitoring",
-          "Research"
-        ],
-        "category": "Data & Analytics",
-        "defaultPrompt": "Найди информацию в интернете через Firecrawl 2 и приведи ссылки на источники.",
-        "developerName": "Andrei Shevtsov",
-        "displayName": "Firecrawl 2",
-        "longDescription": "Отдельное личное подключение к официальному MCP-серверу Firecrawl. Поиск в интернете, чтение веб-страниц и другие инструменты сервиса, доступные выбранной команде. При подключении войдите во второй аккаунт Firecrawl и выберите нужную команду. Использование относится к этой команде.",
-        "shortDescription": "Второй аккаунт Firecrawl",
-        "logo": "./assets/logo.png",
-        "composerIcon": "./assets/composer-icon.png"
-      },
-      "onboardingSkill": "./skills/get-started/SKILL.md"
-    }
-  },
-  "name": "firecrawl-2",
+  "name": "dev-6af2177bedb48191a8777d143d3ed941",
   "version": "1.1.0",
+  "description": "Firecrawl 2",
+  "author": {
+    "name": "App developer"
+  },
   "keywords": [
     "search",
     "scrape",
@@ -51,5 +27,20 @@
     "company research",
     "web automation",
     "web monitoring"
-  ]
+  ],
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/get-started/SKILL.md",
+      "interface": {
+        "capabilities": [],
+        "category": "Other",
+        "defaultPrompt": null,
+        "developerName": "App developer",
+        "displayName": "Firecrawl 2",
+        "longDescription": "Firecrawl 2",
+        "shortDescription": "Firecrawl 2"
+      },
+      "apps": "./.app.json"
+    }
+  }
 }
