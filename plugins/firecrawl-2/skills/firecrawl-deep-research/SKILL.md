@@ -8,7 +8,7 @@ license: ISC
 
 Run this workflow through **Firecrawl 2**. Resolve every tool named below from
 this plugin's own connection. Keep its account separate from other Firecrawl
-connections. If the connection is unavailable, follow
+connections. For connection recovery or account verification, follow
 [account selection and recovery](../../ACCOUNT_SELECTION.md) before continuing.
 
 # Firecrawl Deep Research

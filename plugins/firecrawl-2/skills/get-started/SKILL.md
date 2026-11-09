@@ -7,14 +7,14 @@ description: Use when Firecrawl 2 is selected or requested. Get users started wi
 
 Run this workflow through **Firecrawl 2**. Resolve every tool named below from
 this plugin's own connection. Keep its account separate from other Firecrawl
-connections. If the connection is unavailable, follow
+connections. For connection recovery or account verification, follow
 [account selection and recovery](../../ACCOUNT_SELECTION.md) before continuing.
 
 Own the setup and first useful result. The agent discovers and chooses Firecrawl tools for the user. Keep onboarding in native chat and make Firecrawl's benefits concrete through the work it does.
 
 ## Check the connection first
 
-Before asking onboarding questions or executing data tasks, reuse a successful authenticated check already in context, or call the exposed `firecrawl_credit_usage` with `{"view":"current"}`. Keep success brief; show the balance if asked or relevant. A timeout or service failure is not proof that login expired, and an empty balance is not an authentication failure.
+Before asking onboarding questions or executing data tasks, reuse a successful authenticated check for this same Firecrawl 2 connection already in context, or call its exposed `firecrawl_credit_usage` with `{"view":"current"}`. Keep success brief; show the balance if asked or relevant. A timeout or service failure is not proof that login expired, and an empty balance is not an authentication failure. A successful balance check or empty monitor list confirms access through this connection; it does not establish the account email, team identity, or that this is a different account from another Firecrawl connection. For account identity, use the provider consent/settings UI as described in [account selection and recovery](../../ACCOUNT_SELECTION.md).
 
 The default plugin connects to Firecrawl's hosted OAuth MCP. Let the host show its native sign-in or reconnect flow when required. If the connection or tools are unavailable, direct the user to **Plugins → Firecrawl 2 → Connect** or the equivalent connection control the host exposes. Wait for the user to complete login, then retry the authenticated check. Never request passwords, API keys, or OAuth tokens in chat. Do not claim that opening the login page completed authentication, repeatedly retry while login is pending, or silently fall back to another plugin's account.
 
