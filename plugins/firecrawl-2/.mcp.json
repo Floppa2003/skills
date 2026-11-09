@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "firecrawl-2": {
+      "type": "streamable-http",
+      "url": "https://mcp.firecrawl.dev/v2/mcp-oauth",
+      "headers": {},
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth"
+          }
+        }
+      }
+    }
+  }
+}

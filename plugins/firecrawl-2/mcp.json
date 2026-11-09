@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "firecrawl-2": {
+      "type": "streamable-http",
+      "url": "https://mcp.firecrawl.dev/v2/mcp-oauth",
+      "extensions": {
+        "com.openai": {
+          "auth": { "type": "oauth" }
+        }
+      }
+    }
+  }
+}

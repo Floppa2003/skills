@@ -1,0 +1,51 @@
+{
+  "interface": {
+    "capabilities": [
+      "Web search",
+      "Page scraping",
+      "Site crawling",
+      "Structured extraction",
+      "Browser interaction",
+      "Change monitoring",
+      "Research"
+    ],
+    "category": "Data & Analytics",
+    "defaultPrompt": "Найди информацию в интернете через Firecrawl 2 и приведи ссылки на источники.",
+    "developerName": "Andrei Shevtsov",
+    "displayName": "Firecrawl 2",
+    "longDescription": "Отдельное личное подключение к официальному MCP-серверу Firecrawl. Поиск в интернете, чтение веб-страниц и другие инструменты сервиса, доступные выбранной команде. При подключении войдите во второй аккаунт Firecrawl и выберите нужную команду. Использование относится к этой команде.",
+    "shortDescription": "Второй аккаунт Firecrawl",
+    "logo": "./assets/logo.png",
+    "composerIcon": "./assets/composer-icon.png"
+  },
+  "name": "firecrawl-2",
+  "version": "1.1.0",
+  "description": "Private connection to the official Firecrawl MCP server for a second Firecrawl account.",
+  "author": {
+    "name": "Andrei Shevtsov"
+  },
+  "keywords": [
+    "search",
+    "scrape",
+    "extract",
+    "crawl",
+    "web search",
+    "web scraping",
+    "web data",
+    "data extraction",
+    "web crawling",
+    "browser automation",
+    "web research",
+    "documentation search",
+    "fetch",
+    "content extraction",
+    "structured data",
+    "data enrichment",
+    "code search",
+    "company research",
+    "web automation",
+    "web monitoring"
+  ],
+  "mcpServers": "./.mcp.json",
+  "onboardingSkill": "./skills/get-started/SKILL.md"
+}

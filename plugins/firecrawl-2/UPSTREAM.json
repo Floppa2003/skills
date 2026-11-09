@@ -1,0 +1,47 @@
+{
+  "upstream_plugin": "app-6a314a73f8ac819195b0d55e36b9c609",
+  "upstream_version": "2.11.0",
+  "upstream_publisher": "SideGuide Technologies, Inc.",
+  "copied_components": [
+    "skills",
+    "assets"
+  ],
+  "adaptations": [
+    "Scope workflow routing to Firecrawl 2",
+    "Preserve existing account defaults",
+    "Keep independent OAuth MCP configuration"
+  ],
+  "upstream_files": {
+    "skills/brand-identity/SKILL.md": "901bef5a1a1f758e2b0619d8cfa8db0c41a69d6981cb8bef0377fc079defbb10",
+    "skills/business-contact-research/SKILL.md": "a60cce88c297d72f34fa029a0015f8133dd95b548513e0fc52166fc5c0777dc2",
+    "skills/design/SKILL.md": "b746c87ae37b76dfbf6e4e690e973a5e8193796773d7a544d43ab8e9fceb48ac",
+    "skills/enrich-lead/SKILL.md": "8aba55769fbaee0998e05d2b065bf3b56d6291be4751e6ab027b60cc46a393e6",
+    "skills/fantasy-sports/SKILL.md": "91e16957e00e0ce121cdddb37a7a12d37959a61f2b895d2673d89bdeba061fd3",
+    "skills/find-leads/SKILL.md": "ba2914e5cdcc8e1554b2cdff4604d13ed62609e4359e927d9ce75a0901d94915",
+    "skills/firecrawl/SKILL.md": "312c313870c7e20fec8a9a1a0b564c4b23b1f69a5c7341fa6bc9394a86a64515",
+    "skills/firecrawl/references/browser-interaction.md": "dfb34446cdbe6c9a56d360cbde501a6e4aef3aad45c5ace3e6b9c331959c860f",
+    "skills/firecrawl/references/developer-research.md": "69544e57e33947cea09ddd76ae2be7c1f017a5d275fc7f2a778b1c1ff2b9c15a",
+    "skills/firecrawl/references/documents.md": "1655e123b6c0d5539b75ca13d53e2c90a5d633796ad8a66b279b5007ae3d713f",
+    "skills/firecrawl/references/feedback.md": "16ccfb11f6a525db887ebc3cdca1f7b1a23de09eddf3428d99b7909e7aeb1c09",
+    "skills/firecrawl/references/monitoring.md": "49408c4b44e2e7ef7af3103a98238f4574838b271c4b63e98505ac5600140e30",
+    "skills/firecrawl/references/paper-research.md": "dae6ed288f58ce0494dcb26ffc7aaf07de683cdd694a20b69b259965f2ba70ca",
+    "skills/firecrawl/references/site-collection.md": "264357b069fd4fcdc18a1ad01d99c5a25dcf564b3ecb7d9967f19c8e5a60b50a",
+    "skills/firecrawl/references/structured-data.md": "753d6afb579ab74a3fc42c40019fbf909574b08649ee38de21d4ba3958f98076",
+    "skills/firecrawl-deep-research/SKILL.md": "90d9a0ac1a4e6f6582a2482efc6e06e1a9faaa8e512212794c0b0086cb38b71e",
+    "skills/flights-and-hotels/SKILL.md": "a1ced8641fb4e1b8823266db3bc9bf3bd45f24c34cdbcfe4ec1d1a75dc37e506",
+    "skills/get-started/SKILL.md": "c1f3f9da111f2cd7819364eb322c9781cdcd77e22cae7f9a0a2a00cd9d7dea60",
+    "skills/get-started/references/setup-and-resources.md": "d58fe43c64e3d4ef150433de039b26a5db6df2258f249fcf4deb9fc43056ce1c",
+    "skills/get-started/references/workflows.md": "21fa8bff415bc73ccfa358333be6a5abc4cccde0dad2e5ced17b3832544478cd",
+    "skills/job-postings/SKILL.md": "6dc7ca3aef8d39e6da5b78e7227f42714da374af570f1f570b0927d8ebe2bd67",
+    "skills/local-businesses/SKILL.md": "7152720b122dffc645c5c17fbe3292785e8d9f8e03358971e0fb152ff7e01832",
+    "skills/markets-and-filings/SKILL.md": "1a5bc4e82480d9d4b030aa441c26327637d7271dfac5a08803af5adf3a599d0f",
+    "skills/news-coverage/SKILL.md": "0e9e75b465251d431bf0d0adc25340946bd815dc5b42194f81bbc962ca06a99f",
+    "skills/prices-and-plans/SKILL.md": "f8853813b0d975a6802d44c7ea6c07dd3b17787255b9786cebe66030ee5a5feb",
+    "skills/property-listings/SKILL.md": "27f8b988b460f83c4d036b997283d1c8a63f9aafddfbfb632d8f6ea49d8b9704",
+    "skills/read-docs/SKILL.md": "a20df03ffeb704a15688b760e5e79660e2b852b4c9c0ea83a6c5407414c644ec",
+    "skills/seo-audit/SKILL.md": "8184dc41f179130dd9c03d6f83cf9af02974d7f35a1d6290093e31610b15f7e0",
+    "skills/video-transcripts/SKILL.md": "80437312affe258b7cdcc5f803bdfeb335f02b38aab825a6157b09cd9f5f7611",
+    "assets/composer-icon.png": "22cd6a00f7f1adcf2f576836da2e52f8983e849a0fecc2c9ccde1b1473e2ba6d",
+    "assets/logo.png": "443993e148098c1de53cedc510fc840dea11d8c8e9a3f39a25617a72c776b90d"
+  }
+}
