@@ -32,6 +32,8 @@ Start with public browser-visible posts and bounded open-web discovery. For capt
 
 For a public Instagram Reel video, read the original caption and hashtags, then use the available download or the ordinary [SaveClip](https://saveclip.app/ru9/instagram-reels-video-download) form under the Public media downloader contract. Preserve the canonical Reel URL rather than a temporary media/CDN URL. Verify that the downloaded file decodes as video and matches the original Reel; a success label or an HTML error page with an `.mp4` extension does not confirm a download.
 
+For photos from a public Instagram post or carousel, use the ordinary [SaveClip photo form](https://saveclip.app/ru9/instagram-photo-download) under the same Public media downloader contract. Submit the canonical post URL, choose the highest-resolution image offered by SaveClip, and download each requested image. Preserve the post URL and each image's original carousel position. Compare coverage with the source when visible and report missing or unverifiable items; photos alone do not establish complete coverage of a mixed photo/video carousel. Open the downloaded files to verify that they decode as images and match the post. When a caption or metadata tool omits requested images, use this separate media-download route.
+
 For structured public profiles, posts, Reels, or comments, consider the Apify collection contract and [apify-social.md](apify-social.md). Instagram profile/hashtag/place discovery is not global full-text post search. Preserve carousel children and distinguish post captions from spoken words, comment counts from collected comments, and a partial view from complete history.
 
 ## Threads

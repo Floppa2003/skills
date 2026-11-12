@@ -698,7 +698,7 @@
       "overlay": null,
       "enabled": false,
       "installed_commit": null,
-      "installed_hash": "673593994402414afa19f91b099d0aa066d11676e458c195d26afeb11791fc4a",
+      "installed_hash": "22ee49d59db4d9592342d8826e3f33db4f571036f42ce75ad5c8d4a1d237c586",
       "skip_reason": "locally authored skill; intentionally unmanaged",
       "required_paths": [
         "SKILL.md",
