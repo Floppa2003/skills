@@ -6,6 +6,8 @@ Read only the section for the requested platform. This file selects and sequence
 
 For a specific public post or public channel, use the public Telegram page with an approved browser route first. For recurring public-source collection, preserve the public URL, collection time, and access limitation in task-local artifacts.
 
+For an attachment of a public Telegram post, use the post's available direct download or the ordinary [TelegramDownloader](https://telegramdownloader.net/ru/) form under the Public media downloader contract: submit the exact post URL, follow the generated download link and the site's normal screen/timer, then use the visible final file button. Verify that the file opens in its expected format and matches the original post. Preserve the canonical post URL. A `?comment=...` URL identifies a discussion comment; a file from the channel post does not establish that the comment's attachment was retrieved.
+
 For free discovery across public Telegram sources:
 
 1. Search the open web with the subject, alternative formulations, language variants, and bounded `site:t.me` queries. Treat results as discovery leads, not evidence.
@@ -27,6 +29,8 @@ Consider TranscriptAPI for structured video or channel search, within-channel se
 ## Instagram
 
 Start with public browser-visible posts and bounded open-web discovery. For captions and metadata from known public post or Reel URLs, use an installed Instaloader only under the Local public social extraction contract; read [instagram-instaloader.md](instagram-instaloader.md). Use `video-transcript-downloader` only for a supported video URL, not as a profile or comment search engine.
+
+For a public Instagram Reel video, read the original caption and hashtags, then use the available download or the ordinary [SaveClip](https://saveclip.app/ru9/instagram-reels-video-download) form under the Public media downloader contract. Preserve the canonical Reel URL rather than a temporary media/CDN URL. Verify that the downloaded file decodes as video and matches the original Reel; a success label or an HTML error page with an `.mp4` extension does not confirm a download.
 
 For structured public profiles, posts, Reels, or comments, consider the Apify collection contract and [apify-social.md](apify-social.md). Instagram profile/hashtag/place discovery is not global full-text post search. Preserve carousel children and distinguish post captions from spoken words, comment counts from collected comments, and a partial view from complete history.
 

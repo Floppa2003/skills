@@ -1,6 +1,6 @@
 ---
 name: platform-source-research
-description: Use when collecting primary public evidence from X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, or VC.ru; when a research task needs platform-specific posts, comments, videos, channels, profiles, or source links rather than generic web results.
+description: Use when collecting primary public evidence from X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, or VC.ru; when a research task needs platform-specific posts, comments, videos, channels, profiles, or source links rather than generic web results. Also use when downloading public Telegram post attachments with TelegramDownloader or public Instagram Reels with SaveClip.
 ---
 
 # Platform Source Research
@@ -9,7 +9,7 @@ Collect source material from named platforms, then hand it to the relevant analy
 
 ## Scope
 
-Use for a named platform or when platform-native discussion, video, or channel evidence matters. Do not use for ordinary web research where platform provenance is irrelevant, creative social-post ideas without source research, private-message analysis without explicit scope, or a platform write action.
+Use for a named platform, when platform-native discussion, video, or channel evidence matters, or when downloading a specific public Telegram post attachment or Instagram Reel. Do not use for ordinary web research where platform provenance is irrelevant, creative social-post ideas without source research, private-message analysis without explicit scope, or a platform write action.
 
 ## Workflow
 

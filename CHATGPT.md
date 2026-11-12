@@ -331,7 +331,7 @@ Entrypoint: `skills/os-what-could-go-wrong/SKILL.md`
 
 ## platform-source-research
 
-Use when collecting primary public evidence from X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, or VC.ru; when a research task needs platform-specific posts, comments, videos, channels, profiles, or source links rather than generic web results.
+Use when collecting primary public evidence from X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, or VC.ru; when a research task needs platform-specific posts, comments, videos, channels, profiles, or source links rather than generic web results. Also use when downloading public Telegram post attachments with TelegramDownloader or public Instagram Reels with SaveClip.
 
 Entrypoint: `skills/platform-source-research/SKILL.md`
 
