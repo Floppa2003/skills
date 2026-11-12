@@ -8,9 +8,10 @@ For each user task:
 1. If the user explicitly names a skill, select it.
 2. Otherwise, select a skill when the task clearly matches its catalog
    description.
-3. When several skills match, use the smallest sufficient set. Process and
-   workflow skills run before implementation or domain skills when ordering
-   affects the work.
+3. Select the smallest sufficient set of matching skills, including shared
+   process or workflow skills when they apply alongside domain or platform
+   skills. Apply process and workflow skills first when ordering affects the
+   work. Keep operational rules in their owning skills.
 4. After selecting a skill, read its current complete `SKILL.md`. The catalog
    description is only a routing hint, not the skill instructions.
 5. Resolve relative paths from the selected skill's directory.
@@ -29,7 +30,3 @@ For each user task:
     it solely because a conversation or task started. Select it only when the
     user explicitly requests it or its distinct instructions are otherwise
     materially needed.
-11. For external-source research, use `research-ops` for shared evidence,
-    source-access, and result-verification rules. Add domain or platform skills
-    for their distinct procedures and constraints; keep those rules in their
-    owning skill rather than duplicating them in this manifest.

@@ -1,13 +1,11 @@
 ---
 name: research-ops
-description: Evidence-first current-state research workflow for ECC. Use when the user wants fresh facts, comparisons, enrichment, or a recommendation built from current public evidence and any supplied local context.
+description: Use when gathering or verifying external evidence for factual answers, comparisons, people/company enrichment, recommendations, or recurring research, including source-access and extracted-result checks and combining new evidence with supplied context.
 metadata:
   origin: ECC
 ---
 
 # Research Ops
-
-Use this when the user asks to research something current, compare options, enrich people or companies, or turn repeated lookups into a monitored workflow.
 
 This is the operator wrapper around the repo's research stack. It is not a replacement for `deep-research`, `exa-search`, or `market-research`; it tells you when and how to use them together.
 
@@ -20,13 +18,6 @@ Pull these ECC-native skills into the workflow when relevant:
 - `market-research` when the end result should be a recommendation or ranked decision
 - `lead-intelligence` when the task is people/company targeting instead of generic research
 - `knowledge-ops` when the result should be stored in durable context afterward
-
-## When to Use
-
-- user says "research", "look up", "compare", "who should I talk to", or "what's the latest"
-- the answer depends on current public information
-- the user already supplied evidence and wants it factored into a fresh recommendation
-- the task may be recurring enough that it should become a monitor instead of a one-off lookup
 
 ## Guardrails
 

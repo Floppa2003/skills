@@ -765,7 +765,7 @@
       "overlay": "overlays/research-ops.patch",
       "enabled": true,
       "installed_commit": "76aaa77df6adc5b889e689007bf99b9a4f74af34",
-      "installed_hash": "6e37aff4d58b5a6c09a01f24532fbe9ba17c762c6734b9d9d96b00c2ca83b1ff",
+      "installed_hash": "6a6d7719ea54933f5795522f0447539b1bb8b7c54debdeb449bf581383b55ad3",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [],
