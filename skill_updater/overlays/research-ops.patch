@@ -1,0 +1,39 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -37,6 +37,36 @@
+   - inference
+   - recommendation
+ - do not spin up a heavyweight research pass if the answer is already in local code or docs
++
++## Source access and result verification
++
++1. **Localize failures.** Distinguish source-side errors from retrieval,
++   rendering, provider limits, authentication, and regional restrictions.
++   Report the observed failure and its scope; keep unverified causes uncertain.
++   A failed request or empty extract does not establish that the source is down
++   or that no matching result exists.
++2. **Recover within the permitted route.** Use the lightest available method
++   that can verify the required information. Make bounded diagnostic attempts
++   or use a permitted alternative that addresses the failure. Stop ineffective
++   retries and follow the applicable access, authentication, and tool policies.
++   Check whether a fallback covers the original question.
++3. **Verify the actual result.** Check source or item identity, selected inputs,
++   relevant scope, and required fields in the returned result. A successful
++   request, landing page, snippet, or advertised starting value is insufficient
++   when a conclusion depends on a specific offer or record. Confirm all required
++   selections before reporting a complete result.
++4. **Compare on the same basis.** Check decision-relevant units, quantity,
++   period, currency, included components, mandatory charges, and conditions.
++   Label estimates, partial totals, and unresolved differences explicitly.
++5. **Bound conclusions by inspected evidence.** Retain canonical links,
++   verification dates, material access limits, and collection coverage. A
++   partial or failed search cannot establish absence across the whole source;
++   distinguish retrieved content from content actually inspected.
++6. **Generalize lessons at the narrowest valid level.** Keep shared rules here,
++   domain procedures in domain skills, and confirmed source-specific exceptions
++   beside the source. Record transient failures in the run record. Date and
++   scope durable source notes, retain their evidence, and revalidate them before
++   relying on them.
+ 
+ ## Workflow
+ 

@@ -32,6 +32,10 @@ For each user task:
     it solely because a conversation or task started. Select it only when the
     user explicitly requests it or its distinct instructions are otherwise
     materially needed.
+11. For external-source research, use `research-ops` for shared evidence,
+    source-access, and result-verification rules. Add domain or platform skills
+    for their distinct procedures and constraints; keep those rules in their
+    owning skill rather than duplicating them in this manifest.
 
 # Available Skills
 
