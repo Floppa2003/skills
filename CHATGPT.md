@@ -332,7 +332,7 @@ Entrypoint: `skills/os-what-could-go-wrong/SKILL.md`
 
 ## platform-source-research
 
-Use when collecting primary public evidence from X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, or VC.ru; when a research task needs platform-specific posts, comments, videos, channels, profiles, or source links rather than generic web results. Also use when downloading public Telegram post attachments with TelegramDownloader or public Instagram photos, carousels, or Reels with SaveClip.
+Use when discovering or collecting primary public material from social, video, or community platforms, including X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, and VC.ru. Applies when the task or its references call for platform-native posts, profiles, creator portfolios, visual product discovery on those platforms, or channels, even without a named platform; also for public Telegram attachments via TelegramDownloader and Instagram photos, carousels, or Reels via SaveClip.
 
 Entrypoint: `skills/platform-source-research/SKILL.md`
 
@@ -398,7 +398,7 @@ Entrypoint: `skills/requesting-code-review/SKILL.md`
 
 ## research-ops
 
-Use when gathering or verifying external evidence for factual answers, comparisons, people/company enrichment, recommendations, or recurring research, including source-access and extracted-result checks and combining new evidence with supplied context.
+Use when gathering or verifying external evidence for factual answers, comparisons, recommendations, people/company enrichment, or recurring research, including visual product discovery, source selection, source-access and extracted-result checks, and supplied context.
 
 Entrypoint: `skills/research-ops/SKILL.md`
 

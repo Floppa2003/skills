@@ -698,7 +698,7 @@
       "overlay": null,
       "enabled": false,
       "installed_commit": null,
-      "installed_hash": "22ee49d59db4d9592342d8826e3f33db4f571036f42ce75ad5c8d4a1d237c586",
+      "installed_hash": "879e7f413fd80d3d03ac14a6c14fddbbee50ceef5cfa1722fda5995ae722cd2a",
       "skip_reason": "locally authored skill; intentionally unmanaged",
       "required_paths": [
         "SKILL.md",
@@ -765,7 +765,7 @@
       "overlay": "overlays/research-ops.patch",
       "enabled": true,
       "installed_commit": "76aaa77df6adc5b889e689007bf99b9a4f74af34",
-      "installed_hash": "6a6d7719ea54933f5795522f0447539b1bb8b7c54debdeb449bf581383b55ad3",
+      "installed_hash": "62c292490a02be297567ec2db5879f5cf51b4dbdacdecd568448f72c1da3bff5",
       "skip_reason": null,
       "required_paths": [],
       "runtime_setup": [],

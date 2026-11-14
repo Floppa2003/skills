@@ -1,6 +1,6 @@
 ---
 name: research-ops
-description: Use when gathering or verifying external evidence for factual answers, comparisons, people/company enrichment, recommendations, or recurring research, including source-access and extracted-result checks and combining new evidence with supplied context.
+description: Use when gathering or verifying external evidence for factual answers, comparisons, recommendations, people/company enrichment, or recurring research, including visual product discovery, source selection, source-access and extracted-result checks, and supplied context.
 metadata:
   origin: ECC
 ---
@@ -11,13 +11,14 @@ This is the operator wrapper around the repo's research stack. It is not a repla
 
 ## Skill Stack
 
-Pull these ECC-native skills into the workflow when relevant:
+Pull these skills into the workflow when relevant:
 
 - `exa-search` for fast current-web discovery
 - `deep-research` for multi-source synthesis with citations
 - `market-research` when the end result should be a recommendation or ranked decision
 - `lead-intelligence` when the task is people/company targeting instead of generic research
 - `knowledge-ops` when the result should be stored in durable context afterward
+- `platform-source-research` when discovery or evidence depends on social posts, creator portfolios, videos, profiles, or channels, including platforms inferred from the task
 
 ## Guardrails
 
@@ -80,14 +81,46 @@ Choose the right lane before searching:
 - lead/enrichment pass
 - recurring monitoring candidate
 
-### 3. Take the lightest useful evidence path first
+### 3. Select sources before retrieval tools
 
-- use `exa-search` for fast discovery
+Make a brief source plan: object and decision criteria -> discovery channels ->
+verification sources -> retrieval modes. Infer it from the task and supplied
+references; ask only when a missing preference would materially change the work.
+
+Choose priority sources from where the object is actually displayed, sold,
+distributed, or documented for the relevant region and audience. Rank them by
+fit and coverage for discovery, and authority for verification. Tool convenience
+and web indexing alone do not establish that a source is representative.
+
+- **Appearance or style drives selection:** inspect supplied images or video
+  frames, then search the channels selected for the task, such as visual
+  catalogs, maker portfolios, or social platforms. Use `platform-source-research`
+  for those platforms even when the
+  user did not name them. Check available visual-search capabilities; when a
+  suitable permitted route exists, use reference images for reverse-image or
+  visual-similarity search. A text query returning thumbnails is still text
+  search. Inspect candidate media against the visual criteria before shortlisting.
+- **An exact model, specification, or factual claim drives selection:** start
+  with the relevant manufacturer, exact product listing, official record,
+  documentation, or primary publication. Add visual or social discovery when it
+  addresses a real gap; it is not required for every lookup.
+
+Treat discovery and verification as separate jobs. A visual match or creator's
+post identifies a candidate; verify its identity and decision-critical facts
+using the actual item, seller, or authoritative source. For purchases this
+includes the requested variant, materials, price, availability, and delivery.
+Expand from supplied references and newly found relevant sources through
+authors, links, tags, and related work; use discoveries as seeds for further
+search instead of restarting with generic queries.
+
+### 4. Take the lightest useful evidence path for those sources
+
+- use `exa-search` or an available web-search tool where web discovery serves the selected channels; use the applicable source route for native search, catalogs, images, video, or records
 - escalate to `deep-research` when synthesis or multiple sources matter
 - use `market-research` when the outcome should end in a recommendation
 - hand off to `lead-intelligence` when the real ask is target ranking or warm-path discovery
 
-### 4. Report with explicit evidence boundaries
+### 5. Report with explicit evidence boundaries
 
 For important claims, say whether they are:
 
@@ -98,7 +131,7 @@ For important claims, say whether they are:
 
 Freshness-sensitive answers should include concrete dates.
 
-### 5. Decide whether the task should stay manual
+### 6. Decide whether the task should stay manual
 
 If the user is likely to ask the same research question repeatedly, say so explicitly and recommend a monitoring or workflow layer instead of repeating the same manual search forever.
 
@@ -129,6 +162,8 @@ RECOMMENDATION
 
 ## Verification
 
+- priority discovery channels were inspected in the required modality, or their specific access and coverage gaps are reported
+- a text-only search is not presented as complete coverage of a visually or platform-distributed category
 - important claims are labeled by evidence type
 - freshness-sensitive outputs include dates
 - the final recommendation matches the actual research mode used

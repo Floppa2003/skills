@@ -1,6 +1,6 @@
 # Platform Routes
 
-Read only the section for the requested platform. This file selects and sequences routes; [route-contracts.md](route-contracts.md) is the policy source of truth. For authorization, authentication, external effects, and stop conditions, apply the matching route contract.
+Read only the section for the selected platform. This file selects and sequences routes; [route-contracts.md](route-contracts.md) is the policy source of truth. For authorization, authentication, external effects, and stop conditions, apply the matching route contract.
 
 ## Telegram
 
@@ -28,7 +28,11 @@ Consider TranscriptAPI for structured video or channel search, within-channel se
 
 ## Instagram
 
-Start with public browser-visible posts and bounded open-web discovery. For captions and metadata from known public post or Reel URLs, use an installed Instaloader only under the Local public social extraction contract; read [instagram-instaloader.md](instagram-instaloader.md). Use `video-transcript-downloader` only for a supported video URL, not as a profile or comment search engine.
+For discovery, use the relevant permitted public route. Search available account, hashtag, or place surfaces with task-relevant product, style, and location terms, then inspect the resulting posts and Reels. Bounded open-web discovery can supply additional leads.
+
+Expand from supplied or discovered posts and Reels through visible authors, credited makers, hashtags, linked portfolios, and related work. Repeat this expansion from newly found relevant accounts and tags, checking their actual media against the task's criteria. Track already inspected accounts, tags, and posts; follow new branches that improve relevance or address a coverage gap, under the stopping conditions in [research-protocol.md](research-protocol.md).
+
+For captions and metadata from known public post or Reel URLs, use an installed Instaloader only under the Local public social extraction contract; read [instagram-instaloader.md](instagram-instaloader.md). Use `video-transcript-downloader` only for a supported video URL, not as a profile or comment search engine.
 
 For a public Instagram Reel video, read the original caption and hashtags, then use the available download or the ordinary [SaveClip](https://saveclip.app/ru9/instagram-reels-video-download) form under the Public media downloader contract. Preserve the canonical Reel URL rather than a temporary media/CDN URL. Verify that the downloaded file decodes as video and matches the original Reel; a success label or an HTML error page with an `.mp4` extension does not confirm a download.
 

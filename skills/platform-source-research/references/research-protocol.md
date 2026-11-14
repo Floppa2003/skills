@@ -4,12 +4,12 @@ Use this reference for multi-source or recurring platform research. Keep materia
 
 ## Research Frame
 
-Define the subject, required evidence, time range, language/region, requested platforms, and relevance criteria. Start from an existing user-provided or task-local prior run, verify freshness, and otherwise state that no prior corpus was available.
+Define the subject, required evidence, time range, language/region, selected platforms, and relevance criteria. Start from an existing user-provided or task-local prior run, verify freshness, and otherwise state that no prior corpus was available.
 
 ## Collection And Classification
 
-1. Make a broad discovery pass using the subject and natural alternative formulations.
-2. Make a gap-closing pass using missed platforms, platform-native search, alternative terminology, language variants, and bounded `site:` searches.
+1. Make the first discovery pass through the selected routes, including platform-native search when relevant; use the subject and natural alternative formulations where text search is useful.
+2. Close identified coverage gaps with relevant additional platforms, platform-native search, terminology or language variants, and bounded `site:` searches.
 3. Label material as `Exact`, `Close analogue`, or `Background`.
 4. Label evidence separately as official source, firsthand account, original recording, repost/mirror, educational/editorial material, or analyst inference.
 5. Deduplicate by canonical source or underlying material. Keep mirrors and reposts as provenance notes rather than independent evidence.
