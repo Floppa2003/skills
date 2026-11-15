@@ -294,6 +294,12 @@ Use when asked to compress, tighten, shorten, condense, or de-slop a design doc,
 
 Entrypoint: `skills/lossless-doc-compress/SKILL.md`
 
+## loyalty-privileges-lookup
+
+Use when the user asks which of their discounts, benefits, promo codes or loyalty privileges apply to a merchant, purchase or service, including «какие у меня привилегии», «у меня есть скидка» and checking terms in saved PDF or image documents.
+
+Entrypoint: `skills/loyalty-privileges-lookup/SKILL.md`
+
 ## make-pr-easy-to-review
 
 Prepare PRs for review by cleaning noisy history, improving PR descriptions, and adding reviewer guidance without changing code behavior. Use for "make this easy to review", "tidy this PR", "clean up commits", or "annotate the diff".

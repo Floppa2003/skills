@@ -1411,6 +1411,24 @@
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "loyalty-privileges-lookup",
+      "repo": null,
+      "path": null,
+      "ref": "main",
+      "adapter": "directory",
+      "overlay": null,
+      "enabled": false,
+      "installed_commit": null,
+      "installed_hash": "4b177dfa4a7aa40568108e1074fb2cc89e7e97da2286bca11bbe2f6b0d332538",
+      "skip_reason": "locally authored skill; intentionally unmanaged",
+      "required_paths": [
+        "SKILL.md",
+        "agents/openai.yaml"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }

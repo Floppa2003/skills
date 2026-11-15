@@ -1,0 +1,7 @@
+interface:
+  display_name: "Мои скидки и привилегии"
+  short_description: "Найти привилегии и проверить исходные PDF"
+  default_prompt: "Используй $loyalty-privileges-lookup, чтобы найти мои скидки и привилегии для указанного магазина или услуги и проверить условия по исходным документам."
+
+policy:
+  allow_implicit_invocation: true
