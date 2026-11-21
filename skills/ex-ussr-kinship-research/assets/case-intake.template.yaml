@@ -1,0 +1,52 @@
+# Заполняйте из запроса и находок; неизвестные поля не требуют отдельного вопроса пользователю.
+# Оставляйте неизвестное пустым и дополняйте по ходу поиска.
+case_id: ""
+created_at: ""
+research_question: ""
+subject_label: ""
+requested_output_language: "auto"  # auto = язык сообщений пользователя (en, uk, ru, pl, de...)
+
+scope:
+  target_relationship: ""
+  time_range: ""
+  geographic_scope: []
+  allowed_sources: []  # пусто = обычные доступные источники по задаче; ограничивать только по явному указанию
+  prohibited_sources: []
+  paid_sources_allowed: false
+  third_party_upload_allowed: false
+  contact_with_people_or_archives_allowed: false
+
+user_authorization:
+  relation_to_subjects: ""
+  living_person_consent_or_basis: ""
+  notes: ""
+
+subjects:
+  - person_id: "P-0001"
+    label: ""
+    living_status: "unknown"
+    names_as_provided: []
+    estimated_birth: ""
+    estimated_death: ""
+    places_as_provided: []
+    known_relatives: []
+    occupation_or_status: []
+    confession_or_community_as_recorded: []
+    notes: ""
+
+prior_family_research:
+  asked: false  # общий вопрос об имеющихся материалах, если они ещё не описаны (SKILL.md, шаг 1, п. 6)
+  researchers: []  # кто из родственников уже искал и что нашёл
+  family_pages: []  # семейные страницы и деревья, уже сообщённые пользователем или найденные при поиске
+  holders_of_materials: []  # у кого хранятся документы, письма, альбомы, семейные записи, награды
+  notes: ""  # если ответа пока нет, отметить это и продолжить исследование
+
+input_materials: []
+
+privacy:
+  redact_living_people_in_shared_report: true
+  exclude_current_contacts_and_addresses: true
+  sensitive_topics: []
+
+known_constraints: []
+working_hypotheses: []

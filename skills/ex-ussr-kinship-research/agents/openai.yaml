@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ex Ussr Kinship Research"
+  short_description: "Help with Ex Ussr Kinship Research tasks and workflows"
+  default_prompt: "Use $ex-ussr-kinship-research to help with a relevant task."

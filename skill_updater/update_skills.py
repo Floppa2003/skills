@@ -53,6 +53,12 @@ SENSITIVE_NAMES = {
     "service_account.json",
 }
 SENSITIVE_SUFFIXES = {".key", ".p12", ".pem", ".pfx"}
+# GWAR's client-local public CAs. Pins cover the complete PEM, not just the
+# encoded certificate: appended bytes are not part of the reviewed exception.
+PUBLIC_CERTIFICATES = {"ex-ussr-kinship-research": {
+    "scripts/ca/russian_trusted_root_ca.pem": "aa800ef345422d6158c6fafe1c06c429dbda21c3df4bb1ccb45a920ec1111399",
+    "scripts/ca/russian_trusted_sub_ca.pem": "6f9d829c8e6712444fce3624658d8788672849c5d5b7b53fd9cf7e83eac4193e",
+}}
 PATH_STUB = re.compile(r"^(?:\.\.?/)+[^\r\n]+$")
 SKILL_DIRECTORY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -278,17 +284,23 @@ def validate_candidate(root: Path, required_paths: tuple[str, ...] = ()) -> None
     fields = _frontmatter(root / "SKILL.md")
     if not fields.get("name") or not fields.get("description"):
         raise ValidationError("SKILL.md requires name and description")
+    certificates = PUBLIC_CERTIFICATES.get(root.name, {})
+    for relative, digest in certificates.items():
+        path = root / relative
+        if not path.is_file() or path.resolve() != root.resolve() / relative:
+            raise ValidationError(f"sensitive file: missing or changed pinned certificate {relative}")
+        with path.open("rb") as handle:
+            if hashlib.file_digest(handle, "sha256").hexdigest() != digest:
+                raise ValidationError(f"sensitive file: changed pinned certificate {relative}")
     for path in root.rglob("*"):
         relative = path.relative_to(root)
         if path.is_symlink() and _escapes(root, path):
             raise ValidationError(f"escaping symlink: {relative.as_posix()}")
-        if path.is_file() and not path.is_symlink():
-            if (
-                path.name.lower() in SENSITIVE_NAMES
-                or path.name.startswith(".env.")
-                or path.suffix.lower() in SENSITIVE_SUFFIXES
-            ):
+        if path.is_file() or path.is_symlink():
+            if (path.name.lower() in SENSITIVE_NAMES or path.name.startswith(".env.")
+                    or (path.suffix.lower() in SENSITIVE_SUFFIXES and relative.as_posix() not in certificates)):
                 raise ValidationError(f"sensitive file: {relative.as_posix()}")
+        if path.is_file() and not path.is_symlink():
             if path.stat().st_size <= 512:
                 try:
                     value = path.read_text(encoding="utf-8")

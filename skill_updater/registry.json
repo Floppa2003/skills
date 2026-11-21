@@ -1429,6 +1429,25 @@
       ],
       "runtime_setup": [],
       "accepted_compatibility_fingerprints": []
+    },
+    {
+      "name": "ex-ussr-kinship-research",
+      "repo": "DenisSergeevitch/ex-ussr-kinship-research",
+      "path": ".",
+      "ref": "main",
+      "adapter": "repo_root",
+      "overlay": null,
+      "enabled": true,
+      "installed_commit": "148283946e242c6ec0fe434f24aaf920592e3db2",
+      "installed_hash": "72bc5cff7a888bc7f788934879ce30babd7e561d6fa618d32c8e322064de9728",
+      "skip_reason": null,
+      "required_paths": [
+        "LICENSE",
+        "scripts/audit_evidence.py",
+        "references/evidence-protocol.md"
+      ],
+      "runtime_setup": [],
+      "accepted_compatibility_fingerprints": []
     }
   ]
 }

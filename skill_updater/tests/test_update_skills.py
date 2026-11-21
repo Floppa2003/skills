@@ -434,6 +434,42 @@ class AddSkillTests(TempDirTest):
 
 
 class CandidateValidationTests(TempDirTest):
+    def test_gwar_ca_files_are_pinned_to_one_skill_and_path(self) -> None:
+        name = "ex-ussr-kinship-research"
+        canonical = Path(__file__).resolve().parents[2] / "skills" / name
+        for filename in ("russian_trusted_root_ca.pem", "russian_trusted_sub_ca.pem"):
+            relative = Path("scripts/ca") / filename
+            original = (canonical / relative).read_bytes()
+            for directory, rel, data, allowed in (
+                (name, relative, original, True),
+                (name, relative, original + b"\n", False),
+                (name, Path("other") / filename, original, False),
+                ("another-skill", relative, original, False),
+            ):
+                with self.subTest(filename=filename, directory=directory, path=rel, allowed=allowed):
+                    with tempfile.TemporaryDirectory(dir=self.root) as base:
+                        skill = valid_skill(Path(base) / directory)
+                        if directory == name:
+                            shutil.copytree(canonical / "scripts/ca", skill / "scripts/ca")
+                        dest = skill / rel
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_bytes(data)
+                        if allowed:
+                            validate_candidate(skill)
+                        else:
+                            with self.assertRaisesRegex(ValidationError, "sensitive file"):
+                                validate_candidate(skill)
+
+    def test_sensitive_symlink_cannot_stand_in_for_pinned_certificate(self) -> None:
+        skill = valid_skill(self.root / "ex-ussr-kinship-research")
+        ca = skill / "scripts/ca"
+        shutil.copytree(Path(__file__).resolve().parents[2] / "skills" / skill.name / "scripts/ca", ca)
+        cert = ca / "russian_trusted_root_ca.pem"
+        cert.rename(ca / "text")
+        cert.symlink_to("text")
+        with self.assertRaisesRegex(ValidationError, "sensitive file: .*russian_trusted_root_ca"):
+            validate_candidate(skill)
+
     def test_canonical_validation_rejects_unaccepted_runtime_fingerprint(self) -> None:
         skills = self.root / "skills"
         skill = valid_skill(
