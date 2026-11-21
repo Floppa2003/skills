@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+/AGENTS.md
+
+# Private research data; create new cases outside this checkout.
+/my-case/
+/cases/
+/kinship-cases/
+/scans/

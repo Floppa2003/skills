@@ -204,6 +204,12 @@ Turn your own coding-agent sessions (Claude Code, Codex, Pi, Gemini CLI, or othe
 
 Entrypoint: `skills/evals-from-sessions/SKILL.md`
 
+## ex-ussr-kinship-research
+
+Исследует родственные связи и семейную историю по персональным данным и документам с фокусом на бывший СССР, СССР и Российскую империю. Использовать для генеалогического поиска, сопоставления однофамильцев, архивных, метрических, военных, миграционных и репрессивных записей, построения доказательной цепочки и итогового отчёта. Не использовать для слежки за живыми людьми, поиска их текущих контактов или адресов, доступа к закрытым данным, обхода защиты и утверждения биологического родства без независимого подтверждения. EN — evidence-first genealogy and family-history research for the former USSR, the USSR and the Russian Empire (church/metric books, civil registration, military, migration, deportation and repression records, unindexed archive scans, namesake disambiguation, evidence chains, final report). Reads existing family trees as leads and exports source-cited trees in GEDCOM format when requested. Replies in the user's language. Not for tracking living people.
+
+Entrypoint: `skills/ex-ussr-kinship-research/SKILL.md`
+
 ## executing-plans
 
 Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available
