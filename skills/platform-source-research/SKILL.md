@@ -1,6 +1,6 @@
 ---
 name: platform-source-research
-description: Use when discovering or collecting primary public material from social, video, or community platforms, including X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, and VC.ru. Applies when the task or its references call for platform-native posts, profiles, creator portfolios, visual product discovery on those platforms, or channels, even without a named platform; also for public Telegram attachments via TelegramDownloader and Instagram photos, carousels, or Reels via SaveClip.
+description: Use when discovering or collecting primary public material from social, video, or community platforms, including X/Twitter, Reddit, LinkedIn, Telegram, YouTube, Instagram, Threads, TikTok, RuTube, VK Video, Habr, and VC.ru. Applies when the task or its references call for platform-native posts, profiles, creator portfolios, visual product discovery on those platforms, or channels, even without a named platform; also for public Telegram attachments via TelegramDownloader, Instagram photos, carousels, or Reels via SaveClip, and public current Stories or saved Highlights via Story Save.
 ---
 
 # Platform Source Research
@@ -9,7 +9,7 @@ Collect source material from selected platforms, then hand it to the relevant an
 
 ## Scope
 
-Use for an explicitly requested platform or when the task, supplied references, or likely source distribution makes platform-native discovery or evidence material; also for downloading a specific public Telegram attachment or Instagram photo, carousel, or Reel. Use `research-ops` for the general source-selection workflow. Do not use for ordinary web research where platform provenance is irrelevant, creative social-post ideas without source research, private-message analysis without explicit scope, or a platform write action.
+Use for an explicitly requested platform or when the task, supplied references, or likely source distribution makes platform-native discovery or evidence material; also for downloading a specific public Telegram attachment or Instagram photo, carousel, Reel, current Story, or saved Highlight. Use `research-ops` for the general source-selection workflow. Do not use for ordinary web research where platform provenance is irrelevant, creative social-post ideas without source research, private-message analysis without explicit scope, or a platform write action.
 
 ## Workflow
 
