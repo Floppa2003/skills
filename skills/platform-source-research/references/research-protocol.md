@@ -4,7 +4,7 @@ Use this reference for multi-source or recurring platform research. Keep materia
 
 ## Research Frame
 
-Define the subject, required evidence, time range, language/region, selected platforms, and relevance criteria. Start from an existing user-provided or task-local prior run, verify freshness, and otherwise state that no prior corpus was available.
+Define the subject, required evidence, time range, language/region, selected platforms, and relevance criteria. Start from an existing user-provided or task-local prior run, verify freshness, and otherwise state no prior corpus was available.
 
 ## Collection And Classification
 

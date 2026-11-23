@@ -30,7 +30,7 @@ Channels accept an `@handle`, channel URL, or `UC...` ID; resolving a handle fir
 - For search, within-channel search, channel videos, and playlists, read `results`, `has_more`, and `continuation_token`. Request each next page with `continuation=<token>` at the same endpoint, without repeating the initial query parameters. Deduplicate video IDs across pages and before fetching transcripts.
 - Stop on the agreed page/credit cap or normal pagination exhaustion. If `has_more=true` but the token is absent, repeats, or produces no new records, stop and report partial coverage and the inconsistent response. A capped search is not an exhaustive YouTube search.
 - Select transcript languages explicitly in user-requested priority order; use `info` when available tracks are unknown. For Russian captions, `language=ru,asr-ru` can request human or auto-generated Russian tracks. `asr` alone permits any available auto-caption language; it does not mean translation. Omitted language prefers English, then another available track.
-- Inspect the returned `language`; label auto-generated captions and any mismatch. Do not silently translate or substitute languages. Available Russian captions do not prove that the original speech is Russian; verify that separately when the task requires spoken-language filtering.
+- Inspect the returned `language`; label auto-generated captions and any mismatch. Do not silently translate or substitute languages. Available Russian captions do not prove the original speech is Russian; verify that separately when the task requires spoken-language filtering.
 
 ## Budget, Reuse, And Failures
 

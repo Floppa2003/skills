@@ -1,26 +1,10 @@
 # Platform Routes
 
-Read only the section for the selected platform. This file selects and sequences routes; [route-contracts.md](route-contracts.md) is the policy source of truth. For authorization, authentication, external effects, and stop conditions, apply the matching route contract.
+Read only the selected platform's section. This file selects and sequences routes; [route-contracts.md](route-contracts.md) is the policy source of truth. For authorization, authentication, external effects, and stop conditions, apply the matching route contract.
 
 ## Telegram
 
-To read channel posts or a public channel feed, use the public Telegram page with an approved browser route first. For recurring public-source collection, preserve the public URL, collection time, and access limitation in task-local artifacts.
-
-For comments under a public channel post, use the official public discussion widget as described in [telegram-discussions.md](telegram-discussions.md). A post preview, group landing card or displayed comment count is not a retrieved discussion. Collect actual message records, explicit reply links and snapshot coverage; the reference includes an offline parser for saved HTML.
-
-For an attachment of a public Telegram post, use the post's available direct download or the ordinary [TelegramDownloader](https://telegramdownloader.net/ru/) form under the Public media downloader contract: submit the exact post URL, follow the generated download link and the site's normal screen/timer, then use the visible final file button. Verify that the file opens in its expected format and matches the original post. Preserve the canonical post URL. A `?comment=...` URL identifies a discussion comment; a file from the channel post does not establish that the comment's attachment was retrieved.
-
-For free discovery across public Telegram sources:
-
-1. Search the open web with the subject, alternative formulations, language variants, and bounded `site:t.me` queries. Treat results as discovery leads, not evidence.
-2. Normalize candidates to canonical public Telegram URLs. Deduplicate channels, groups, mirrors, reposts, and repeated results before collection.
-3. For public channels with a username, inspect browser-visible `https://t.me/s/<username>` feeds and preserve post URLs, dates, channel identity, excerpts, and the observed collection boundary. For groups, inspect only browser-visible history.
-4. Expand candidates from observed public `t.me` links, forwards, mentions, and linked discussion groups. Re-run open-web discovery only when it addresses an identified coverage gap.
-5. Store collected public material with `source_scope: public_web`, separate from `my_export`, and recheck saved candidates rather than restarting discovery.
-
-Do not treat this as a complete Telegram index. Public-preview availability, web indexing, deletion, language, and source discovery limit coverage; record those limits.
-
-For the user's own requested chat or channel history, use `telegram-export-analysis` on an official Telegram Desktop JSON export of the exact requested chats. Report an unavailable private chat or channel as an access limitation.
+Read [telegram.md](telegram.md); for comments, use [telegram-discussions.md](telegram-discussions.md).
 
 ## YouTube
 
@@ -30,23 +14,7 @@ Consider TranscriptAPI for structured video or channel search, within-channel se
 
 ## Instagram
 
-For discovery, use the relevant permitted public route. Search available account, hashtag, or place surfaces with task-relevant product, style, and location terms, then inspect the resulting posts and Reels. Bounded open-web discovery can supply additional leads.
-
-Expand from supplied or discovered posts and Reels through visible authors, credited makers, hashtags, linked portfolios, and related work. Repeat this expansion from newly found relevant accounts and tags, checking their actual media against the task's criteria. Track already inspected accounts, tags, and posts; follow new branches that improve relevance or address a coverage gap, under the stopping conditions in [research-protocol.md](research-protocol.md).
-
-For captions and metadata from known public post or Reel URLs, use an installed Instaloader only under the Local public social extraction contract; read [instagram-instaloader.md](instagram-instaloader.md). Use `video-transcript-downloader` only for a supported video URL, not as a profile or comment search engine.
-
-For a public Instagram Reel video, read the original caption and hashtags, then use the available download or the ordinary [SaveClip](https://saveclip.app/ru9/instagram-reels-video-download) form under the Public media downloader contract. Preserve the canonical Reel URL rather than a temporary media/CDN URL. Verify that the downloaded file decodes as video and matches the original Reel; a success label or an HTML error page with an `.mp4` extension does not confirm a download.
-
-For photos from a public Instagram post or carousel, use the ordinary [SaveClip photo form](https://saveclip.app/ru9/instagram-photo-download) under the same Public media downloader contract. Submit the canonical post URL, choose the highest-resolution image offered by SaveClip, and download each requested image. Preserve the post URL and each image's original carousel position. Compare coverage with the source when visible and report missing or unverifiable items; photos alone do not establish complete coverage of a mixed photo/video carousel. Open the downloaded files to verify that they decode as images and match the post. When a caption or metadata tool omits requested images, use this separate media-download route.
-
-For public current Stories or saved Highlights, use the ordinary [Story Save](https://story-save.com/ru) form under the Public media downloader contract. Enter the public username, verify the returned account, select Stories or Highlights, and open the requested folders. Follow the offered photo/video download links. If browser asset export is unavailable, use a permitted download method for a link actually observed in the page; verify the downloaded media as required by the contract.
-
-Preserve the canonical Instagram profile or Highlight URL, observed Highlight/story IDs, each item's position, the displayed relative date and retrieval time; retain Story Save as the retrieval provider. Keep relative dates as displayed rather than inventing exact publication or shooting dates. Apply the research protocol's coverage accounting separately to the folder catalog, returned items, saved files and inspected photos/video frames. Deduplicate by observed IDs or file hashes while retaining each folder context. A listed Highlight is not evidence that its contents were retrieved or inspected; saved Highlights do not provide arbitrary expired, unsaved Stories or a private archive.
-
-Capability check, 2026-11-22: the public form returned photos and videos from current Stories and selected Highlights without credentials or payment. Recheck the needed capability on use; this observation does not guarantee continued availability, pricing or archive completeness.
-
-For structured public profiles, posts, Reels, or comments, consider the Apify collection contract and [apify-social.md](apify-social.md). Instagram profile/hashtag/place discovery is not global full-text post search. Preserve carousel children and distinguish post captions from spoken words, comment counts from collected comments, and a partial view from complete history.
+Read [instagram.md](instagram.md).
 
 ## Threads
 
