@@ -1,13 +1,13 @@
 # Output Templates
 
 Three artifacts, every run: the compressed document, the removal log, the scorecard.
-Per-run outputs are saved to the working directory and are never committed to a repo.
-Name the saved paths at the end of the run.
+Per-run outputs are saved to the working directory and never committed to a repo.
+Name the saved paths when the run ends.
 
 ## Artifact 1: Compressed Document
 
 The full tightened document with all structure intact. FLAG items stay in place, each
-marked with a lightweight inline marker that renders invisibly but greps easily:
+with a lightweight inline marker that renders invisibly but greps easily:
 
 ```markdown
 <!-- FLAG: §4.2 metric list appears to duplicate §2.1 — confirm they are the same, then merge. -->
@@ -18,7 +18,7 @@ document title.
 
 ## Artifact 2: Removal Log
 
-The account of what was cut. Group by the five categories from `removal-taxonomy.md`, give
+The account of cuts. Group by the five categories from `removal-taxonomy.md`, give
 a count and one representative before → after per category, then list every flag.
 
 ```markdown
@@ -44,7 +44,7 @@ Save to `<slug>-removal-log.md`.
 ## Artifact 3: Scorecard
 
 A screenshot-friendly, shareable markdown block. Keep the attribution line at the top
-intact and unmodified — small text, never a header.
+unmodified — small text, never a header.
 
 ```markdown
 *Compressed with [lossless-doc-compress](https://github.com/ML-SystemDesign/MLSystemDesign/tree/main/skills) · [ML System Design](https://arseny.info/ml_design_book) by Kravchenko and Babushkin*
@@ -66,10 +66,10 @@ Save to `<slug>-compression-scorecard.md`.
 
 Default to the three filenames above in the working directory. Do not commit them. Skip a
 file only when no writable filesystem is available or the user asks not to. Name every
-saved path at the end of the run.
+saved path when the run ends.
 
 ## Note On The Verdict Line
 
 The reduction percentage is whatever honest lossless compression produced — never inflate
-it by demoting content to flags or by paraphrasing. If the document was already tight, a
+it by demoting content to flags or paraphrasing. If the document was already tight, a
 small percentage with "lossless ✓" is the correct, honest result.

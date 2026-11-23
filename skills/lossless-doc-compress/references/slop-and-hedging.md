@@ -1,7 +1,7 @@
 # Slop And Hedging Patterns
 
 Concrete patterns with before → after rewrites. Each rewrite preserves all information;
-if a rewrite would lose any, it belongs as a FLAG instead (see `fidelity-rules.md`).
+if a rewrite would lose any, FLAG it instead (see `fidelity-rules.md`).
 
 ## Filler And Empty Transitions
 
@@ -19,7 +19,7 @@ if a rewrite would lose any, it belongs as a FLAG instead (see `fidelity-rules.m
 - "We arguably need a fallback." → "We need a fallback." (If the doubt is real, keep it as
   a stated uncertainty instead — see counter-examples.)
 - "It seems that throughput drops under load." → "Throughput drops under load." (Only if
-  the doc asserts it as fact elsewhere; if it is genuinely tentative, KEEP the hedge.)
+  the doc asserts it as fact elsewhere; if genuinely tentative, KEEP the hedge.)
 
 ## LLM Slop
 

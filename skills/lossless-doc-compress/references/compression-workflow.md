@@ -1,20 +1,20 @@
 # Compression Workflow
 
-The procedure. Follow it in order; the guarantee in `fidelity-rules.md` governs every
+Follow this procedure in order; the guarantee in `fidelity-rules.md` governs every
 step.
 
 ## 1. Establish The Baseline
 
 - Read the whole document first. Do not compress section-by-section blind — later
-  sections tell you whether an earlier passage is a genuine restatement or a distinct
+  sections show whether an earlier passage is a genuine restatement or a distinct
   point.
 - Measure the starting word count. Use one consistent method (whitespace-separated tokens
-  of the prose body, excluding code blocks and tables) and use the *same* method for the
+  of the prose body, excluding code blocks and tables) and the *same* method for the
   final count so the reduction figure is honest.
 
 ## 2. Classify Every Span
 
-Walk the document. For each sentence or clause, assign one fate (see `fidelity-rules.md`):
+For each sentence or clause, assign one fate (see `fidelity-rules.md`):
 
 - KEEP if it carries any information — always the default.
 - REMOVE only if it matches a category in `removal-taxonomy.md` and carries no
@@ -23,7 +23,7 @@ Walk the document. For each sentence or clause, assign one fate (see `fidelity-r
   tangent, a rewrite that would be *almost* but not exactly equivalent.
 
 When unsure between REMOVE and FLAG, choose FLAG. When unsure between KEEP and FLAG,
-choose KEEP (leave it, don't even flag) unless there is a concrete reason to raise it.
+choose KEEP (leave it, don't flag) unless there is a concrete reason to raise it.
 
 ## 3. Apply
 
@@ -35,9 +35,9 @@ choose KEEP (leave it, don't even flag) unless there is a concrete reason to rai
 
 ## 4. Confirm Losslessness (Self-Check)
 
-Before producing output, verify:
+Before output, verify:
 
-- Every sacred item (see the Never Remove list in `removal-taxonomy.md`) present in the source is present in the compressed doc.
+- Every sacred item (see the Never Remove list in `removal-taxonomy.md`) in the source is in the compressed doc.
 - The word-count delta is fully explained by the removal log: `before − after`
   approximately equals the words accounted for across the logged categories.
 - No REMOVE was applied to a span that could plausibly carry information (zero contract
@@ -49,9 +49,9 @@ not yet lossless.
 ## 5. When To Stop
 
 Stop when no span remains that is provably pure redundancy. Do not keep squeezing by
-paraphrasing or by demoting KEEP content to hit a target percentage — the reduction is
-whatever honest lossless compression yields, not a quota. A document that is already
-tight yields a small percentage, and that is a correct result.
+paraphrasing or demoting KEEP content to hit a target percentage — the reduction is
+whatever honest lossless compression yields, not a quota. An already tight document
+yields a small percentage, a correct result.
 
 ## 6. Produce The Three Artifacts
 
