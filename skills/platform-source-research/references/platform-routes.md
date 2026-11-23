@@ -4,7 +4,9 @@ Read only the section for the selected platform. This file selects and sequences
 
 ## Telegram
 
-For a specific public post or public channel, use the public Telegram page with an approved browser route first. For recurring public-source collection, preserve the public URL, collection time, and access limitation in task-local artifacts.
+To read channel posts or a public channel feed, use the public Telegram page with an approved browser route first. For recurring public-source collection, preserve the public URL, collection time, and access limitation in task-local artifacts.
+
+For comments under a public channel post, use the official public discussion widget as described in [telegram-discussions.md](telegram-discussions.md). A post preview, group landing card or displayed comment count is not a retrieved discussion. Collect actual message records, explicit reply links and snapshot coverage; the reference includes an offline parser for saved HTML.
 
 For an attachment of a public Telegram post, use the post's available direct download or the ordinary [TelegramDownloader](https://telegramdownloader.net/ru/) form under the Public media downloader contract: submit the exact post URL, follow the generated download link and the site's normal screen/timer, then use the visible final file button. Verify that the file opens in its expected format and matches the original post. Preserve the canonical post URL. A `?comment=...` URL identifies a discussion comment; a file from the channel post does not establish that the comment's attachment was retrieved.
 
@@ -81,3 +83,4 @@ For individual public pages, profiles, companies, or jobs, use the existing user
 ## Handoff To Analysis
 
 For requested findings rather than raw sources, pass the collected bundle to `deep-research` or the relevant domain skill. The analysis must cite platform URLs and distinguish direct evidence from inference.
+
